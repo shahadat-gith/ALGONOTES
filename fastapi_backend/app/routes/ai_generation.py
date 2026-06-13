@@ -19,13 +19,15 @@ router = APIRouter(prefix="/ai", tags=["AI Note Generation Stream"])
 
 
 # --- ASYNC BACKGROUND WORKER ---
-async def call_gemini_and_save_task(problem_id: int, user_id: int, prompt: str, was_new_note: bool, original_status: str = "draft"):
+async def call_gemini_and_save_task(problem_id: int, user_id: int, prompt: str):
     """
     Runs in an isolated async context. Awaits Gemini's generation, 
-    parses the content, and updates the database record. Cleans up cleanly on failure.
+    parses the content, and updates the database record. 
+    Completely deletes the record if the generation process crashes.
     """
     async with async_session_maker() as session:
         try:
+            # 1. Dispatch the asynchronous request to the Gemini API
             response = await ai_client.aio.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt,
@@ -36,20 +38,24 @@ async def call_gemini_and_save_task(problem_id: int, user_id: int, prompt: str, 
 
             note_data = json.loads(response.text) if response.text else {}
             
+            # 2. Re-fetch the lock/placeholder note record inside this transaction context
             statement = select(Note).where(Note.problem_id == problem_id, Note.user_id == user_id)
             result = await session.execute(statement)
             note = result.scalar_one_or_none()
 
             if note:
+                # Map structured data arrays safely
                 note.bruteForce = note_data.get("bruteForce", [])
                 note.optimalApproach = note_data.get("optimalApproach", [])
                 note.algorithm = note_data.get("algorithm", [])
                 note.dryRun = note_data.get("dryRun", [])
                 note.edgeCases = note_data.get("edgeCases", [])
                 
+                # Flip state flag to unlock the frontend polling screen barrier
                 note.status = "draft" 
                 note.lastEditedAt = datetime.now(timezone.utc)
 
+                # Force dirty-state flags since SQLAlchemy cannot natively track JSON mutation changes
                 flag_modified(note, "bruteForce")
                 flag_modified(note, "optimalApproach")
                 flag_modified(note, "algorithm")
@@ -62,26 +68,21 @@ async def call_gemini_and_save_task(problem_id: int, user_id: int, prompt: str, 
         except Exception as e:
             print(f"Background AI generation failed for problem {problem_id}: {str(e)}")
             
-            # 💡 THE FIX: Dynamic Database Cleanup / Rollback on Error
+            # 💡 CLEANUP IN CASE OF FAILURE: Purge the temporary shell record completely
             try:
                 statement = select(Note).where(Note.problem_id == problem_id, Note.user_id == user_id)
                 result = await session.execute(statement)
                 note = result.scalar_one_or_none()
                 
                 if note:
-                    if was_new_note:
-                        # If it was a brand new note shell, delete it completely so no junk entries remain
-                        await session.delete(note)
-                        print(f"Cleaned up temporary note record for problem {problem_id}")
-                    else:
-                        # If it was an existing note, restore its previous successful state
-                        note.status = original_status
-                        session.add(note)
-                        print(f"Rolled back note record status to '{original_status}' for problem {problem_id}")
-                    
+                    await session.delete(note)
                     await session.commit()
+                    print(f"Successfully purged invalid placeholder record for problem {problem_id}")
             except Exception as db_err:
-                print(f"Failed to execute failure recovery transaction: {str(db_err)}")
+                print(f"Failed to execute critical failure recovery deletion: {str(db_err)}")
+
+
+
 
 
 # --- INTERACTIVE ROUTES ---
@@ -92,11 +93,7 @@ async def generate_ai_note(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session)
 ):
-    """
-    Smart unified endpoint. Handles initial generation and regenerations smoothly,
-    tracking previous states to support structural rollbacks on background failures.
-    """
-    # 1. Verify problem presence
+    # 1. Verify that the target problem exists and belongs to the authenticated user
     statement = select(Problem).where(
         Problem.id == problem_id,
         Problem.user_id == current_user.id
@@ -110,50 +107,50 @@ async def generate_ai_note(
             detail="Problem reference not found."
         )
 
-    # 2. Check if a note already exists
+    # 2. Strict Duplicate Prevention: Block execution if notes already exist for this problem
     note_statement = select(Note).where(Note.problem_id == problem_id, Note.user_id == current_user.id)
     note_result = await session.execute(note_statement)
-    note = note_result.scalar_one_or_none()
+    existing_note = note_result.scalar_one_or_none()
 
-    was_new_note = note is None
-    original_status = "draft" if was_new_note else note.status
-
-    if was_new_note:
-        # Create temporary processing shell
-        note = Note(
-            problem_id=problem_id,
-            user_id=current_user.id,
-            status="processing",
-            bruteForce=[],
-            optimalApproach=[],
-            algorithm=[],
-            dryRun=[],
-            edgeCases=[]
+    if existing_note:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Notes have already been generated for this problem. Multiple generations are restricted."
         )
-    else:
-        # Set existing note back to processing state
-        note.status = "processing"
 
-    session.add(note)
+    # 3. Create a clean temporary processing shell record in the database
+    # This acts as an API barrier and sets the state for your frontend polling hook
+    new_note = Note(
+        problem_id=problem_id,
+        user_id=current_user.id,
+        status="processing",
+        bruteForce=[],
+        optimalApproach=[],
+        algorithm=[],
+        dryRun=[],
+        edgeCases=[]
+    )
+
+    session.add(new_note)
     await session.commit()
-    await session.refresh(note)
+    await session.refresh(new_note)
 
+    # 4. Generate the payload prompt context
     prompt = generate_note_prompt(problem)
 
-    # 3. Offload task with tracking flags
+    # 5. Offload task to run safely outside the HTTP response thread lifecycle
     asyncio.create_task(
         call_gemini_and_save_task(
-            problem_id,
-            current_user.id,
-            prompt,
-            was_new_note=was_new_note,
-            original_status=original_status
+            problem_id=problem_id,
+            user_id=current_user.id,
+            prompt=prompt
         )
     )
 
+    # 6. Hand over control back to React instantly (Takes ~15ms)
     return {
         "success": True,
-        "message": "AI assistant is now writing your notes in the background.",
+        "message": "AI assistant is now writing your study notes in the background.",
         "status": "processing"
     }
 
@@ -174,7 +171,8 @@ async def check_note_generation_status(
     result = await session.execute(statement)
     note = result.scalar_one_or_none()
 
-    # If row was deleted due to background failure, notify frontend smoothly
+    # If the row doesn't exist (or was deleted by the background catch block on failure),
+    # tell the frontend smoothly that nothing is active.
     if not note:
         return {
             "success": True,
@@ -184,7 +182,7 @@ async def check_note_generation_status(
 
     return {
         "success": True,
-        "status": note.status,  # "processing", "draft", or "failed"
+        "status": note.status,  # Will evaluate as "processing" or "draft"
         "draft": {
             "problem_id": problem_id,
             "user_id": current_user.id,

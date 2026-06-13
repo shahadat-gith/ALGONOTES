@@ -8,7 +8,7 @@ import NoteAlgorithmEditor from "../../components/notes/editor/NoteAlgorithmEdit
 import NoteDryRunEditor from "../../components/notes/editor/NoteDryRunEditor";
 import NoteEdgeCaseEditor from "../../components/notes/editor/NoteEdgeCaseEditor";
 
-import { Save, Check, ArrowLeft, Loader2 } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const EditNotes = () => {
@@ -19,6 +19,7 @@ const EditNotes = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Schema-aligned structural data layout
   const [noteData, setNoteData] = useState({
     bruteForce: [],
     optimalApproach: [],
@@ -28,15 +29,20 @@ const EditNotes = () => {
   });
 
   useEffect(() => {
+    // 1. Optimistic fallback load: if coming directly from the GenerateNotes workspace route, use the state payload
     if (location.state?.draftData) {
       setNoteData(location.state.draftData);
       setLoading(false);
       return;
     }
+    
+    // 2. Network recovery load: if the user deep-linked directly to this page, recover layout states via API
     const loadNoteSheet = async () => {
       try {
         const response = await getNoteByProblem(problemId);
-        if (response.success && response.note) setNoteData(response.note);
+        if (response.success && response.note) {
+          setNoteData(response.note);
+        }
       } catch (err) {
         toast.error("Failed to recover saved study blocks.");
       } finally {
@@ -57,8 +63,8 @@ const EditNotes = () => {
     const newBlock = {
       type,
       order: current.length + 1,
-      text: type !== "code" ? "" : "",
-      code: type === "code" ? "" : "",
+      text: "",
+      code: "",
     };
     setNoteData((prev) => ({ ...prev, [section]: [...current, newBlock] }));
   };
@@ -91,62 +97,54 @@ const EditNotes = () => {
     const filtered = noteData[section].filter((_, i) => i !== index);
     const reindexed = filtered.map((item, idx) => ({
       ...item,
-      [section === "algorithm" || section === "dryRun" ? "stepNo" : "order"]:
-        idx + 1,
+      [section === "algorithm" || section === "dryRun" ? "stepNo" : "order"]: idx + 1,
     }));
     setNoteData((prev) => ({ ...prev, [section]: reindexed }));
   };
 
-
-  const handleCommitSave = async (targetStatus = "draft") => {
+  const handleSave = async () => {
     setSaving(true);
     try {
       const response = await saveNote({
         ...noteData,
         problem: problemId,
-        status: targetStatus,
+        status: "final",
       });
+      
       if (response.success) {
-        toast.success(`Note saved as ${targetStatus}!`);
+        toast.success("Note finalized successfully!");
         navigate(`/notes/${problemId}/view`);
       }
     } catch (err) {
-      toast.error("Failed to submit notebooks layout mutations.");
+      toast.error("Failed to save notebook mutations.");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-[var(--primary)]">
         <Loader2 className="animate-spin mb-2" size={32} />
       </div>
     );
+  }
 
   return (
     <div className="min-h-screen bg-[var(--bg-base)] p-4 sm:p-6 lg:p-8 animate-fade-in space-y-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between flex-wrap gap-4 border-b pb-4">
-       
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => handleCommitSave("draft")}
-            loading={saving}
-            className="bg-white"
-          >
-            <Save size={15} /> Save Draft
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => handleCommitSave("final")}
-            loading={saving}
-          >
-            <Check size={15} /> Finalize Note
-          </Button>
-        </div>
+      
+      {/* Top Action Header Bar */}
+      <div className="flex items-center justify-end flex-wrap gap-4 border-b pb-4">
+        <Button
+          variant="primary"
+          onClick={handleSave}
+          loading={saving}
+        >
+          <Check size={15} /> Finalize Note
+        </Button>
       </div>
 
+      {/* Editor Block Form Core Inputs */}
       <NoteTextBlockEditor
         sectionKey="bruteForce"
         title="1. Brute Force"
@@ -155,6 +153,7 @@ const EditNotes = () => {
         onAdd={handleAddContentBlock}
         onDelete={handleDeleteRow}
       />
+      
       <NoteTextBlockEditor
         sectionKey="optimalApproach"
         title="2. Optimal Approach"
@@ -163,18 +162,21 @@ const EditNotes = () => {
         onAdd={handleAddContentBlock}
         onDelete={handleDeleteRow}
       />
+      
       <NoteAlgorithmEditor
         steps={noteData.algorithm}
         onUpdate={handleUpdateField}
         onAdd={handleAddAlgorithmStep}
         onDelete={handleDeleteRow}
       />
+      
       <NoteDryRunEditor
         rows={noteData.dryRun}
         onUpdate={handleUpdateField}
         onAdd={handleAddDryRunStep}
         onDelete={handleDeleteRow}
       />
+      
       <NoteEdgeCaseEditor
         cases={noteData.edgeCases}
         onUpdate={handleUpdateField}
