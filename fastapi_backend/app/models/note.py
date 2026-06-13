@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship, Column
-from sqlalchemy import DateTime, Column as SqlAlchemyColumn  # 👈 Added DateTime import
+from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy import DateTime, Column as SqlAlchemyColumn
 from sqlalchemy.dialects.postgresql import JSONB
 
 if TYPE_CHECKING:
@@ -12,57 +12,59 @@ class Note(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
 
-    bruteForce: List[Dict[str, Any]] = Field(
+    bruteForce: Optional[List[Dict[str, Any]]] = Field(
         default_factory=list,
-        sa_column=SqlAlchemyColumn(JSONB)
+        sa_column=SqlAlchemyColumn(JSONB, nullable=False, server_default="[]")
     )
 
-    optimalApproach: List[Dict[str, Any]] = Field(
+    optimalApproach: Optional[List[Dict[str, Any]]] = Field(
         default_factory=list,
-        sa_column=SqlAlchemyColumn(JSONB)
+        sa_column=SqlAlchemyColumn(JSONB, nullable=False, server_default="[]")
     )
 
-    algorithm: List[Dict[str, Any]] = Field(
+    algorithm: Optional[List[Dict[str, Any]]] = Field(
         default_factory=list,
-        sa_column=SqlAlchemyColumn(JSONB)
+        sa_column=SqlAlchemyColumn(JSONB, nullable=False, server_default="[]")
     )
 
-    dryRun: List[Dict[str, Any]] = Field(
+    dryRun: Optional[List[Dict[str, Any]]] = Field(
         default_factory=list,
-        sa_column=SqlAlchemyColumn(JSONB)
+        sa_column=SqlAlchemyColumn(JSONB, nullable=False, server_default="[]")
     )
 
-    edgeCases: List[Dict[str, Any]] = Field(
+    edgeCases: Optional[List[Dict[str, Any]]] = Field(
         default_factory=list,
-        sa_column=SqlAlchemyColumn(JSONB)
+        sa_column=SqlAlchemyColumn(JSONB, nullable=False, server_default="[]")
     )
 
+  
     status: str = Field(
-        default="draft",
+        default="processing",
         index=True
     )
 
-    # 1. Added explicit timezone-aware type tracking
     lastEditedAt: Optional[datetime] = Field(
         default=None,
         sa_type=DateTime(timezone=True)
     )
 
-    # 2. Modernized default factory and added timezone support
     createdAt: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         sa_type=DateTime(timezone=True)
     )
 
+  
     problem_id: int = Field(
         foreign_key="problems.id",
         ondelete="CASCADE",
-        unique=True
+        unique=True,
+        index=True 
     )
 
     user_id: int = Field(
         foreign_key="users.id",
-        ondelete="CASCADE"
+        ondelete="CASCADE",
+        index=True  
     )
 
     problem: "Problem" = Relationship(

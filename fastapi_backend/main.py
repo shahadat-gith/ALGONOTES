@@ -7,7 +7,13 @@ from mangum import Mangum
 from app.config import settings
 from app.database import init_db
 from app.middlewares import register_error_handlers
-from app.routes import auth_router, user_router, problem_router, note_router
+from app.routes import (
+    auth_router, 
+    user_router, 
+    problem_router, 
+    note_router, 
+    ai_generation_router,  # 👈 Added Gemini router import
+)
 
 
 @asynccontextmanager
@@ -41,13 +47,15 @@ app.add_middleware(
 )
 
 
+# Core Application Routing Hub
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
 app.include_router(problem_router, prefix="/api/v1")
 app.include_router(note_router, prefix="/api/v1")
+app.include_router(ai_generation_router, prefix="/api/v1")
 
 
-@app.get("/health", tags=["System Verification Gateway"])
+@app.get("/", tags=["System Verification Gateway"])
 async def system_health_status():
     return {
         "status": "operational",

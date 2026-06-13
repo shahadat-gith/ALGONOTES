@@ -36,4 +36,4 @@ class SaveNoteRequest(BaseModel):
     algorithm: List[AlgorithmStepSchema] = Field(default_factory=list)
     dryRun: List[DryRunStepSchema] = Field(default_factory=list)
     edgeCases: List[EdgeCaseSchema] = Field(default_factory=list)
-    status: Optional[Literal["draft", "final"]] = "draft"
+    status: Optional[Literal["processing", "draft", "final", "failed"]] = "draft"

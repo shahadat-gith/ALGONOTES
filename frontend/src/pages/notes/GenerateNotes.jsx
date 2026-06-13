@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { generateAiNote } from "../../api/noteApi";
+import { generateAiNote, checkNoteStatus } from "../../api/geminiApi"; 
+
 import { Sparkles, Loader2, Terminal, Cpu, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -16,34 +17,20 @@ const GenerateNotes = () => {
   const [progress, setProgress] = useState(0);
 
   const alreadyStarted = useRef(false);
-  const timers = useRef([]);
+  const pollIntervalId = useRef(null);
 
-  const steps = [
-    {
-      text: "Starting up the AI assistant and getting the workspace ready...",
-      percent: 15,
-    },
-    {
-      text: "Reading through your code to understand how your solution works...",
-      percent: 32,
-    },
-    {
-      text: "Writing down the basic, step-by-step explanation for this problem...",
-      percent: 48,
-    },
-    {
-      text: "Looking for ways to optimize and make the solution more efficient...",
-      percent: 64,
-    },
-    {
-      text: "Creating an easy-to-follow table to track exactly how the code runs...",
-      percent: 81,
-    },
-    {
-      text: "Checking for tricky situations, double-checking the notes, and saving...",
-      percent: 95,
-    },
-  ];
+  // Dynamic status messages tied to polling progress milestones
+  const updateProgressUi = (currentProgress) => {
+    if (currentProgress < 25) {
+      setMessage("Starting up the AI assistant and getting the workspace ready...");
+    } else if (currentProgress < 50) {
+      setMessage("Reading through your code to understand how your solution works...");
+    } else if (currentProgress < 75) {
+      setMessage("Writing down the basic, step-by-step explanation for this problem...");
+    } else if (currentProgress < 95) {
+      setMessage("Creating an easy-to-follow table to track exactly how the code runs...");
+    }
+  };
 
   useEffect(() => {
     if (!problem) {
@@ -51,8 +38,9 @@ const GenerateNotes = () => {
       navigate("/problems", { replace: true });
     }
 
+    // Safely clear intervals on unmount to prevent component leak errors
     return () => {
-      timers.current.forEach((timer) => clearTimeout(timer));
+      if (pollIntervalId.current) clearInterval(pollIntervalId.current);
     };
   }, [problem, navigate]);
 
@@ -61,35 +49,66 @@ const GenerateNotes = () => {
 
     alreadyStarted.current = true;
     setNoteStarted(true);
-    setMessage("Starting up the AI assistant and getting the workspace ready...");
-    setProgress(10);
-
-    steps.forEach((step, index) => {
-      const timer = setTimeout(() => {
-        setMessage(step.text);
-        setProgress(step.percent);
-      }, (index + 1) * 1600);
-
-      timers.current.push(timer);
-    });
+    setProgress(5);
+    setMessage("Connecting to AI engine pipeline...");
 
     try {
+      // 1. Fire off the background start signal (returns instantly)
       const data = await generateAiNote(id);
 
       if (data.success) {
-        setProgress(100);
-        setMessage("All done! Saving your new notes now...");
+        setProgress(15);
+        setMessage("Starting up the AI assistant and getting the workspace ready...");
 
-        toast.success("AI notes generated successfully!");
+        // 2. Begin Polling the backend status route every 3 seconds
+        pollIntervalId.current = setInterval(async () => {
+          try {
+            const statusData = await checkNoteStatus(id);
 
-        navigate(`/notes/${id}/edit`, {
-          replace: true,
-          state: { draftData: data.draft },
-        });
+            if (statusData.status === "draft") {
+              // Generation Complete!
+              clearInterval(pollIntervalId.current);
+              setProgress(100);
+              setMessage("All done! Saving your new notes now...");
+              toast.success("AI notes generated successfully!");
+
+              // Delay redirect slightly so the user registers the 100% complete state
+              setTimeout(() => {
+                navigate(`/notes/${id}/edit`, {
+                  replace: true,
+                  state: { draftData: statusData.draft },
+                });
+              }, 800);
+
+            } else if (statusData.status === "failed") {
+              // Generation Failed internally on Backend
+              clearInterval(pollIntervalId.current);
+              setNoteStarted(false);
+              alreadyStarted.current = false;
+              setProgress(0);
+              setMessage("Ready to start making your notes.");
+              toast.error("The AI assistant hit a bump writing this note. Please try again.");
+
+            } else {
+              // Still Processing -> Tick the progress bar forward incrementally
+              setProgress((oldProgress) => {
+                const nextProgress = oldProgress < 90 ? oldProgress + 4 : oldProgress;
+                updateProgressUi(nextProgress);
+                return nextProgress;
+              });
+            }
+          } catch (pollErr) {
+            // Suppress minor network check blips but keep the thread alive
+            console.error("Status polling check failed:", pollErr);
+          }
+        }, 3000);
       }
     } catch (err) {
-      toast.error("Something went wrong while generating notes.");
-      navigate(`/problems/${id}`, { replace: true });
+      toast.error("Could not start note generation. Please try again.");
+      setNoteStarted(false);
+      alreadyStarted.current = false;
+      setProgress(0);
+      setMessage("Ready to start making your notes.");
     }
   };
 
@@ -139,6 +158,13 @@ const GenerateNotes = () => {
                 {problem?.title}
               </h1>
             </div>
+
+            <div className="flex flex-col sm:items-end gap-1 text-[11px] text-neutral-400">
+              <span className="text-neutral-500 uppercase tracking-wider font-bold text-[10px]">Problem ID</span>
+              <span className="bg-[#181825] border border-neutral-800 px-2 py-0.5 rounded text-neutral-300 font-mono text-xs font-semibold">
+                {id?.slice(0, 8) || id}
+              </span>
+            </div>
           </div>
 
           {/* Progress Status Message Box */}
@@ -172,8 +198,6 @@ const GenerateNotes = () => {
           </div>
 
           {/* Progress Bar & Actions Footer */}
-
-   
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
             
             {/* Simple Progress Bar */}

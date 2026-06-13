@@ -3,7 +3,7 @@ import axios from "axios";
 const backendUrl = import.meta.env.VITE_ENVIRONMENT === "development" ? import.meta.env.VITE_BACKEND_URL_DEV : import.meta.env.VITE_BACKEND_URL
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api/v1",
+  baseURL: backendUrl
 });
 
 axiosInstance.interceptors.request.use(

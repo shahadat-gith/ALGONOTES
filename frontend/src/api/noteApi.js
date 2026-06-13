@@ -1,15 +1,5 @@
 import axiosInstance from "./axiosInstance";
 
-export const generateAiNote = async (problemId) => {
-  const { data } = await axiosInstance.post(`/notes/generate/${problemId}`);
-  return data;
-};
-
-export const regenerateAiNote = async (problemId) => {
-  const { data } = await axiosInstance.post(`/notes/regenerate/${problemId}`);
-  return data;
-};
-
 export const saveNote = async (payload) => {
   const { data } = await axiosInstance.post("/notes/save", payload);
   return data;
@@ -21,7 +11,7 @@ export const getNoteByProblem = async (problemId) => {
 };
 
 export const getNoteById = async (noteId) => {
-  const { data } = await axiosInstance.get(`/notes/${noteId}`);
+  const { data } = await axiosInstance.get(`/notes/id/${noteId}`);
   return data;
 };
 
