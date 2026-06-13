@@ -154,7 +154,7 @@ const EditNotes = () => {
 
       <NoteTextBlockEditor
         sectionKey="bruteForce"
-        title="1. Brute Force Strategy Layout"
+        title="1. Brute Force"
         blocks={noteData.bruteForce}
         onUpdate={handleUpdateField}
         onAdd={handleAddContentBlock}
@@ -162,7 +162,7 @@ const EditNotes = () => {
       />
       <NoteTextBlockEditor
         sectionKey="optimalApproach"
-        title="2. Optimal Approach Strategy Layout"
+        title="2. Optimal Approach"
         blocks={noteData.optimalApproach}
         onUpdate={handleUpdateField}
         onAdd={handleAddContentBlock}

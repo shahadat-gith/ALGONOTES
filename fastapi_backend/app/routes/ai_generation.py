@@ -19,12 +19,11 @@ router = APIRouter(prefix="/ai", tags=["AI Note Generation Stream"])
 
 
 # --- ASYNC BACKGROUND WORKER ---
-async def call_gemini_and_save_task(problem_id: int, user_id: int, prompt: str):
+async def call_gemini_and_save_task(problem_id: int, user_id: int, prompt: str, was_new_note: bool, original_status: str = "draft"):
     """
-    Runs completely in an isolated async context. Awaits Gemini's generation, 
-    parses the content, and updates the database record when complete.
+    Runs in an isolated async context. Awaits Gemini's generation, 
+    parses the content, and updates the database record. Cleans up cleanly on failure.
     """
-  
     async with async_session_maker() as session:
         try:
             response = await ai_client.aio.models.generate_content(
@@ -63,17 +62,26 @@ async def call_gemini_and_save_task(problem_id: int, user_id: int, prompt: str):
         except Exception as e:
             print(f"Background AI generation failed for problem {problem_id}: {str(e)}")
             
-           
+            # 💡 THE FIX: Dynamic Database Cleanup / Rollback on Error
             try:
                 statement = select(Note).where(Note.problem_id == problem_id, Note.user_id == user_id)
                 result = await session.execute(statement)
                 note = result.scalar_one_or_none()
+                
                 if note:
-                    note.status = "failed"
-                    session.add(note)
+                    if was_new_note:
+                        # If it was a brand new note shell, delete it completely so no junk entries remain
+                        await session.delete(note)
+                        print(f"Cleaned up temporary note record for problem {problem_id}")
+                    else:
+                        # If it was an existing note, restore its previous successful state
+                        note.status = original_status
+                        session.add(note)
+                        print(f"Rolled back note record status to '{original_status}' for problem {problem_id}")
+                    
                     await session.commit()
             except Exception as db_err:
-                print(f"Failed to commit crash state to database: {str(db_err)}")
+                print(f"Failed to execute failure recovery transaction: {str(db_err)}")
 
 
 # --- INTERACTIVE ROUTES ---
@@ -85,8 +93,10 @@ async def generate_ai_note(
     session: AsyncSession = Depends(get_session)
 ):
     """
-    Triggers the AI generation. Saves a quick placeholder and returns instantly.
+    Smart unified endpoint. Handles initial generation and regenerations smoothly,
+    tracking previous states to support structural rollbacks on background failures.
     """
+    # 1. Verify problem presence
     statement = select(Problem).where(
         Problem.id == problem_id,
         Problem.user_id == current_user.id
@@ -100,11 +110,16 @@ async def generate_ai_note(
             detail="Problem reference not found."
         )
 
+    # 2. Check if a note already exists
     note_statement = select(Note).where(Note.problem_id == problem_id, Note.user_id == current_user.id)
     note_result = await session.execute(note_statement)
     note = note_result.scalar_one_or_none()
 
-    if not note:
+    was_new_note = note is None
+    original_status = "draft" if was_new_note else note.status
+
+    if was_new_note:
+        # Create temporary processing shell
         note = Note(
             problem_id=problem_id,
             user_id=current_user.id,
@@ -116,6 +131,7 @@ async def generate_ai_note(
             edgeCases=[]
         )
     else:
+        # Set existing note back to processing state
         note.status = "processing"
 
     session.add(note)
@@ -124,12 +140,14 @@ async def generate_ai_note(
 
     prompt = generate_note_prompt(problem)
 
-    # 💡 CLEAN: No more parameter-passing for generator sessions. cleaner to run.
+    # 3. Offload task with tracking flags
     asyncio.create_task(
         call_gemini_and_save_task(
             problem_id,
             current_user.id,
-            prompt
+            prompt,
+            was_new_note=was_new_note,
+            original_status=original_status
         )
     )
 
@@ -156,6 +174,7 @@ async def check_note_generation_status(
     result = await session.execute(statement)
     note = result.scalar_one_or_none()
 
+    # If row was deleted due to background failure, notify frontend smoothly
     if not note:
         return {
             "success": True,
@@ -176,58 +195,4 @@ async def check_note_generation_status(
             "edgeCases": note.edgeCases,
             "status": note.status
         } if note.status == "draft" else None
-    }
-
-
-@router.post("/regenerate/{problem_id}")
-async def regenerate_ai_note(
-    problem_id: int,
-    current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
-):
-    """
-    Overwrites old notes with a fresh AI run in the background.
-    """
-    problem_stmt = select(Problem).where(
-        Problem.id == problem_id,
-        Problem.user_id == current_user.id
-    )
-    p_result = await session.execute(problem_stmt)
-    problem = p_result.scalar_one_or_none()
-
-    if not problem:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Problem entry reference not found."
-        )
-
-    note_stmt = select(Note).where(Note.problem_id == problem_id, Note.user_id == current_user.id)
-    n_result = await session.execute(note_stmt)
-    note = n_result.scalar_one_or_none()
-
-    if not note:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No existing note record found to update."
-        )
-
-    note.status = "processing"
-    session.add(note)
-    await session.commit()
-    await session.refresh(note)
-
-    update_prompt = generate_note_prompt(problem)
-    
-    asyncio.create_task(
-        call_gemini_and_save_task(
-            problem_id,
-            current_user.id,
-            update_prompt
-        )
-    )
-
-    return {
-        "success": True,
-        "message": "AI update sequence initialized in background successfully.",
-        "status": "processing"
     }

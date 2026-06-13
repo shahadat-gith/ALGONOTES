@@ -9,7 +9,7 @@ const NoteEdgeCaseEditor = ({ cases = [], onUpdate, onAdd, onDelete }) => {
         <div className="flex items-center gap-2">
           <AlertTriangle size={18} className="text-[var(--primary)]" />
           <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-main)]">
-            5.Boundary Edge Cases
+            5.Edge Cases
           </h3>
         </div>
         <button
