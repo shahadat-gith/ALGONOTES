@@ -1,175 +1,219 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { getProblemById } from "../../api/problemApi";
+import React, { useState, useRef, useEffect } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { generateAiNote } from "../../api/noteApi";
-import { Sparkles, Loader2, Terminal, ShieldCheck, Cpu } from "lucide-react";
+import { Sparkles, Loader2, Terminal, Cpu, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 
 const GenerateNotes = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
-  const [problem, setProblem] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [pipelineStarted, setPipelineStarted] = useState(false);
-  
-  // Custom states to handle the visual AI agent simulation messages
-  const [agentStatus, setAgentStatus] = useState("Getting things ready...");
-  const [progressPercentage, setProgressPercentage] = useState(5);
-  
-  // Ref tracking ensures the pipeline is only ever fired exactly once in StrictMode
-  const creationStartedRef = useRef(false);
+  const location = useLocation();
 
-  // Simulation Message Sequence Array - Rewritten in plain, simple language
-  const agentMessages = [
-    { text: "Starting up the AI assistant and preparing a safe workspace...", pct: 15 },
-    { text: "Reading through your code to understand how your solution works...", pct: 32 },
-    { text: "Writing down the basic, straightforward way to solve this problem...", pct: 48 },
-    { text: "Figuring out the most efficient, clever way to optimize the solution...", pct: 64 },
-    { text: "Creating a step-by-step example table to show exactly how the code runs...", pct: 81 },
-    { text: "Checking for tricky situations, double-checking the notes, and saving everything...", pct: 95 }
+  const problem = location?.state?.problem;
+
+  const [noteStarted, setNoteStarted] = useState(false);
+  const [message, setMessage] = useState("Ready to start making your notes.");
+  const [progress, setProgress] = useState(0);
+
+  const alreadyStarted = useRef(false);
+  const timers = useRef([]);
+
+  const steps = [
+    {
+      text: "Starting up the AI assistant and getting the workspace ready...",
+      percent: 15,
+    },
+    {
+      text: "Reading through your code to understand how your solution works...",
+      percent: 32,
+    },
+    {
+      text: "Writing down the basic, step-by-step explanation for this problem...",
+      percent: 48,
+    },
+    {
+      text: "Looking for ways to optimize and make the solution more efficient...",
+      percent: 64,
+    },
+    {
+      text: "Creating an easy-to-follow table to track exactly how the code runs...",
+      percent: 81,
+    },
+    {
+      text: "Checking for tricky situations, double-checking the notes, and saving...",
+      percent: 95,
+    },
   ];
 
-  // 1. Initial Data Fetch
   useEffect(() => {
-    const fetchContext = async () => {
-      try {
-        const response = await getProblemById(id);
-        if (response.success) {
-          setProblem(response.problem);
-          setLoading(false);
-        }
-      } catch (err) {
-        toast.error("Could not trace problem references.");
-        navigate("/problems");
-      }
+    if (!problem) {
+      toast.error("Problem details missing. Redirecting...");
+      navigate("/problems", { replace: true });
+    }
+
+    return () => {
+      timers.current.forEach((timer) => clearTimeout(timer));
     };
-    fetchContext();
-  }, [id, navigate]);
+  }, [problem, navigate]);
 
-  // 2. Automated AI Generation and Fake Agent Message Simulator Pipeline
-  useEffect(() => {
-    if (loading || !problem || creationStartedRef.current) return;
-    
-    creationStartedRef.current = true;
-    setPipelineStarted(true);
+  const startMakingNotes = async () => {
+    if (alreadyStarted.current) return;
 
-    let MessageTimers = [];
+    alreadyStarted.current = true;
+    setNoteStarted(true);
+    setMessage("Starting up the AI assistant and getting the workspace ready...");
+    setProgress(10);
 
-    // Schedule the rolling display logs at periodic structural milestones
-    agentMessages.forEach((msg, idx) => {
+    steps.forEach((step, index) => {
       const timer = setTimeout(() => {
-        setAgentStatus(msg.text);
-        setProgressPercentage(msg.pct);
-      }, (idx + 1) * 1800); // Transitions smoothly roughly every ~1.8 seconds
-      MessageTimers.push(timer);
+        setMessage(step.text);
+        setProgress(step.percent);
+      }, (index + 1) * 1600);
+
+      timers.current.push(timer);
     });
 
-    const triggerGenerationAPI = async () => {
-      try {
-        const data = await generateAiNote(id);
-        if (data.success) {
-          // Complete the visual track instantly before shifting viewports
-          setProgressPercentage(100);
-          setAgentStatus("All done! Saving your new study guide now...");
-          
-          toast.success("AI Synthesis complete!");
-          navigate(`/notes/${id}/edit`, { state: { draftData: data.draft } });
-        }
-      } catch (err) {
-        toast.error("Something went wrong while generating notes.");
-        navigate(`/problems/${id}`);
+    try {
+      const data = await generateAiNote(id);
+
+      if (data.success) {
+        setProgress(100);
+        setMessage("All done! Saving your new notes now...");
+
+        toast.success("AI notes generated successfully!");
+
+        navigate(`/notes/${id}/edit`, {
+          replace: true,
+          state: { draftData: data.draft },
+        });
       }
-    };
+    } catch (err) {
+      toast.error("Something went wrong while generating notes.");
+      navigate(`/problems/${id}`, { replace: true });
+    }
+  };
 
-    triggerGenerationAPI();
-
-    // Clear background interval timers gracefully if the page unmounts
-    return () => {
-      MessageTimers.forEach((timer) => clearTimeout(timer));
-    };
-  }, [loading, problem, id, navigate]);
-
-  if (loading) {
+  if (!problem) {
     return (
-      <div className="min-h-[50vh] flex flex-col items-center justify-center text-[var(--primary)] animate-pulse">
-        <Loader2 className="animate-spin mb-3" size={28} />
-        <span className="text-xs font-sans font-bold uppercase tracking-wider text-[var(--text-light)]">Opening your workspace...</span>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
+        <Loader2 className="animate-spin text-[var(--primary)]" size={24} />
+        <span className="text-xs font-medium tracking-wider text-neutral-500 uppercase">
+          Going back...
+        </span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] p-4 sm:p-6 lg:p-8 animate-fade-in space-y-6 max-w-7xl mx-auto">
-      
-      {/* Top Graphic Heading Status Indicator */}
-      <div className="text-center space-y-3">
-        <div className="h-14 w-14 rounded-2xl bg-[var(--primary-soft)] text-[var(--primary)] flex items-center justify-center mx-auto shadow-sm shadow-[var(--primary)]/10 animate-pulse relative">
-          <Sparkles size={24} className="animate-spin" style={{ animationDuration: '8s' }} />
-          <div className="absolute inset-0 rounded-2xl border border-[var(--primary)]/30 animate-ping opacity-40" />
-        </div>
+    <div className="min-h-screen bg-[var(--bg-base)] p-4 sm:p-6 lg:p-8 animate-fade-in max-w-4xl mx-auto flex flex-col justify-center space-y-4">
+
+      {/* MAIN UNIFIED MINIMAL TERMINAL CARD */}
+      <div className="bg-[#1e1e2e] border border-neutral-800 rounded-2xl shadow-xl overflow-hidden flex flex-col">
         
-        <div className="space-y-1">
-          <h1 className="text-xl font-bold text-[var(--text-main)] tracking-tight">Writing Your Study Notes</h1>
-          <p className="text-xs text-[var(--text-light)] font-sans">Problem: <span className="font-semibold text-[var(--text-muted)]">{problem?.title}</span></p>
-        </div>
-      </div>
-
-      {/* Progress Metric Status bar Layout Component */}
-      <div className="space-y-2">
-        <div className="flex justify-between items-center text-xs font-sans font-bold text-[var(--text-light)] px-1">
-          <span className="text-[var(--primary)] uppercase tracking-wider flex items-center gap-1.5">
-            <Cpu size={14} className="animate-pulse" />
-            AI Assistant Helper
-          </span>
-          <span>{progressPercentage}%</span>
-        </div>
-        <div className="h-2 w-full bg-[var(--bg-soft)] rounded-full overflow-hidden border border-[var(--border-default)]/40 p-0.5">
-          <div 
-            className="h-full bg-gradient-to-r from-[var(--primary)] to-blue-400 rounded-full transition-all duration-700 ease-out"
-            style={{ width: `${progressPercentage}%`}}
-          />
-        </div>
-      </div>
-
-      {/* Stylized Simulated Terminal Console Logging Shell Component */}
-      <div className="bg-[#1e1e2e] border border-neutral-800 rounded-xl overflow-hidden shadow-lg shadow-black/10">
-        {/* Terminal Window Chrome Headers Bar */}
-        <div className="px-4 py-2 bg-[#181825] border-b border-neutral-800 flex items-center justify-between select-none">
+        {/* Window Header */}
+        <div className="h-12 px-4 bg-[#181825] border-b border-neutral-800 flex items-center justify-between select-none">
           <div className="flex items-center gap-2">
             <Terminal size={14} className="text-neutral-500" />
-            <span className="text-[11px] font-sans font-bold text-neutral-400">live_progress_status.txt</span>
+            <span className="text-xs font-mono font-bold text-neutral-400 tracking-wide">
+              ai_notes_generator.sh
+            </span>
           </div>
-          <div className="flex gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-red-500/40" />
-            <div className="w-2 h-2 rounded-full bg-yellow-500/40" />
-            <div className="w-2 h-2 rounded-full bg-green-500/40" />
+
+          <div className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-neutral-800 border border-neutral-700/50" />
+            <div className="w-2.5 h-2.5 rounded-full bg-neutral-800 border border-neutral-700/50" />
+            <div className="w-2.5 h-2.5 rounded-full bg-neutral-800 border border-neutral-700/50" />
           </div>
         </div>
 
-        {/* Real-Time Live Running Logging Space Content Terminal Console */}
-        <div className="p-5 font-sans text-xs space-y-3 min-h-[120px] flex flex-col justify-center">
-          <div className="flex items-start gap-2 text-neutral-400">
-            <span className="text-[var(--success)] select-none font-bold">&gt;&gt;</span>
-            <p className="text-neutral-200 leading-relaxed font-medium transition-all duration-300">
-              {agentStatus}
-            </p>
-          </div>
+        {/* Inner Content Grid */}
+        <div className="p-6 sm:p-8 space-y-8">
           
-          <div className="border-t border-neutral-800/60 pt-3 flex items-center gap-2 text-[10px] text-neutral-500 uppercase font-bold tracking-widest select-none">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)] animate-ping" />
-            Current Status: Working on your notes...
+          {/* Problem Details Info Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800/60 pb-6">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold tracking-wider uppercase text-neutral-500 block">
+                generate note for
+              </span>
+              <h1 className="text-lg font-bold text-neutral-100 tracking-tight">
+                {problem?.title}
+              </h1>
+            </div>
           </div>
+
+          {/* Progress Status Message Box */}
+          <div className="min-h-[140px] flex flex-col justify-between bg-[#141421] border border-neutral-800/60 rounded-xl p-5 relative overflow-hidden group">
+            
+            {/* Background Loading Pulse */}
+            {noteStarted && progress < 100 && (
+              <div className="absolute inset-0 bg-[var(--primary)]/[0.015] pointer-events-none animate-pulse" />
+            )}
+
+            {/* Status Indicator Badge */}
+            <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-neutral-500 uppercase select-none mb-4">
+              <span className={`h-1.5 w-1.5 rounded-full ${noteStarted ? "bg-blue-400 animate-ping" : "bg-neutral-600"}`} />
+              Status: {noteStarted ? "Writing notes..." : "Ready to start"}
+            </div>
+
+            {/* Current Step Text Display */}
+            <div className="flex items-start gap-2.5 flex-1 text-xs">
+              <span className="text-blue-400 font-bold select-none font-mono">&gt;</span>
+              <p className="text-neutral-200 leading-relaxed font-medium transition-all duration-300">
+                {message}
+              </p>
+            </div>
+
+            {/* Percentage Number Counter */}
+            {noteStarted && (
+              <div className="absolute top-4 right-4 font-mono font-bold text-xs bg-neutral-900/80 border border-neutral-800 text-neutral-400 px-2 py-1 rounded-md shadow-sm">
+                {progress}%
+              </div>
+            )}
+          </div>
+
+          {/* Progress Bar & Actions Footer */}
+
+   
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            
+            {/* Simple Progress Bar */}
+            <div className="w-full sm:max-w-xs flex flex-col gap-1.5">
+              <span className="text-[10px] text-neutral-500 font-bold tracking-wider uppercase flex items-center gap-1">
+                <Cpu size={12} className={noteStarted && progress < 100 ? "animate-pulse text-blue-400" : ""} />
+                Progress
+              </span>
+              <div className="h-1.5 w-full bg-neutral-900 border border-neutral-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[var(--primary)] to-blue-400 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            {!noteStarted ? (
+              <button
+                onClick={startMakingNotes}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)]/90 px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-white shadow-md shadow-[var(--primary)]/10 transition-all active:scale-[0.98]"
+              >
+                <Sparkles size={13} />
+                Generate Notes
+              </button>
+            ) : (
+              <div className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-neutral-900 border border-neutral-800 px-5 py-2.5 text-xs font-bold tracking-wider uppercase text-neutral-400 cursor-not-allowed select-none">
+                <Loader2 size={13} className="animate-spin text-blue-400" />
+                Creating your notes...
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
 
-      {/* Safety Bottom Information Card Box layout summary */}
-      <div className="p-4 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-xl flex items-center gap-3 shadow-inner">
-        <ShieldCheck size={18} className="text-[var(--text-light)] shrink-0" />
-        <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
-          Please keep this page open. It only takes a couple of seconds for the AI to put together your explanations, step-by-step memory tables, and tricky edge cases!
-        </p>
-      </div>
+      {/* Bottom Subtext */}
+      <p className="text-[10px] text-neutral-500 text-center select-none">
+        The AI assistant will automatically create explanations, step-by-step runtime tables, and note down edge cases.
+      </p>
 
     </div>
   );

@@ -54,7 +54,8 @@ async def register(
     await session.commit()
     await session.refresh(new_user)
 
-    verification_url = f"{settings.FRONTEND_URL}/verify?email={new_user.email}"
+
+    verification_url = f"{settings.FRONTEND_URL_PROD}/verify?email={new_user.email}"
 
     email_html = f"""
     <div style="font-family: Arial, sans-serif; padding: 30px; max-width: 600px; margin: 0 auto; border: 1px solid #eef2f6; border-radius: 8px;">

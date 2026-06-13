@@ -8,7 +8,6 @@ class Problem(SQLModel, table=True):
     __tablename__ = "problems"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-
     title: str = Field(index=True)
     platform: str = "LeetCode"
     problemLink: Optional[str] = None

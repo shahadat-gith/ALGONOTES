@@ -36,3 +36,13 @@ export const TOPIC_OPTIONS = [
   "Recursion",
   "Backtracking"
 ];
+
+
+export const EXTENSION_MAP = {
+  "C++": ".cpp",
+  "Java": ".java",
+  "Python": ".py",
+  "JavaScript": ".js",
+  "TypeScript": ".ts",
+  "C": ".c",
+};

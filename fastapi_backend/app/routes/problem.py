@@ -43,7 +43,7 @@ async def create_problem(
 
     return {
         "success": True,
-        "message": "Problem logged successfully.",
+        "message": "Problem added successfully.",
         "problem": new_problem
     }
 

@@ -25,7 +25,8 @@ def generate_note_prompt(problem) -> str:
         {{ "type": "code", "code": "...", "order": 2 }}
       ],
       "optimalApproach": [
-        {{ "type": "paragraph", "text": "...", "order": 1 }}
+        {{ "type": "paragraph", "text": "...", "order": 1 }},
+        {{ "type": "code", "code": "...", "order": 2 }}
       ],
       "algorithm": [
         {{ "stepNo": 1, "title": "Step title", "description": "Step description" }}

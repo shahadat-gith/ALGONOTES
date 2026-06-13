@@ -4,7 +4,7 @@ import Button from "./Button";
 const EmptyState = ({
   title = "No data found",
   description = "There is nothing to show here yet.",
-  actionText,
+  actionText = "",
   onAction,
 }) => {
   return (

@@ -19,7 +19,6 @@ const Dashboard = () => {
         const response = await getDashboardMetrics();
         if (response.success) {
           setData(response.data);
-          console.log(response.data)
         }
       } catch (error) {
         console.error("Failed to load dashboard operational metrics:", error);

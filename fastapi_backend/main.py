@@ -12,6 +12,7 @@ from app.routes import auth_router, user_router, problem_router, note_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    print(f"Starting application in {settings.ENVIRONMENT} mode...")
     print("Initializing database...")
     await init_db()
     print("Database initialized successfully.")
@@ -30,13 +31,10 @@ app = FastAPI(
 register_error_handlers(app)
 
 
+# 🌟 Dynamically handles origins based on environment settings
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        settings.FRONTEND_URL,
-        "http://localhost:5173",
-        "http://localhost:3000"
-    ],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,7 +52,8 @@ async def system_health_status():
     return {
         "status": "operational",
         "engine": "FastAPI ASGI",
-        "database": "Connected via SQLModel"
+        "database": "Connected via SQLModel",
+        "environment": settings.ENVIRONMENT
     }
 
 
@@ -68,5 +67,5 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=settings.PORT,
-        reload=True
+        reload=True if settings.ENVIRONMENT == "development" else False
     )

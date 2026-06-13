@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { getNoteByProblem } from "../../api/noteApi";
 import Button from "../../components/common/Button";
 import Badge from "../../components/common/Badge";
@@ -13,6 +13,7 @@ import NoteEdgeCaseViewer from "../../components/notes/viewer/NoteEdgeCaseViewer
 import { Edit3, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
 import ViewNotesSkeleton from "../../components/skeletons/ViewNotesSkeleton";
+import EmptyState from "../../components/common/EmptyState";
 
 const ViewNotes = () => {
   const { problemId } = useParams();
@@ -20,8 +21,13 @@ const ViewNotes = () => {
   const [note, setNote] = useState(null);
   const [loading, setLoading] = useState(true);
 
+
+  const location = useLocation()
+
+  const problem = location.state?.problem;
+
   useEffect(() => {
-    const fetchNoteSheet = async () => {
+    const fetchNote = async () => {
       try {
         const response = await getNoteByProblem(problemId);
         if (response.success && response.note) setNote(response.note);
@@ -31,7 +37,7 @@ const ViewNotes = () => {
         setLoading(false);
       }
     };
-    fetchNoteSheet();
+    fetchNote();
   }, [problemId]);
 
   if (loading) {
@@ -44,11 +50,15 @@ const ViewNotes = () => {
 
   if (!note)
     return (
-      <div className="text-center py-12">
-        <Link to={`/problems/${problemId}/generate`}>
-          <Button size="sm">Generate Notes Now</Button>
-        </Link>
-      </div>
+       <EmptyState 
+       title="Note not generated!"
+       description="You have not generated note for this problem yet"
+       actionText="Generate note"
+       onAction={()=> navigate(`/problems/${problemId}/note/generate`, {
+        state:{problem}
+       })}
+       
+       />
     );
 
   return (

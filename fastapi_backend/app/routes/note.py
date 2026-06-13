@@ -287,3 +287,31 @@ async def get_note_by_problem(
         "success": True,
         "note": note
     }
+
+
+
+
+@router.get("/{note_id}")
+async def get_note_by_id(
+    note_id: int,
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session)
+):
+    query = select(Note).where(
+        Note.id == note_id,
+        Note.user_id == current_user.id
+    )
+
+    result = await session.execute(query)
+    note = result.scalar_one_or_none()
+
+    if not note:
+        raise HTTPException(
+            status_code=404,
+            detail="Note not found"
+        )
+
+    return {
+        "success": True,
+        "note": note
+    }

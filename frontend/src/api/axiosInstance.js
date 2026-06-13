@@ -1,7 +1,8 @@
 import axios from "axios";
 
+const backendUrl = import.meta.env.VITE_ENVIRONMENT === "development" ? import.meta.env.VITE_BACKEND_URL_DEV : import.meta.env.VITE_BACKEND_URL
+
 const axiosInstance = axios.create({
-  // 🌟 Appended /v1 to match your FastAPI router prefix configuration cleanly
   baseURL: import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api/v1",
 });
 

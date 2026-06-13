@@ -89,7 +89,7 @@ const App = () => {
             <Route path="/problems/:id" element={<ProblemDetails />} />
             <Route path="/problems/:id/edit" element={<EditProblem />} />
             <Route path="/notes" element={<Notes />} />
-            <Route path="/problems/:id/generate" element={<GenerateNotes />} />
+            <Route path="/problems/:id/note/generate" element={<GenerateNotes />} />
             <Route path="/notes/:problemId/edit" element={<EditNotes />} />
             <Route path="/notes/:problemId/view" element={<ViewNotes />} />
           </Route>

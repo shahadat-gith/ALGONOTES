@@ -20,6 +20,11 @@ export const getNoteByProblem = async (problemId) => {
   return data;
 };
 
+export const getNoteById = async (noteId) => {
+  const { data } = await axiosInstance.get(`/notes/${noteId}`);
+  return data;
+};
+
 export const getAllNotesByUser = async () => {
   const { data } = await axiosInstance.get("/notes/user");
   return data;

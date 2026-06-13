@@ -35,7 +35,7 @@ const ProblemForm = ({ formData, setFormData, selectedTopics, setSelectedTopics,
   };
 
   return (
-    <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] p-6 rounded-2xl shadow-[var(--shadow-card)] space-y-5">
+    <div className="space-y-5">
       <h2 className="text-sm font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">
         Problem Configuration
       </h2>
