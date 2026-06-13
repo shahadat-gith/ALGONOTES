@@ -1,0 +1,17 @@
+﻿fastapi
+mangum
+pydantic
+pydantic-settings
+sqlmodel
+sqlalchemy
+asyncpg
+pyjwt[crypto]
+passlib[bcrypt]
+google-genai
+cloudinary
+python-multipart
+fastapi-mail
+email-validator
+beanie
+motor
+

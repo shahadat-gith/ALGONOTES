@@ -1,0 +1,32 @@
+# --- Node.js / React (Frontend & Backend) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+build/
+dist/
+
+# --- Python / FastAPI Backend & Virtual Envs ---
+**/__pycache__/
+*.py[cod]
+*$py.class
+**/.pytest_cache/
+**/.mypy_cache/
+**/*.exe
+**/*.zip
+
+# --- Target specific env and dependency folders ---
+fastapi_backend/.serverless/
+fastapi_backend/requirements/
+.serverless/
+requirements/
+venv/
+env/
+
+# --- Environment Variables ---
+.env
+.env.*
+
+# --- OS Files ---
+.DS_Store
+Thumbs.db
