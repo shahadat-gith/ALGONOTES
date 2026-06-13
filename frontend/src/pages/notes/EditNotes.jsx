@@ -127,12 +127,7 @@ const EditNotes = () => {
   return (
     <div className="min-h-screen bg-[var(--bg-base)] p-4 sm:p-6 lg:p-8 animate-fade-in space-y-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between flex-wrap gap-4 border-b pb-4">
-        <button
-          onClick={() => navigate(`/problems/${problemId}`)}
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-main)]"
-        >
-          <ArrowLeft size={16} /> Discard
-        </button>
+       
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
