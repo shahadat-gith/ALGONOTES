@@ -1,65 +1,69 @@
 import React from "react";
-import { Code2, StickyNote } from "lucide-react";
+import { StickyNote, BarChart3 } from "lucide-react";
 
-const MetricCards = ({ counters }) => {
-  const { totalProblems, totalNotes, difficulty } = counters;
+const MetricCards = ({ counters = {} }) => {
+  const totalNotes = counters.totalNotes || 0;
+
+  const difficulty = counters.difficulty || {
+    easy: 0,
+    medium: 0,
+    hard: 0,
+  };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="p-5 bg-white border border-[var(--border-default)]/60 rounded-2xl shadow-sm flex items-center justify-between">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="flex items-center justify-between rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-card)]">
         <div className="space-y-1">
-          <span className="text-[10px] font-bold text-[var(--text-light)] uppercase tracking-wider block">
-            Problems Added
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-light)]">
+            Total Study Notes
           </span>
-          <h3 className="text-2xl font-black text-[var(--text-main)]">
-            {totalProblems}
-          </h3>
-        </div>
-        <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100/30">
-          <Code2 size={20} />
-        </div>
-      </div>
 
-      <div className="p-5 bg-white border border-[var(--border-default)]/60 rounded-2xl shadow-sm flex items-center justify-between">
-        <div className="space-y-1">
-          <span className="text-[10px] font-bold text-[var(--text-light)] uppercase tracking-wider block">
-            AI Study Notes
-          </span>
           <h3 className="text-2xl font-black text-[var(--text-main)]">
             {totalNotes}
           </h3>
         </div>
-        <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600 border border-indigo-100/30">
+
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-emerald-600">
           <StickyNote size={20} />
         </div>
       </div>
 
-      <div className="p-5 bg-white border border-[var(--border-default)]/60 rounded-2xl shadow-sm sm:col-span-2 flex flex-col justify-center space-y-2.5">
-        <span className="text-[10px] font-bold text-[var(--text-light)] uppercase tracking-wider block">
-          Problems by Difficulty
-        </span>
-        <div className="flex items-center gap-4 w-full">
+      <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-card)] sm:col-span-1 lg:col-span-2">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-light)]">
+            Notes by Problem difficulty level
+          </span>
+
+          <BarChart3 size={16} className="text-[var(--text-light)]" />
+        </div>
+
+        <div className="flex w-full items-center gap-4">
           <div className="flex-1 text-center">
-            <div className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100/50 py-1.5 rounded-lg mb-1">
-              {difficulty.easy}
+            <div className="mb-1 rounded-lg border border-emerald-100 bg-emerald-50 py-1.5 text-xs font-bold text-emerald-600">
+              {difficulty.easy || 0}
             </div>
-            <span className="text-[10px] text-[var(--text-light)] font-medium">
+
+            <span className="text-[10px] font-medium text-[var(--text-light)]">
               Easy
             </span>
           </div>
+
           <div className="flex-1 text-center">
-            <div className="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-100/50 py-1.5 rounded-lg mb-1">
-              {difficulty.medium}
+            <div className="mb-1 rounded-lg border border-amber-100 bg-amber-50 py-1.5 text-xs font-bold text-amber-600">
+              {difficulty.medium || 0}
             </div>
-            <span className="text-[10px] text-[var(--text-light)] font-medium">
+
+            <span className="text-[10px] font-medium text-[var(--text-light)]">
               Medium
             </span>
           </div>
+
           <div className="flex-1 text-center">
-            <div className="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-100/50 py-1.5 rounded-lg mb-1">
-              {difficulty.hard}
+            <div className="mb-1 rounded-lg border border-rose-100 bg-rose-50 py-1.5 text-xs font-bold text-rose-600">
+              {difficulty.hard || 0}
             </div>
-            <span className="text-[10px] text-[var(--text-light)] font-medium">
+
+            <span className="text-[10px] font-medium text-[var(--text-light)]">
               Hard
             </span>
           </div>

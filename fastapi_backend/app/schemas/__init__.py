@@ -1,13 +1,32 @@
-from .auth import RegisterRequest, LoginRequest, VerifyUserRequest, ForgotPasswordRequest
-from .problem import CreateProblemRequest, UpdateProblemRequest
-from .note import SaveNoteRequest
+from .auth import (
+    RegisterRequest,
+    LoginRequest,
+    VerifyUserRequest,
+    ForgotPasswordRequest
+)
+
+
+from .note import (
+    GenerateNoteRequest,
+    SaveNoteRequest,
+    ProblemDetailSchema,
+    NoteContentSchema,
+    ContentBlockSchema
+)
+
 
 __all__ = [
+    # auth
     "RegisterRequest",
     "LoginRequest",
     "VerifyUserRequest",
     "ForgotPasswordRequest",
-    "CreateProblemRequest",
-    "UpdateProblemRequest",
-    "SaveNoteRequest"
+
+
+    # note
+    "GenerateNoteRequest",
+    "SaveNoteRequest",
+    "ProblemDetailSchema",
+    "NoteContentSchema",
+    "ContentBlockSchema"
 ]

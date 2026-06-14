@@ -8,11 +8,10 @@ from app.config import settings
 from app.database import init_db
 from app.middlewares import register_error_handlers
 from app.routes import (
-    auth_router, 
-    user_router, 
-    problem_router, 
-    note_router, 
-    ai_generation_router,  # 👈 Added Gemini router import
+    auth_router,
+    user_router,
+    note_router,
+    ai_generation_router,
 )
 
 
@@ -30,14 +29,13 @@ app = FastAPI(
     title="ALGONOTES API Backend Engine",
     description="Python FastAPI Backend for ALGONOTES",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 
 register_error_handlers(app)
 
 
-# 🌟 Dynamically handles origins based on environment settings
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -47,10 +45,8 @@ app.add_middleware(
 )
 
 
-# Core Application Routing Hub
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
-app.include_router(problem_router, prefix="/api/v1")
 app.include_router(note_router, prefix="/api/v1")
 app.include_router(ai_generation_router, prefix="/api/v1")
 
@@ -61,7 +57,7 @@ async def system_health_status():
         "status": "operational",
         "engine": "FastAPI ASGI",
         "database": "Connected via SQLModel",
-        "environment": settings.ENVIRONMENT
+        "environment": settings.ENVIRONMENT,
     }
 
 
@@ -75,5 +71,5 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=settings.PORT,
-        reload=True if settings.ENVIRONMENT == "development" else False
+        reload=True if settings.ENVIRONMENT == "development" else False,
     )

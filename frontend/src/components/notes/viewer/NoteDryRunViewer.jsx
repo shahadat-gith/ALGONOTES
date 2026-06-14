@@ -1,29 +1,50 @@
 import React from "react";
 
 const NoteDryRunViewer = ({ steps = [] }) => {
-  const sortedSteps = [...steps].sort((a, b) => a.stepNo - b.stepNo);
+  if (!steps || steps.length === 0) return null;
+
+  const sortedBlocks = [...steps].sort((a, b) => (a.order || 0) - (b.order || 0));
+  
+  // Extract paragraph labels and the literal structured table array matrix
+  const introductoryText = sortedBlocks.find(b => b.type === "paragraph")?.text;
+  const tableBlock = sortedBlocks.find(b => b.type === "table");
+
+  if (!tableBlock || !tableBlock.table) return null;
 
   return (
-    <div className="w-full border border-[var(--border-default)] rounded-xl overflow-hidden bg-[var(--bg-surface)] shadow-sm">
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left text-xs">
+    <div className="space-y-4">
+      {introductoryText && (
+        <p className="text-sm text-[var(--text-muted)] leading-relaxed italic">
+          {introductoryText}
+        </p>
+      )}
+
+      {/* Native Micro-Spreadsheet Simulation Matrix View */}
+      <div className="overflow-x-auto rounded-xl border border-[var(--border-default)] shadow-sm">
+        <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="bg-[var(--bg-soft)] border-b border-[var(--border-default)] text-[var(--text-muted)] font-bold uppercase tracking-wider">
-              <th className="p-3.5 w-16 text-center">Step</th>
-              <th className="p-3.5 min-w-[120px]">Input State</th>
-              <th className="p-3.5 min-w-[140px]">Action Execution</th>
-              <th className="p-3.5 min-w-[120px]">Output State</th>
-              <th className="p-3.5 min-w-[200px]">Explanation Logic</th>
+            <tr className="bg-[var(--bg-soft)] border-b border-[var(--border-default)] text-[var(--text-muted)] font-semibold uppercase tracking-wider">
+              <th className="p-3 w-12 text-center">Step</th>
+              <th className="p-3 min-w-[120px]">Variable State</th>
+              <th className="p-3 min-w-[180px]">Action Performed</th>
+              <th className="p-3 min-w-[180px]">Result / Change</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[var(--border-default)] text-[var(--text-main)]">
-            {sortedSteps.map((step, idx) => (
-              <tr key={step.id || idx} className="hover:bg-[var(--bg-soft)]/40 transition-colors">
-                <td className="p-3.5 text-center font-bold font-mono text-[var(--text-light)]">{step.stepNo}</td>
-                <td className="p-3.5 font-mono text-[var(--primary)] bg-[var(--primary-soft)]/10 font-medium">{step.inputState || "—"}</td>
-                <td className="p-3.5 font-medium">{step.action || "—"}</td>
-                <td className="p-3.5 font-mono text-[var(--success)] bg-[var(--success-soft)]/20 font-medium">{step.outputState || "—"}</td>
-                <td className="p-3.5 text-[var(--text-muted)] leading-relaxed">{step.explanation || "—"}</td>
+          <tbody className="divide-y divide-[var(--border-default)] bg-white text-[var(--text-main)] font-mono">
+            {tableBlock.table.map((row, index) => (
+              <tr key={index} className="hover:bg-[var(--bg-base)] transition-colors">
+                <td className="p-3 text-center font-bold text-[var(--primary)] bg-[var(--bg-base)] w-12">
+                  {row.step}
+                </td>
+                <td className="p-3 whitespace-pre-wrap text-[var(--text-muted)]">
+                  {row.state}
+                </td>
+                <td className="p-3 font-sans text-sm font-medium">
+                  {row.action}
+                </td>
+                <td className="p-3 font-sans text-sm text-[var(--text-muted)] bg-gradient-to-r from-transparent to-[var(--primary-soft)]/10">
+                  {row.result}
+                </td>
               </tr>
             ))}
           </tbody>

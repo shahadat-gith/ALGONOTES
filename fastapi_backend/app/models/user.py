@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
+
 from sqlmodel import SQLModel, Field, Relationship, Column
+from sqlalchemy import DateTime
 from sqlalchemy.dialects.postgresql import JSONB
 
 
@@ -10,7 +12,11 @@ class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
     name: str
-    email: str = Field(index=True, unique=True)
+
+    email: str = Field(
+        index=True,
+        unique=True
+    )
 
     username: Optional[str] = Field(
         default=None,
@@ -46,11 +52,9 @@ class User(SQLModel, table=True):
         sa_column=Column(JSONB)
     )
 
-    createdAt: datetime = Field(default_factory=datetime.utcnow)
-
-    problems: List["Problem"] = Relationship(
-        back_populates="user",
-        cascade_delete=True
+    createdAt: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_type=DateTime(timezone=True)
     )
 
     notes: List["Note"] = Relationship(

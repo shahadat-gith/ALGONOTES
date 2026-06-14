@@ -10,6 +10,7 @@ import DashboardSkeleton from "../../components/skeletons/DashboardSkeleton";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
 
@@ -17,11 +18,12 @@ const Dashboard = () => {
     const fetchMetrics = async () => {
       try {
         const response = await getDashboardMetrics();
+
         if (response.success) {
           setData(response.data);
         }
       } catch (error) {
-        console.error("Failed to load dashboard operational metrics:", error);
+        console.error("Failed to load dashboard metrics:", error);
       } finally {
         setLoading(false);
       }
@@ -31,28 +33,32 @@ const Dashboard = () => {
   }, []);
 
   if (loading) return <DashboardSkeleton />;
-  if (!data)
+
+  if (!data) {
     return (
-      <div className="text-center py-20 text-xs font-bold text-[var(--text-muted)]">
-        Failed to fetch data from backend.
+      <div className="mx-auto flex min-h-[60vh] max-w-7xl items-center justify-center px-4">
+        <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-6 py-5 text-center shadow-[var(--shadow-card)]">
+          <p className="text-sm font-semibold text-[var(--text-main)]">
+            Failed to load dashboard
+          </p>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            Please refresh the page or try again later.
+          </p>
+        </div>
       </div>
     );
+  }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] p-4 sm:p-6 lg:p-8 animate-fade-in space-y-6 max-w-7xl mx-auto">
+    <div className="mx-auto min-h-screen max-w-7xl space-y-6 bg-[var(--bg-base)] p-4 sm:p-6 lg:p-8">
       <MetricCards counters={data.counters} />
+
       <ContributionGrid activityData={data.activityGrid} />
-      <RecentActivityStream
-        title="Recent Notes Study Blocks"
-        items={data.recentActivity.notes}
-        type="note"
-        navigate={navigate}
-      />
 
       <RecentActivityStream
-        title="Recent Problems Added"
-        items={data.recentActivity.problems}
-        type="problem"
+        title="Recently generated notes"
+        items={data.recentActivity?.notes || []}
+        type="note"
         navigate={navigate}
       />
     </div>

@@ -7,35 +7,36 @@ from typing import AsyncGenerator
 
 from app.config import settings
 
-# 1. Safely sanitize database URL strings to guarantee asyncpg dialect usage
+# 1. Grab the database URL from settings
 db_url = settings.DATABASE_URL
 
-if db_url.startswith("postgresql://"):
-    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-
-# 2. Instantiate the asynchronous engine passing explicit connection arguments
+# 2. Instantiate the asynchronous engine using the direct Supabase port (5432)
+# and use ssl="require" for a smooth, encrypted handshake.
 engine = create_async_engine(
     db_url,
-    connect_args={"ssl": True}, 
+    connect_args={"ssl": "require"}, 
     echo=False,
     future=True
 )
 
+# 3. Create the session maker bound to our async engine
 async_session_maker = sessionmaker(
     engine, 
     class_=AsyncSession, 
     expire_on_commit=False
 )
 
+# 4. Initialize tables (runs on application startup if called)
 async def init_db() -> None:
     try:
         async with engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.create_all)
-        print("PostgreSQL tables initialized successfully.")
+        print("Supabase PostgreSQL tables initialized successfully.")
     except Exception as e:
-        print(f"PostgreSQL Tables Initialization Failed: {str(e)}")
+        print(f"Supabase PostgreSQL Tables Initialization Failed: {str(e)}")
         raise e
 
+# 5. Dependency injection function for your FastAPI routes
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session

@@ -14,10 +14,6 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyUser from "./pages/auth/VerifyUser";
 import Home from "./pages/home/Home";
 import Dashboard from "./pages/dashboard/Dashboard";
-import Problems from "./pages/problems/Problems";
-import AddProblem from "./pages/problems/AddProblem";
-import ProblemDetails from "./pages/problems/ProblemDetails";
-import EditProblem from "./pages/problems/EditProblem";
 import Notes from "./pages/notes/Notes";
 import GenerateNotes from "./pages/notes/GenerateNotes";
 import EditNotes from "./pages/notes/EditNotes";
@@ -29,15 +25,14 @@ import Terms from "./pages/disclaimers/Terms";
 import DataPrivacy from "./pages/disclaimers/DataPrivacy";
 
 const App = () => {
- 
   const { isAuthenticated, user, loading } = useAuth();
 
   return (
     <>
       <Toaster position="top-center" gutter={12} containerStyle={{ top: 20 }} />
-      
+
       <Routes>
-        {/* UNIVERSAL PUBLIC ACCESS */}
+        {/* PUBLIC ROUTES */}
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/developer" element={<Developer />} />
@@ -46,7 +41,7 @@ const App = () => {
           <Route path="/data-privacy" element={<DataPrivacy />} />
         </Route>
 
-        {/* NEUTRAL VERIFICATION GATEWAY */}
+        {/* VERIFICATION ROUTE */}
         <Route
           path="/verify"
           element={
@@ -58,7 +53,7 @@ const App = () => {
           }
         />
 
-        {/* AUTH RESTRICTED (Login/Register blocks) */}
+        {/* AUTH ROUTES */}
         <Route
           element={
             <PublicOnlyRoute
@@ -73,7 +68,7 @@ const App = () => {
           <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
 
-        {/* PROTECTED PRIVATE WORKSPACE */}
+        {/* PROTECTED WORKSPACE */}
         <Route
           element={
             <ProtectedRoute
@@ -84,14 +79,11 @@ const App = () => {
         >
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/problems" element={<Problems />} />
-            <Route path="/problems/add" element={<AddProblem />} />
-            <Route path="/problems/:id" element={<ProblemDetails />} />
-            <Route path="/problems/:id/edit" element={<EditProblem />} />
+
             <Route path="/notes" element={<Notes />} />
-            <Route path="/problems/:id/note/generate" element={<GenerateNotes />} />
-            <Route path="/notes/:problemId/edit" element={<EditNotes />} />
-            <Route path="/notes/:problemId/view" element={<ViewNotes />} />
+            <Route path="/notes/generate" element={<GenerateNotes />} />
+            <Route path="/notes/:noteId/view" element={<ViewNotes />} />
+            <Route path="/notes/:noteId/edit" element={<EditNotes />} />
           </Route>
         </Route>
 

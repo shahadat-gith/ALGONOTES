@@ -5,10 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlmodel import select, func, or_
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy import cast, String
-from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.attributes import flag_modified
 
-from app.models import User, Problem, Note, Activity
+from app.models import User, Note, Activity
 from app.services import upload_to_cloudinary, delete_from_cloudinary
 from app.middlewares import get_current_user
 from app.database import get_session
@@ -144,65 +143,53 @@ async def search_workspace(
 
     search_pattern = f"%{q}%"
 
-    problem_statement = (
-        select(Problem)
-        .where(
-            Problem.user_id == current_user.id,
-            Problem.title.ilike(search_pattern)
-        )
-        .limit(5)
-    )
-
-    problem_results = await session.execute(problem_statement)
-    problems = problem_results.scalars().all()
-
     note_statement = (
         select(Note)
         .where(
             Note.user_id == current_user.id,
+            Note.status != "processing",
             or_(
-                cast(Note.bruteForce, String).ilike(search_pattern),
-                cast(Note.optimalApproach, String).ilike(search_pattern),
-                cast(Note.algorithm, String).ilike(search_pattern),
-                cast(Note.edgeCases, String).ilike(search_pattern)
+                cast(Note.problem, String).ilike(search_pattern),
+                cast(Note.note, String).ilike(search_pattern),
+                Note.language.ilike(search_pattern),
             )
         )
-        .options(selectinload(Note.problem))
-        .limit(5)
+        .order_by(Note.createdAt.desc())
+        .limit(8)
     )
 
     note_results = await session.execute(note_statement)
     notes = note_results.scalars().all()
 
-    formatted_problems = [
-        {
-            "name": p.title,
-            "path": f"/problems/{p.id}",
-            "type": "problem",
-            "desc": f"{p.difficulty or 'Unknown'} Difficulty"
-        }
-        for p in problems
-    ]
-
     formatted_notes = []
 
     for n in notes:
-        if not n.problem:
-            continue
+        problem = n.problem or {}
+        note_content = n.note or {}
 
-        snippet = "View AI Study Blocks"
+        title = problem.get("title") or "Untitled Problem"
 
-        if n.optimalApproach and len(n.optimalApproach) > 0:
-            snippet = n.optimalApproach[0].get("text", snippet)
-        elif n.bruteForce and len(n.bruteForce) > 0:
-            snippet = n.bruteForce[0].get("text", snippet)
-        elif n.algorithm and len(n.algorithm) > 0:
-            snippet = n.algorithm[0].get("description", snippet)
+        snippet = "Open Study Note"
+
+        optimal_blocks = note_content.get("optimalApproach", [])
+        summary_blocks = note_content.get("summary", [])
+        intuition_blocks = note_content.get("intuition", [])
+
+        if optimal_blocks:
+            snippet = (
+                optimal_blocks[0].get("text")
+                or optimal_blocks[0].get("code")
+                or snippet
+            )
+        elif summary_blocks:
+            snippet = summary_blocks[0].get("text") or snippet
+        elif intuition_blocks:
+            snippet = intuition_blocks[0].get("text") or snippet
 
         formatted_notes.append(
             {
-                "name": f"{n.problem.title} Notes",
-                "path": f"/notes/{n.id}",
+                "name": f"{title} Notes",
+                "path": f"/notes/{n.noteId}",
                 "type": "note",
                 "desc": f"{snippet[:52]}..." if len(snippet) > 55 else snippet
             }
@@ -210,7 +197,7 @@ async def search_workspace(
 
     return {
         "success": True,
-        "results": formatted_problems + formatted_notes
+        "results": formatted_notes
     }
 
 
@@ -225,28 +212,26 @@ async def get_dashboard_metrics(
         f"{lookback_date.year}{lookback_date.month:02d}{lookback_date.day:02d}"
     )
 
-    prob_count_stmt = (
-        select(func.count())
-        .select_from(Problem)
-        .where(Problem.user_id == current_user.id)
-    )
-
     note_count_stmt = (
         select(func.count())
         .select_from(Note)
-        .where(Note.user_id == current_user.id)
+        .where(
+            Note.user_id == current_user.id,
+            Note.status != "processing"
+        )
     )
 
-    total_problems = (await session.execute(prob_count_stmt)).scalar() or 0
     total_notes = (await session.execute(note_count_stmt)).scalar() or 0
 
-    diff_stmt = (
-        select(Problem.difficulty, func.count())
-        .where(Problem.user_id == current_user.id)
-        .group_by(Problem.difficulty)
+    all_notes_stmt = (
+        select(Note)
+        .where(
+            Note.user_id == current_user.id,
+            Note.status != "processing"
+        )
     )
 
-    diff_results = await session.execute(diff_stmt)
+    all_notes = (await session.execute(all_notes_stmt)).scalars().all()
 
     difficulty_map = {
         "easy": 0,
@@ -254,29 +239,22 @@ async def get_dashboard_metrics(
         "hard": 0
     }
 
-    for diff, count in diff_results.all():
-        if diff:
-            key = diff.lower()
+    for note in all_notes:
+        difficulty = (note.problem or {}).get("difficulty", "")
+
+        if difficulty:
+            key = difficulty.lower()
 
             if key in difficulty_map:
-                difficulty_map[key] = count
-
-    recent_prob_stmt = (
-        select(Problem)
-        .where(Problem.user_id == current_user.id)
-        .order_by(Problem.createdAt.desc())
-        .limit(3)
-    )
-
-    recent_problems = (
-        await session.execute(recent_prob_stmt)
-    ).scalars().all()
+                difficulty_map[key] += 1
 
     recent_note_stmt = (
         select(Note)
-        .where(Note.user_id == current_user.id)
-        .options(selectinload(Note.problem))
-        .order_by(Note.lastEditedAt.desc())
+        .where(
+            Note.user_id == current_user.id,
+            Note.status != "processing"
+        )
+        .order_by(Note.lastEditedAt.desc().nullslast(), Note.createdAt.desc())
         .limit(3)
     )
 
@@ -300,7 +278,6 @@ async def get_dashboard_metrics(
     activity_map = {
         act.dayKey: {
             "total": act.totalCount,
-            "problems": act.problemsAdded,
             "notes": act.notesGenerated
         }
         for act in activities
@@ -309,22 +286,35 @@ async def get_dashboard_metrics(
     formatted_notes = []
 
     for n in recent_notes:
-        if not n.problem:
-            continue
+        problem = n.problem or {}
+        note_content = n.note or {}
 
-        snippet = "Open Study Deck"
+        title = problem.get("title") or "Untitled Problem"
+        snippet = "Open Study Note"
 
-        if n.optimalApproach and len(n.optimalApproach) > 0:
-            snippet = n.optimalApproach[0].get("text", snippet)
-        elif n.bruteForce and len(n.bruteForce) > 0:
-            snippet = n.bruteForce[0].get("text", snippet)
-        elif n.algorithm and len(n.algorithm) > 0:
-            snippet = n.algorithm[0].get("description", snippet)
+        optimal_blocks = note_content.get("optimalApproach", [])
+        summary_blocks = note_content.get("summary", [])
+        intuition_blocks = note_content.get("intuition", [])
+
+        if optimal_blocks:
+            snippet = (
+                optimal_blocks[0].get("text")
+                or optimal_blocks[0].get("code")
+                or snippet
+            )
+        elif summary_blocks:
+            snippet = summary_blocks[0].get("text") or snippet
+        elif intuition_blocks:
+            snippet = intuition_blocks[0].get("text") or snippet
 
         formatted_notes.append(
             {
                 "_id": n.id,
-                "title": f"{n.problem.title} Notes",
+                "noteId": n.noteId,
+                "title": f"{title} Notes",
+                "platform": problem.get("platform", ""),
+                "difficulty": problem.get("difficulty", ""),
+                "language": n.language,
                 "status": n.status,
                 "updated": n.lastEditedAt or n.createdAt,
                 "desc": f"{snippet[:57]}..." if len(snippet) > 60 else snippet
@@ -335,21 +325,10 @@ async def get_dashboard_metrics(
         "success": True,
         "data": {
             "counters": {
-                "totalProblems": total_problems,
                 "totalNotes": total_notes,
                 "difficulty": difficulty_map
             },
             "recentActivity": {
-                "problems": [
-                    {
-                        "_id": p.id,
-                        "title": p.title,
-                        "platform": p.platform,
-                        "difficulty": p.difficulty,
-                        "createdAt": p.createdAt
-                    }
-                    for p in recent_problems
-                ],
                 "notes": formatted_notes
             },
             "activityGrid": activity_map

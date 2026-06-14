@@ -1,39 +1,55 @@
-from typing import List, Optional, Literal
+# app/schemas/note.py
+
+from typing import List, Optional, Literal, Dict, Any
 from pydantic import BaseModel, Field
 
 
 class ContentBlockSchema(BaseModel):
-    type: Literal["paragraph", "heading", "bullet", "step", "code", "table"]
-    text: Optional[str] = ""
+    type: Literal["heading", "paragraph", "bullet", "step", "code", "table"]
+
+    text: Optional[str] = None
+    items: Optional[List[str]] = None
+    code: Optional[str] = None
+    language: Optional[str] = None
+    table: Optional[List[Dict[str, Any]]] = None
+
     order: Optional[int] = 0
-    items: List[str] = Field(default_factory=list)
-    code: Optional[str] = ""
 
 
-class AlgorithmStepSchema(BaseModel):
-    stepNo: int
-    title: str = Field(..., min_length=1)
-    description: str = Field(..., min_length=1)
+class ProblemDetailSchema(BaseModel):
+    title: str = ""
+    problemLink: str = ""
+    platform: str = ""
+    difficulty: str = ""
+    description: str = ""
+    constraints: List[str] = Field(default_factory=list)
+    testCases: List[Dict[str, Any]] = Field(default_factory=list)
+    expectedTimeComplexity: str = ""
+    expectedSpaceComplexity: str = ""
+    topics: List[str] = Field(default_factory=list)
 
 
-class DryRunStepSchema(BaseModel):
-    stepNo: int
-    inputState: Optional[str] = ""
-    action: str = Field(..., min_length=1)
-    outputState: Optional[str] = ""
-    explanation: str = Field(..., min_length=1)
+class NoteContentSchema(BaseModel):
+    summary: List[ContentBlockSchema] = Field(default_factory=list)
+    intuition: List[ContentBlockSchema] = Field(default_factory=list)
+    bruteForce: List[ContentBlockSchema] = Field(default_factory=list)
+    optimalApproach: List[ContentBlockSchema] = Field(default_factory=list)
+    algorithm: List[ContentBlockSchema] = Field(default_factory=list)
+    dryRun: List[ContentBlockSchema] = Field(default_factory=list)
+    complexity: List[ContentBlockSchema] = Field(default_factory=list)
+    edgeCases: List[ContentBlockSchema] = Field(default_factory=list)
+    mistakesToAvoid: List[ContentBlockSchema] = Field(default_factory=list)
 
 
-class EdgeCaseSchema(BaseModel):
-    case: str = Field(..., min_length=1)
-    explanation: str = Field(..., min_length=1)
+class GenerateNoteRequest(BaseModel):
+    problemLink: str = Field(..., min_length=1)
+    userCode: str = Field(..., min_length=1)
+    language: str = "C++"
 
 
 class SaveNoteRequest(BaseModel):
-    problem_id: int
-    bruteForce: List[ContentBlockSchema] = Field(default_factory=list)
-    optimalApproach: List[ContentBlockSchema] = Field(default_factory=list)
-    algorithm: List[AlgorithmStepSchema] = Field(default_factory=list)
-    dryRun: List[DryRunStepSchema] = Field(default_factory=list)
-    edgeCases: List[EdgeCaseSchema] = Field(default_factory=list)
-    status: Optional[Literal["processing", "draft", "final", "failed"]] = "draft"
+    problem: ProblemDetailSchema
+    note: NoteContentSchema
+    language: str = "C++"
+    userCode: str = ""
+    status: Literal["processing", "draft", "final", "failed"] = "draft"
