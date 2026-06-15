@@ -25,5 +25,5 @@ export const PublicOnlyRoute = ({ isAuthenticated, isAuthLoading }) => {
     );
   }
 
-  return !isAuthenticated ? <Outlet /> : <Navigate to="/dashboard" replace />;
+  return !isAuthenticated ? <Outlet /> : <Navigate to="/" replace />;
 };

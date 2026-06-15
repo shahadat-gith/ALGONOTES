@@ -17,13 +17,13 @@ from app.routes import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # App Startup Routine Engine
     print(f"Starting application in {settings.ENVIRONMENT} mode...")
-    print("connecting to database...")
+
     await init_db()
-    print("connected to database.")
+
+    print("Application startup completed.")
     yield
-    # App Shutdown Routine Execution Path
+
     print("Shutting down backend instance safely...")
 
 
@@ -35,7 +35,6 @@ app = FastAPI(
 )
 
 
-# Core System Middleware Integrations
 register_error_handlers(app)
 
 
@@ -48,23 +47,17 @@ app.add_middleware(
 )
 
 
-# Register Global Decentralized Route Clusters Under Standardized API Prefixes
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
 app.include_router(note_router, prefix="/api/v1")
 app.include_router(ai_generation_router, prefix="/api/v1")
 
 
-# ==========================================
-# SYSTEM CORE ROUTERS
-# ==========================================
-
-@app.get("/", tags=["System Verification Gateway"])
+@app.get("/", tags=["System"])
 async def system_health_status():
     return {
         "status": "operational",
         "engine": "FastAPI ASGI",
-        "database": "Connected via SQLModel",
         "environment": settings.ENVIRONMENT,
         "allowed_origins": settings.ALLOWED_ORIGINS,
     }
@@ -72,10 +65,9 @@ async def system_health_status():
 
 @app.get("/debug/env", tags=["Debug"])
 async def debug_env():
-    # Defensive Guardrail: Completely hide production debug profiles if exposed to public paths
     if settings.ENVIRONMENT.lower() == "production":
-        return {"message": "Debug information is restricted on production instances."}
-        
+        return {"message": "Debug information is restricted on production."}
+
     return {
         "environment": settings.ENVIRONMENT,
         "frontend_url": settings.FRONTEND_URL,
@@ -84,12 +76,12 @@ async def debug_env():
     }
 
 
-
-handler = Mangum(app, lifespan="on")
+handler = Mangum(app, lifespan="off")
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "main:app",
         host="0.0.0.0",

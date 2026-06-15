@@ -89,8 +89,6 @@ const GenerateNote = () => {
       }))
     );
 
-    toast.success("Notes created successfully!");
-
     setTimeout(() => {
       navigate(`/notes/${noteId}/edit`, {
         replace: true,

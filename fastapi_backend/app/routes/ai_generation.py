@@ -1,9 +1,8 @@
 import json
-import asyncio
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import select, update
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
+from sqlmodel import select, delete
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 from pydantic import ValidationError
@@ -33,17 +32,14 @@ async def call_gemini_and_save_task(
     user_code: str,
     language: str,
 ):
-    # Spawns a completely isolated context instance independent of the API layer
     async with async_session_maker() as session:
         try:
-            # 1. Compile the prompt template
             prompt = generate_note_prompt(
                 problem_link=problem_link,
                 user_code=user_code,
                 language=language,
             )
 
-            # 2. Call Gemini API asynchronously
             response = await ai_client.aio.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt,
@@ -52,17 +48,14 @@ async def call_gemini_and_save_task(
                 ),
             )
 
-            # 3. Parse and structurally validate LLM output using Pydantic Guardrails
             ai_data = json.loads(response.text) if response.text else {}
-            
+
             validated_problem = ProblemDetailSchema(**ai_data.get("problem", {}))
             validated_note = NoteContentSchema(**ai_data.get("note", {}))
-            
-            # Export cleanly back to raw dictionaries for JSONB columns
+
             problem_data = validated_problem.model_dump()
             note_data = validated_note.model_dump()
 
-            # 4. Query the placeholder note to inject data
             statement = select(Note).where(
                 Note.noteId == note_id,
                 Note.user_id == user_id,
@@ -74,7 +67,6 @@ async def call_gemini_and_save_task(
             if not note:
                 return
 
-            # 5. Mutate entity details and commit to Supabase
             note.problem = problem_data
             note.note = note_data
             note.status = "draft"
@@ -87,28 +79,35 @@ async def call_gemini_and_save_task(
             await session.commit()
 
         except (json.JSONDecodeError, ValidationError) as parse_err:
-            print(f"LLM Structural Parsing Validation failed for note {note_id}: {str(parse_err)}")
-            # Safe execution using un-shared context trees
-            await _mark_note_as_failed(note_id, user_id)
+            print(
+                f"LLM structural parsing validation failed for note {note_id}: "
+                f"{str(parse_err)}"
+            )
+            await session.rollback()
+            await _delete_failed_note(note_id, user_id)
 
         except Exception as e:
             print(f"AI generation pipeline failed for note {note_id}: {str(e)}")
-            await _mark_note_as_failed(note_id, user_id)
+            await session.rollback()
+            await _delete_failed_note(note_id, user_id)
 
 
-async def _mark_note_as_failed(note_id: str, user_id: int):
-    """Helper to atomically flag a generation task state as failed using a clean session."""
-    async with async_session_maker() as failure_session:
+async def _delete_failed_note(note_id: str, user_id: int):
+    async with async_session_maker() as session:
         try:
-            stmt = (
-                update(Note)
-                .where(Note.noteId == note_id, Note.user_id == user_id)
-                .values(status="failed", lastEditedAt=datetime.now(timezone.utc))
+            stmt = delete(Note).where(
+                Note.noteId == note_id,
+                Note.user_id == user_id,
             )
-            await failure_session.execute(stmt)
-            await failure_session.commit()
+
+            await session.execute(stmt)
+            await session.commit()
+
+            print(f"Deleted failed note entry: {note_id}")
+
         except Exception as db_err:
-            print(f"Critical: Failed to update status flag to 'failed': {str(db_err)}")
+            await session.rollback()
+            print(f"Critical: failed to delete failed note {note_id}: {str(db_err)}")
 
 
 # ==========================================
@@ -118,11 +117,13 @@ async def _mark_note_as_failed(note_id: str, user_id: int):
 @router.post("/generate", status_code=status.HTTP_202_ACCEPTED)
 async def generate_ai_note(
     payload: GenerateNoteRequest,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
-    # Enforce standard placeholder defaults so frontend rendering does not throw undefined errors
-    placeholder_problem = ProblemDetailSchema(problemLink=payload.problemLink).model_dump()
+    placeholder_problem = ProblemDetailSchema(
+        problemLink=payload.problemLink
+    ).model_dump()
 
     new_note = Note(
         user_id=current_user.id,
@@ -137,15 +138,13 @@ async def generate_ai_note(
     await session.commit()
     await session.refresh(new_note)
 
-    # Dispatch to the event loop safely
-    asyncio.create_task(
-        call_gemini_and_save_task(
-            note_id=new_note.noteId,
-            user_id=current_user.id,
-            problem_link=payload.problemLink,
-            user_code=payload.userCode,
-            language=payload.language,
-        )
+    background_tasks.add_task(
+        call_gemini_and_save_task,
+        note_id=new_note.noteId,
+        user_id=current_user.id,
+        problem_link=payload.problemLink,
+        user_code=payload.userCode,
+        language=payload.language,
     )
 
     return {
@@ -182,5 +181,5 @@ async def check_note_generation_status(
 
     return {
         "success": True,
-        "status": note.status
+        "status": note.status,
     }

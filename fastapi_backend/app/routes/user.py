@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from sqlmodel import select, func, or_
+from sqlmodel import select, or_
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -117,7 +117,6 @@ async def update_profile(
     }
 
 
-
 # ==========================================
 # GLOBAL WORKSPACE SEARCH UTILITY
 # ==========================================
@@ -134,7 +133,6 @@ async def search_workspace(
         }
 
     search_pattern = f"%{q}%"
-
 
     note_statement = (
         select(Note)
@@ -188,5 +186,3 @@ async def search_workspace(
         "success": True,
         "results": formatted_notes
     }
-
-

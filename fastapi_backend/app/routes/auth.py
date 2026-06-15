@@ -27,13 +27,14 @@ async def register(
     background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(get_session)
 ):
-    # Enforce safe lowercasing for system lookups
     user_email = payload.email.lower().strip()
 
+    # Enforce safe cursor generation to protect serverless sockets
     statement = select(User).where(User.email == user_email)
     result = await session.execute(statement)
+    existing_user = result.scalar_one_or_none()
 
-    if result.scalar_one_or_none():
+    if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="An account with this email already exists."
@@ -109,7 +110,6 @@ async def login(
 
     token = create_access_token(str(user.id))
 
-    # Sanitize and completely exclude security tracking options from frontend view models
     sanitized_user = user.model_dump(
         exclude={
             "password",
@@ -157,7 +157,6 @@ async def verify_user(
 
     if payload.step == "send-otp":
         fresh_otp = generate_otp()
-        # Refactored: Modern Python 3.12+ Timezone-Aware Explicit Expiry offsets
         expiry_time = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
 
         v_opts["otp"] = fresh_otp
@@ -200,7 +199,6 @@ async def verify_user(
             )
 
         expiry_str = v_opts.get("otpExpiry")
-        # Refactored: Dynamic Timezone-Aware evaluation
         is_expired = datetime.now(timezone.utc) > datetime.fromisoformat(expiry_str) if expiry_str else True
 
         if v_opts.get("otp") != payload.otp or is_expired:
@@ -260,7 +258,6 @@ async def forgot_password(
 
     if payload.step == "send-otp":
         reset_otp = generate_otp()
-        # Refactored: Modern Python 3.12+ Timezone-Aware Explicit Expiry offsets
         expiry_time = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
 
         f_opts["otp"] = reset_otp
@@ -304,7 +301,6 @@ async def forgot_password(
             )
 
         expiry_str = f_opts.get("otpExpiry")
-        # Refactored: Dynamic Timezone-Aware evaluation
         is_expired = datetime.now(timezone.utc) > datetime.fromisoformat(expiry_str) if expiry_str else True
 
         if f_opts.get("otp") != payload.otp or is_expired:

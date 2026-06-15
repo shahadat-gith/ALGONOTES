@@ -41,7 +41,7 @@ async def update_note(
             detail="Note not found.",
         )
 
-    # Encapsulates the complete payload sent from your schemas
+    # Update structural parameters safely
     note.problem = payload.problem.model_dump()
     note.note = payload.note.model_dump()
     note.language = payload.language
@@ -63,43 +63,52 @@ async def update_note(
     }
 
 
-
-
+# ==========================================
+# GET USER NOTES (PAGINATED & FILTERED)
+# ==========================================
 @router.get("/user")
 async def get_all_notes_by_user(
     page: int = Query(default=1, ge=1),
     size: int = Query(default=10, ge=1, le=50),
-    search: Optional[str] = Query(default=None, description="Search term for notes"),
+    search: Optional[str] = Query(
+        default=None,
+        description="Search term for notes"
+    ),
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
     offset_value = (page - 1) * size
 
-    # 1. Base query requirements
+    # Base filters → only return draft and final notes
     base_filters = [
         Note.user_id == current_user.id,
-        Note.status != "processing"
+        Note.status.in_(["draft", "final"])
     ]
 
-    # 2. Add search parameters dynamically using SQL iLike pattern matches
+    # Optional search filters
     if search:
         search_pattern = f"%{search}%"
+
         base_filters.append(
             or_(
                 Note.language.ilike(search_pattern),
-                # Extracts values from JSONB layout maps safely to apply partial string matches
                 Note.problem["title"].astext.ilike(search_pattern),
                 Note.problem["platform"].astext.ilike(search_pattern),
                 Note.problem["difficulty"].astext.ilike(search_pattern)
             )
         )
 
-    # 3. Calculate accurate total items count matching search filters
-    count_statement = select(func.count()).select_from(Note).where(*base_filters)
+    # Total matching records
+    count_statement = (
+        select(func.count())
+        .select_from(Note)
+        .where(*base_filters)
+    )
+
     count_result = await session.execute(count_statement)
     total_items = count_result.scalar() or 0
 
-    # 4. Fetch the paginated dataset slice matching criteria from Supabase
+    # Fetch paginated notes
     data_statement = (
         select(Note)
         .where(*base_filters)
@@ -107,10 +116,13 @@ async def get_all_notes_by_user(
         .offset(offset_value)
         .limit(size)
     )
+
     result = await session.execute(data_statement)
     notes = result.scalars().all()
 
+    # Format response
     formatted_notes = []
+
     for note in notes:
         formatted_notes.append({
             "id": note.id,
@@ -144,7 +156,7 @@ async def get_all_notes_by_user(
     }
 
 # ==========================================
-# GET SINGLE NOTE DETAILS (Returns All Data)
+# GET SINGLE NOTE DETAILS
 # ==========================================
 @router.get("/{note_id}")
 async def get_note_by_note_id(
@@ -166,7 +178,7 @@ async def get_note_by_note_id(
             detail="Note not found.",
         )
 
-    # Inform client to stay on loading/polling state if still cooking
+    # Prevent frontend render panics if worker task execution cycles are incomplete
     if note.status == "processing":
         raise HTTPException(
             status_code=status.HTTP_202_ACCEPTED,
@@ -179,7 +191,6 @@ async def get_note_by_note_id(
             detail="AI generation failed for this problem."
         )
 
-    # Returns entire model including raw testCases, constraints, note lists, descriptions
     return {
         "success": True,
         "note": note, 
