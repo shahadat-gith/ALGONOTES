@@ -1,4 +1,5 @@
 # app/database/session.py
+import os
 from sqlmodel import SQLModel
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -7,27 +8,37 @@ from typing import AsyncGenerator
 
 from app.config import settings
 
-# 1. Grab the database URL from settings
 db_url = settings.DATABASE_URL
 
-# 2. Instantiate the asynchronous engine using the direct Supabase port (5432)
-# and use ssl="require" for a smooth, encrypted handshake.
+# Check if the code is executing inside an ephemeral AWS Lambda container
+IS_SERVERLESS = os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
+
+# Instantiate the asynchronous engine with serverless-optimized pool scaling properties
 engine = create_async_engine(
-    db_url,
+    settings.DATABASE_URL,
     connect_args={"ssl": "require"}, 
     echo=False,
-    future=True
+    future=True,
+    # Serverless specific configuration optimizations:
+    pool_size=1 if IS_SERVERLESS else 5,       
+    max_overflow=0 if IS_SERVERLESS else 10,   
+    pool_pre_ping=True,                        
+    pool_recycle=1800                          
 )
 
-# 3. Create the session maker bound to our async engine
 async_session_maker = sessionmaker(
     engine, 
     class_=AsyncSession, 
     expire_on_commit=False
 )
 
-# 4. Initialize tables (runs on application startup if called)
 async def init_db() -> None:
+    # If running inside AWS serverless spaces, exit immediately
+    if IS_SERVERLESS:
+        print("Serverless container context detected. Bypassing schema reflection loops.")
+        return
+
+    # Local execution safety net fallback
     try:
         async with engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.create_all)
@@ -35,7 +46,6 @@ async def init_db() -> None:
         print(f"Supabase PostgreSQL Initialization Failed: {str(e)}")
         raise e
 
-# 5. Dependency injection function for your FastAPI routes
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session

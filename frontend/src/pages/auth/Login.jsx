@@ -7,6 +7,7 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { loginUser } from "../../api/authApi";
 import { useAuth } from "../../context/AuthContext";
+import MinimalistLogo from "../../components/logo/MinimalistLogo";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ const Login = () => {
       <div className="w-full max-w-md rounded-3xl border border-[var(--border-default)] bg-white p-8 shadow-[var(--shadow-card)]">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center text-[var(--primary)]">
-            <img src="/logo.png" alt="Logo" />
+            <MinimalistLogo/>
           </div>
 
           <h1 className="text-3xl font-black text-[var(--text-main)]">

@@ -11,6 +11,7 @@ import {
   BookOpen,
   Heart
 } from "lucide-react";
+import MinimalistLogo from "../logo/MinimalistLogo";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -30,7 +31,7 @@ const Footer = () => {
           <div className="space-y-3.5">
             <div className="flex items-center gap-2">
               <div className="p-1.5 text-white font-mono font-black text-xs">
-                <img src="/logo.png" alt="logo" style={{ width: "30px" }} />
+                <MinimalistLogo />
               </div>
               <span className="text-sm font-black tracking-tight text-[var(--text-main)]">
                 ALGO<span className="text-[var(--primary)]">NOTES</span>
