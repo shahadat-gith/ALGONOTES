@@ -1,229 +1,162 @@
+# app/routes/note.py
+
 from math import ceil
 from datetime import datetime, timezone
-from typing import Optional 
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query, status
-from sqlmodel import select, func, or_  
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlalchemy.orm.attributes import flag_modified
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.models import User, Note
-from app.schemas import SaveNoteRequest
+from app.models.note import NoteStatus
+from app.schemas.note import NoteResponse, NoteUpdate, NoteContentUpdate
 from app.middlewares import get_current_user
-from app.database import get_session
 
 
-router = APIRouter(prefix="/notes", tags=["Study Notes Management"])
+router = APIRouter(
+    prefix="/notes",
+    tags=["Study Notes"]
+)
 
 
-# ==========================================
-# UPDATE NOTE
-# ==========================================
-@router.put("/{note_id}")
+@router.put("/{note_id}", response_model=dict)
 async def update_note(
     note_id: str,
-    payload: SaveNoteRequest,
-    background_tasks: BackgroundTasks,
+    payload: NoteUpdate,  # Upgraded to our clean partial update schema
     current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
 ):
-    statement = select(Note).where(
-        Note.noteId == note_id,
-        Note.user_id == current_user.id,
-    )
+    note = await Note.get(note_id)
 
-    result = await session.execute(statement)
-    note = result.scalar_one_or_none()
-
-    if not note:
+    if not note or note.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Note not found.",
         )
 
-    # Update structural parameters safely
-    note.problem = payload.problem.model_dump()
-    note.note = payload.note.model_dump()
-    note.language = payload.language
-    note.userCode = payload.userCode
-    note.status = payload.status
-    note.lastEditedAt = datetime.now(timezone.utc)
+    # Apply top-level field updates dynamically if provided
+    if payload.status is not None:
+        note.status = payload.status
+    if payload.problem is not None:
+        note.problem = payload.problem
+    if payload.language is not None:
+        note.language = payload.language
+    if payload.userCode is not None:
+        note.userCode = payload.userCode
 
-    flag_modified(note, "problem")
-    flag_modified(note, "note")
+    # Elegant deep partial patching for the embedded note contents
+    if payload.note is not None:
+        update_data = payload.note.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(note.note, key, value)
 
-    session.add(note)
-    await session.commit()
-    await session.refresh(note)
+    note.updatedAt = datetime.now(timezone.utc)
+    await note.save()
 
     return {
         "success": True,
         "message": f"Note updated successfully as {note.status}.",
-        "note": note,
+        # Leveraging Pydantic validation cleanly on return
+        "note": NoteResponse.model_validate(note)
     }
 
 
-# ==========================================
-# GET USER NOTES (PAGINATED & FILTERED)
-# ==========================================
-@router.get("/user")
+@router.get("/user", response_model=dict)
 async def get_all_notes_by_user(
     page: int = Query(default=1, ge=1),
     size: int = Query(default=10, ge=1, le=50),
-    search: Optional[str] = Query(
-        default=None,
-        description="Search term for notes"
-    ),
+    search: Optional[str] = Query(default=None),
     current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
 ):
-    offset_value = (page - 1) * size
+    skip = (page - 1) * size
 
-    # Base filters → only return draft and final notes
-    base_filters = [
+    # Type-safe Beanie query targeting native fields/enums
+    find_query = Note.find(
         Note.user_id == current_user.id,
-        Note.status.in_(["draft", "final"])
-    ]
-
-    # Optional search filters
-    if search:
-        search_pattern = f"%{search}%"
-
-        base_filters.append(
-            or_(
-                Note.language.ilike(search_pattern),
-                Note.problem["title"].astext.ilike(search_pattern),
-                Note.problem["platform"].astext.ilike(search_pattern),
-                Note.problem["difficulty"].astext.ilike(search_pattern)
-            )
-        )
-
-    # Total matching records
-    count_statement = (
-        select(func.count())
-        .select_from(Note)
-        .where(*base_filters)
+        In(Note.status, [NoteStatus.draft, NoteStatus.final])
     )
 
-    count_result = await session.execute(count_statement)
-    total_items = count_result.scalar() or 0
-
-    # Fetch paginated notes
-    data_statement = (
-        select(Note)
-        .where(*base_filters)
-        .order_by(Note.createdAt.desc())
-        .offset(offset_value)
-        .limit(size)
-    )
-
-    result = await session.execute(data_statement)
-    notes = result.scalars().all()
-
-    # Format response
-    formatted_notes = []
-
-    for note in notes:
-        formatted_notes.append({
-            "id": note.id,
-            "noteId": note.noteId,
-            "status": note.status,
-            "language": note.language,
-            "problem": {
-                "title": note.problem.get("title", ""),
-                "platform": note.problem.get("platform", ""),
-                "difficulty": note.problem.get("difficulty", ""),
-                "problemLink": note.problem.get("problemLink", ""),
-                "topics": note.problem.get("topics", []),
-            },
-            "createdAt": note.createdAt,
-            "lastEditedAt": note.lastEditedAt,
+    # Integrate text-search cleanly if provided
+    if search and search.strip():
+        term = search.strip()
+        find_query = find_query.find({
+            "$or": [
+                {"language": {"$regex": term, "$options": "i"}},
+                {"problem.title": {"$regex": term, "$options": "i"}},
+                {"problem.platform": {"$regex": term, "$options": "i"}},
+                {"problem.difficulty": {"$regex": term, "$options": "i"}},
+            ]
         })
 
-    total_pages = ceil(total_items / size) if total_items > 0 else 1
+    total_items = await find_query.count()
+    notes = await (
+        find_query
+        .sort(-Note.createdAt)
+        .skip(skip)
+        .limit(size)
+        .to_list()
+    )
+
+    total_pages = ceil(total_items / size) if total_items else 1
 
     return {
         "success": True,
-        "notes": formatted_notes,
+        # Auto-serializes structural arrays using Pydantic, purging null blocks instantly
+        "notes": [NoteResponse.model_validate(note) for note in notes],
         "pagination": {
             "totalItems": total_items,
             "totalPages": total_pages,
             "currentPage": page,
             "pageSize": size,
             "hasNext": page < total_pages,
-            "hasPrevious": page > 1
-        }
+            "hasPrevious": page > 1,
+        },
     }
 
-# ==========================================
-# GET SINGLE NOTE DETAILS
-# ==========================================
-@router.get("/{note_id}")
+
+@router.get("/{note_id}", response_model=dict)
 async def get_note_by_note_id(
     note_id: str,
     current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
 ):
-    statement = select(Note).where(
-        Note.noteId == note_id,
-        Note.user_id == current_user.id,
-    )
+    note = await Note.get(note_id)
 
-    result = await session.execute(statement)
-    note = result.scalar_one_or_none()
-
-    if not note:
+    if not note or note.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Note not found.",
         )
 
-    # Prevent frontend render panics if worker task execution cycles are incomplete
-    if note.status == "processing":
+    # Use the programmatic Enum value for verification safety
+    if note.status == NoteStatus.processing:
         raise HTTPException(
             status_code=status.HTTP_202_ACCEPTED,
-            detail="Note generation task is still processing."
-        )
-        
-    if note.status == "failed":
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="AI generation failed for this problem."
+            detail="Note generation is still processing.",
         )
 
     return {
         "success": True,
-        "note": note, 
+        "note": NoteResponse.model_validate(note),
     }
 
 
-# ==========================================
-# DELETE NOTE
-# ==========================================
-@router.delete("/{note_id}")
+@router.delete("/{note_id}", response_model=dict)
 async def delete_note(
     note_id: str,
     current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session),
 ):
-    statement = select(Note).where(
-        Note.noteId == note_id,
-        Note.user_id == current_user.id,
-    )
+    note = await Note.get(note_id)
 
-    result = await session.execute(statement)
-    note = result.scalar_one_or_none()
-
-    if not note:
+    if not note or note.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Note not found.",
         )
 
-    await session.delete(note)
-    await session.commit()
+    await note.delete()
 
     return {
         "success": True,
         "message": "Note deleted successfully.",
     }
+
+# Helper mapping import for Beanie query structures
+from beanie.operators import In

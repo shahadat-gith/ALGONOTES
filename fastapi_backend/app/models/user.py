@@ -1,67 +1,59 @@
+# app/models/user.py
+
 from datetime import datetime, timezone
-from typing import Optional, List, Dict, Any
+from enum import Enum
+from typing import Optional
 
-from sqlmodel import SQLModel, Field, Relationship, Column
-from sqlalchemy import DateTime
-from sqlalchemy.dialects.postgresql import JSONB
+from beanie import Document, Indexed
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
 
 
-class User(SQLModel, table=True):
-    __tablename__ = "users"
+class VerificationStatus(str, Enum):
+    pending = "pending"
+    verified = "verified"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
 
+class AvatarSchema(BaseModel):
+    url: str = ""
+    public_id: str = ""
+
+
+class VerificationSchema(BaseModel):
+    status: VerificationStatus = VerificationStatus.pending
+    otp: Optional[str] = None
+    otpExpiry: Optional[datetime] = None
+
+
+class ForgotPasswordSchema(BaseModel):
+    otp: Optional[str] = None
+    otpExpiry: Optional[datetime] = None
+    otpVerified: bool = False
+
+
+class User(Document):
     name: str
-
-    email: str = Field(
-        index=True,
-        unique=True
-    )
-
-    username: Optional[str] = Field(
+    email: EmailStr = Indexed(unique=True)
+    username: Optional[str] = Indexed(
         default=None,
-        index=True,
-        unique=True
+        unique=True,
+        sparse=True
     )
+    password: str = Field(exclude=True)
+    avatar: AvatarSchema = Field(default_factory=AvatarSchema)
+    verificationOptions: VerificationSchema = Field(default_factory=VerificationSchema)
+    forgotPasswordOptions: ForgotPasswordSchema = Field(default_factory=ForgotPasswordSchema)
 
-    password: str
-
-    # Profile Customization Block
-    avatar: Dict[str, Any] = Field(
-        default_factory=lambda: {
-            "url": "",
-            "public_id": ""
-        },
-        sa_column=Column(JSONB)
-    )
-
-    # Core Security & Verification Tracking Options
-    verificationOptions: Dict[str, Any] = Field(
-        default_factory=lambda: {
-            "status": "pending",
-            "otp": None,
-            "otpExpiry": None
-        },
-        sa_column=Column(JSONB)
-    )
-
-    forgotPasswordOptions: Dict[str, Any] = Field(
-        default_factory=lambda: {
-            "otp": None,
-            "otpExpiry": None,
-            "otpVerified": False
-        },
-        sa_column=Column(JSONB)
-    )
-
-    # Modernized Timezone-Aware Explicit Timestamp Registration
     createdAt: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_type=DateTime(timezone=True)
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+    updatedAt: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
     )
 
-    # Relationship Connectors pointing to your external Note/Activity schemas
-    notes: List["Note"] = Relationship(
-        back_populates="user",
-        cascade_delete=True
+    class Settings:
+        name = "users"
+
+    # Enforce standard model configurations to help handle conversions gracefully
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True
     )

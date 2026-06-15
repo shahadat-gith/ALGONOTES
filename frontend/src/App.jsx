@@ -2,21 +2,21 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { useAuth } from "./context/AuthContext";
 
-// Layout structures
 import Layout from "./components/layout/Layout";
 import { ProtectedRoute, PublicOnlyRoute } from "./components/auth/RouteGuards";
 
-// Page Components
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyUser from "./pages/auth/VerifyUser";
+
 import Home from "./pages/home/Home";
 import Notes from "./pages/notes/Notes";
 import GenerateNote from "./pages/notes/GenerateNote";
 import EditNote from "./pages/notes/EditNote";
-import ViewNote from "./pages/notes/ViewNote";
+import NoteDetails from "./pages/notes/NoteDetails";
+
 import NotFound from "./pages/general/NotFound";
 import Developer from "./pages/developer/Developer";
 import Privacy from "./pages/disclaimers/Privacy";
@@ -28,10 +28,13 @@ const App = () => {
 
   return (
     <>
-      <Toaster position="top-center" gutter={12} containerStyle={{ top: 20 }} />
+      <Toaster
+        position="top-center"
+        gutter={12}
+        containerStyle={{ top: 20 }}
+      />
 
       <Routes>
-        {/* PUBLIC ROUTES */}
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/developer" element={<Developer />} />
@@ -40,7 +43,6 @@ const App = () => {
           <Route path="/data-privacy" element={<DataPrivacy />} />
         </Route>
 
-        {/* VERIFICATION ROUTE */}
         <Route
           path="/verify"
           element={
@@ -52,7 +54,6 @@ const App = () => {
           }
         />
 
-        {/* AUTH ROUTES */}
         <Route
           element={
             <PublicOnlyRoute
@@ -67,7 +68,6 @@ const App = () => {
           <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
 
-        {/* PROTECTED WORKSPACE */}
         <Route
           element={
             <ProtectedRoute
@@ -79,8 +79,9 @@ const App = () => {
           <Route element={<Layout />}>
             <Route path="/notes" element={<Notes />} />
             <Route path="/notes/generate" element={<GenerateNote />} />
-            <Route path="/notes/:noteId/view" element={<ViewNote />} />
-            <Route path="/notes/:noteId/edit" element={<EditNote />} />
+
+            <Route path="/notes/:id" element={<NoteDetails />} />
+            <Route path="/notes/:id/edit" element={<EditNote />} />
           </Route>
         </Route>
 

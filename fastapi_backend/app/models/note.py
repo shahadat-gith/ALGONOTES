@@ -1,59 +1,111 @@
-import uuid
+# app/models/note.py
+
+
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any, TYPE_CHECKING
+from enum import Enum
+from typing import List, Dict, Any, Optional
 
-from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import DateTime, Column
-from sqlalchemy.dialects.postgresql import JSONB
-
-if TYPE_CHECKING:
-    from app.models import User
+from beanie import Document, Indexed, PydanticObjectId
+from pydantic import BaseModel, Field, ConfigDict
 
 
-class Note(SQLModel, table=True):
-    __tablename__ = "notes"
+# ==========================================
+# ENUMS
+# ==========================================
+class NoteStatus(str, Enum):
+    processing = "processing"
+    draft = "draft"
+    final = "final"
+    failed = "failed"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
 
-    noteId: str = Field(
-        default_factory=lambda: str(uuid.uuid4()),
-        index=True,
-        unique=True,
-        nullable=False,
-    )
+# ==========================================
+# REUSABLE COMPONENT SCHEMAS (No Nulls)
+# ==========================================
+class TextParagraph(BaseModel):
+    """Simple rich-text style paragraph or heading."""
+    type: str = "paragraph"  # e.g., "heading", "paragraph"
+    text: str
 
-    status: str = Field(default="processing", index=True)
 
-    # Clean polymorphic content blocks stored natively as JSONB layout arrays
-    problem: Dict[str, Any] = Field(
-        default_factory=dict,
-        sa_column=Column(JSONB, nullable=False),
-    )
+class CodeImplementation(BaseModel):
+    """Strict schema for code blocks."""
+    language: str = "C++"
+    code: str
 
-    note: Dict[str, Any] = Field(
-        default_factory=dict,
-        sa_column=Column(JSONB, nullable=False),
-    )
 
-    language: str = Field(default="C++")
-    userCode: str = Field(default="")
+# ==========================================
+# APPROACH SCHEMA (Brute Force & Optimal)
+# ==========================================
+class ApproachSchema(BaseModel):
+    """Used for bruteForce and optimalApproach."""
+    description: List[TextParagraph] = Field(default_factory=list)
+    codeBlock: Optional[CodeImplementation] = None
+    algorithmSteps: List[str] = Field(default_factory=list)
 
-    # Optimization: Default to the current time so sorting logic always has an active value
-    lastEditedAt: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_type=DateTime(timezone=True),
-    )
+    # Automatically drops 'codeBlock' key if it is None when serialized
+    model_config = ConfigDict(exclude_none=True)
+
+
+# ==========================================
+# PROBLEM DETAILS SCHEMA
+# ==========================================
+class ProblemDetailSchema(BaseModel):
+    title: str = ""
+    problemLink: str = ""
+    platform: str = ""
+    difficulty: str = ""
+    description: str = ""
+    constraints: List[str] = Field(default_factory=list)
+    testCases: List[Dict[str, Any]] = Field(default_factory=list)
+    expectedTimeComplexity: str = ""
+    expectedSpaceComplexity: str = ""
+    topics: List[str] = Field(default_factory=list)
+
+
+# ==========================================
+# STRONGLY TYPED NOTE CONTENT
+# ==========================================
+class NoteContentSchema(BaseModel):
+    summary: List[str] = Field(default_factory=list)
+    intuition: List[str] = Field(default_factory=list)
+    complexity: List[str] = Field(default_factory=list)
+    edgeCases: List[str] = Field(default_factory=list)
+    mistakesToAvoid: List[str] = Field(default_factory=list)
+
+    # Fixed: Changed lower 'any' to 'Any' to avoid runtime NameError
+    dryRun: List[Dict[str, Any]] = Field(default_factory=list)
+
+    bruteForce: Optional[ApproachSchema] = None
+    optimalApproach: Optional[ApproachSchema] = None
+
+    # Keeps MongoDB completely clean of null optional approaches
+    model_config = ConfigDict(exclude_none=True)
+
+
+# ==========================================
+# NOTE DOCUMENT
+# ==========================================
+class Note(Document):
+    status: NoteStatus = Indexed(default=NoteStatus.processing)
+    problem: ProblemDetailSchema = Field(default_factory=ProblemDetailSchema)
+    note: NoteContentSchema = Field(default_factory=NoteContentSchema)
+    language: str = "C++"
+    userCode: str = ""
+    user_id: PydanticObjectId = Indexed()
 
     createdAt: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_type=DateTime(timezone=True),
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+    updatedAt: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc)
     )
 
-    # Cascading relational foreign keys
-    user_id: int = Field(
-        foreign_key="users.id",
-        ondelete="CASCADE",
-        index=True,
-    )
+    class Settings:
+        name = "notes"
 
-    user: "User" = Relationship(back_populates="notes")
+    # Correct Pydantic v2 configuration style for Beanie documents
+    model_config = ConfigDict(
+        extra="ignore",
+        exclude_none=True  # Crucial: This explicitly blocks null fields from writing to Mongo
+    )

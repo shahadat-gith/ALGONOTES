@@ -1,353 +1,420 @@
-import json
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Any
+# app/routes/auth.py
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
-from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlalchemy.orm.attributes import flag_modified
+from datetime import datetime, timedelta, timezone
+
+from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 
 from app.models import User
-from app.schemas import RegisterRequest, LoginRequest, VerifyUserRequest, ForgotPasswordRequest
+from app.schemas import (
+    RegisterRequest,
+    LoginRequest,
+    VerifyUserRequest,
+    ForgotPasswordRequest,
+    UserResponse,
+)
 from app.services import hash_password, verify_password, send_email
 from app.utils import generate_otp, create_access_token
-from app.database import get_session
 from app.config import settings
 
 
-router = APIRouter(prefix="/auth", tags=["Authentication Controller"])
+router = APIRouter(
+    prefix="/auth",
+    tags=["Authentication"]
+)
 
 
 # ==========================================
-# REGISTER USER
+# EMAIL TEMPLATES
+# ==========================================
+def base_email_template(title: str, body: str) -> str:
+    return f"""
+    <!DOCTYPE html>
+    <html>
+      <body style="margin:0; padding:0; background:#f4f7fb; font-family:Arial, Helvetica, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb; padding:32px 16px;">
+          <tr>
+            <td align="center">
+              <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; background:#ffffff; border-radius:18px; overflow:hidden; border:1px solid #e5eaf0; box-shadow:0 10px 30px rgba(15,23,42,0.08);">
+                
+                <tr>
+                  <td style="padding:28px 32px; background:linear-gradient(135deg,#0f766e,#14b8a6); color:#ffffff;">
+                    <h1 style="margin:0; font-size:26px; letter-spacing:-0.5px;">AlgoNotes</h1>
+                    <p style="margin:8px 0 0; font-size:14px; opacity:0.9;">Your AI-powered DSA notes workspace</p>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:32px;">
+                    <h2 style="margin:0 0 14px; color:#0f172a; font-size:22px;">{title}</h2>
+                    {body}
+                  </td>
+                </tr>
+
+                <tr>
+                  <td style="padding:20px 32px; background:#f8fafc; border-top:1px solid #e5eaf0;">
+                    <p style="margin:0; color:#64748b; font-size:12px; line-height:1.6;">
+                      This email was sent by AlgoNotes. If you did not request this action, you can safely ignore this email.
+                    </p>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+    """
+
+
+def welcome_email_template(verification_url: str) -> str:
+    body = f"""
+    <p style="color:#475569; font-size:15px; line-height:1.7; margin:0 0 22px;">
+      Welcome to AlgoNotes. Verify your email address to activate your account and start generating clean DSA notes.
+    </p>
+
+    <a href="{verification_url}" target="_blank"
+       style="display:inline-block; background:#0f766e; color:#ffffff; text-decoration:none; padding:13px 22px; border-radius:10px; font-weight:700; font-size:14px;">
+      Verify Account
+    </a>
+
+    <p style="color:#64748b; font-size:13px; line-height:1.6; margin:24px 0 0;">
+      If the button does not work, copy and paste this link into your browser:
+    </p>
+
+    <p style="margin:8px 0 0;">
+      <a href="{verification_url}" style="color:#0f766e; font-size:13px; word-break:break-all;">
+        {verification_url}
+      </a>
+    </p>
+    """
+
+    return base_email_template(
+        title="Verify your AlgoNotes account",
+        body=body
+    )
+
+
+def otp_email_template(otp: str, title: str, purpose: str, danger: bool = False) -> str:
+    color = "#e11d48" if danger else "#0f766e"
+
+    body = f"""
+    <p style="color:#475569; font-size:15px; line-height:1.7; margin:0 0 20px;">
+      {purpose}
+    </p>
+
+    <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:14px; padding:20px; text-align:center; margin:22px 0;">
+      <p style="margin:0 0 8px; color:#64748b; font-size:12px; text-transform:uppercase; letter-spacing:1.4px;">
+        Your OTP Code
+      </p>
+      <div style="font-size:34px; font-weight:800; letter-spacing:8px; color:{color};">
+        {otp}
+      </div>
+    </div>
+
+    <p style="color:#64748b; font-size:13px; line-height:1.6; margin:0;">
+      This code is valid for <strong>10 minutes</strong>. Do not share it with anyone.
+    </p>
+    """
+
+    return base_email_template(
+        title=title,
+        body=body
+    )
+
+
+def serialize_user(user: User) -> UserResponse:
+    return UserResponse(
+        id=str(user.id),
+        name=user.name,
+        email=user.email,
+        username=user.username,
+        avatar={
+            "url": user.avatar.url,
+            "public_id": user.avatar.public_id,
+        },
+        verificationOptions={
+            "status": user.verificationOptions.status,
+        }
+    )
+
+
+# ==========================================
+# REGISTER
 # ==========================================
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
     payload: RegisterRequest,
-    background_tasks: BackgroundTasks,
-    session: AsyncSession = Depends(get_session)
+    background_tasks: BackgroundTasks
 ):
     user_email = payload.email.lower().strip()
 
-    # Enforce safe cursor generation to protect serverless sockets
-    statement = select(User).where(User.email == user_email)
-    result = await session.execute(statement)
-    existing_user = result.scalar_one_or_none()
+    existing_user = await User.find_one(
+        User.email == user_email
+    )
 
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="An account with this email already exists."
+            status_code=400,
+            detail="Account already exists."
         )
 
-    hashed_pwd = hash_password(payload.password)
-
     new_user = User(
-        name=payload.name,
+        name=payload.name.strip(),
         email=user_email,
-        password=hashed_pwd,
-        avatar={"url": "", "public_id": ""},
-        verificationOptions={
-            "status": "pending",
-            "otp": None,
-            "otpExpiry": None
-        },
-        forgotPasswordOptions={
-            "otp": None,
-            "otpExpiry": None,
-            "otpVerified": False
-        }
+        username=payload.username.lower().strip() if payload.username else None,
+        password=hash_password(payload.password),
     )
 
-    session.add(new_user)
-    await session.commit()
-    await session.refresh(new_user)
+    await new_user.insert()
 
-    verification_url = f"{settings.FRONTEND_URL_PROD}/verify?email={new_user.email}"
-
-    email_html = f"""
-    <div style="font-family: Arial, sans-serif; padding: 30px; max-width: 600px; margin: 0 auto; border: 1px solid #eef2f6; border-radius: 8px;">
-        <h2 style="color: #0f766e; margin-bottom: 10px;">Welcome to AlgoNotes!</h2>
-        <p style="color: #475569; font-size: 16px; line-height: 1.5;">Thank you for signing up. Please click the button below to complete your email verification:</p>
-        <a href="{verification_url}" target="_blank" style="display: inline-block; background-color: #0f766e; color: #ffffff; text-decoration: none; padding: 12px 24px; font-weight: bold; border-radius: 6px; font-size: 14px; margin: 20px 0;">Verify Account</a>
-        <p style="color: #94a3b8; font-size: 12px;">If the button isn't working, copy and paste this link into your browser:<br />
-        <a href="{verification_url}" style="color: #0f766e; word-break: break-all;">{verification_url}</a></p>
-    </div>
-    """
+    verification_url = (
+        f"{settings.FRONTEND_URL_PROD}/verify?email={new_user.email}"
+    )
 
     background_tasks.add_task(
         send_email,
         new_user.email,
-        "Welcome to ALGONOTES",
-        email_html
+        "Welcome to AlgoNotes",
+        welcome_email_template(verification_url)
     )
 
     return {
         "success": True,
-        "message": "Registration successful!"
+        "message": "Registration successful."
     }
 
 
 # ==========================================
-# USER LOGIN
+# LOGIN
 # ==========================================
 @router.post("/login")
-async def login(
-    payload: LoginRequest,
-    session: AsyncSession = Depends(get_session)
-):
+async def login(payload: LoginRequest):
     user_email = payload.email.lower().strip()
 
-    statement = select(User).where(User.email == user_email)
-    result = await session.execute(statement)
-    user = result.scalar_one_or_none()
+    user = await User.find_one(
+        User.email == user_email
+    )
 
-    if not user or not verify_password(payload.password, user.password):
+    if not user or not verify_password(
+        payload.password,
+        user.password
+    ):
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password."
+            status_code=401,
+            detail="Invalid credentials."
         )
 
     token = create_access_token(str(user.id))
 
-    sanitized_user = user.model_dump(
-        exclude={
-            "password",
-            "forgotPasswordOptions",
-            "verificationOptions"
-        }
-    )
-
     return {
         "success": True,
-        "message": "Login successful.",
         "token": token,
-        "user": sanitized_user
+        "user": serialize_user(user)
     }
 
 
 # ==========================================
-# ACCOUNT VERIFICATION SYSTEM (OTP)
+# VERIFY USER
 # ==========================================
 @router.post("/verify")
 async def verify_user(
     payload: VerifyUserRequest,
-    background_tasks: BackgroundTasks,
-    session: AsyncSession = Depends(get_session)
+    background_tasks: BackgroundTasks
 ):
     user_email = payload.email.lower().strip()
 
-    statement = select(User).where(User.email == user_email)
-    result = await session.execute(statement)
-    user = result.scalar_one_or_none()
+    user = await User.find_one(
+        User.email == user_email
+    )
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User account not found."
+            status_code=404,
+            detail="User not found."
         )
 
-    v_opts = dict(user.verificationOptions or {})
-
-    if v_opts.get("status") == "verified":
+    if user.verificationOptions.status == "verified":
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Account is already verified. You can log in."
+            status_code=400,
+            detail="User already verified."
         )
 
     if payload.step == "send-otp":
-        fresh_otp = generate_otp()
-        expiry_time = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
+        otp = generate_otp()
 
-        v_opts["otp"] = fresh_otp
-        v_opts["otpExpiry"] = expiry_time
+        user.verificationOptions.otp = otp
+        user.verificationOptions.otpExpiry = (
+            datetime.now(timezone.utc)
+            + timedelta(minutes=10)
+        )
 
-        user.verificationOptions = v_opts
-        flag_modified(user, "verificationOptions")
-
-        session.add(user)
-        await session.commit()
-
-        otp_email_html = f"""
-        <div style="font-family: Arial, sans-serif; padding: 30px; max-width: 600px; margin: 0 auto; border: 1px solid #eef2f6; border-radius: 8px;">
-          <h2 style="color: #0f766e; margin-bottom: 10px;">Your Verification Code</h2>
-          <p style="color: #475569; font-size: 16px;">Enter this 6-digit OTP code on your screen to activate your account:</p>
-          <div style="background-color: #f4f6f8; border-radius: 6px; padding: 15px 25px; margin: 20px 0; display: inline-block;">
-            <h1 style="color: #0f766e; letter-spacing: 4px; margin: 0; font-size: 32px;">{fresh_otp}</h1>
-          </div>
-          <p style="color: #64748b; font-size: 14px;">This code is valid for 10 minutes.</p>
-        </div>
-        """
+        await user.save()
 
         background_tasks.add_task(
             send_email,
             user.email,
-            "ALGONOTES Verification Code",
-            otp_email_html
+            "AlgoNotes Verification Code",
+            otp_email_template(
+                otp=otp,
+                title="Verify your email address",
+                purpose="Use this code to complete your AlgoNotes account verification."
+            )
         )
 
         return {
             "success": True,
-            "message": "A fresh verification code has been dispatched to your email inbox."
+            "message": "OTP sent successfully."
         }
 
     if payload.step == "otp-verification":
         if not payload.otp:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Please provide the 6-digit OTP code to verify."
+                status_code=400,
+                detail="OTP required."
             )
 
-        expiry_str = v_opts.get("otpExpiry")
-        is_expired = datetime.now(timezone.utc) > datetime.fromisoformat(expiry_str) if expiry_str else True
+        expiry = user.verificationOptions.otpExpiry
+        
+        # FIXED: Enforce timezone awareness to handle native Mongo naive dates cleanly
+        if expiry and expiry.tzinfo is None:
+            expiry = expiry.replace(tzinfo=timezone.utc)
 
-        if v_opts.get("otp") != payload.otp or is_expired:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid or expired OTP code. Please request a new code."
-            )
-
-        v_opts["status"] = "verified"
-        v_opts["otp"] = None
-        v_opts["otpExpiry"] = None
-
-        user.verificationOptions = v_opts
-        flag_modified(user, "verificationOptions")
-
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
-
-        sanitized_user = user.model_dump(
-            exclude={
-                "password",
-                "forgotPasswordOptions",
-                "verificationOptions"
-            }
+        is_expired = (
+            datetime.now(timezone.utc) > expiry
+            if expiry else True
         )
+
+        if (
+            user.verificationOptions.otp != payload.otp
+            or is_expired
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid or expired OTP."
+            )
+
+        user.verificationOptions.status = "verified"
+        user.verificationOptions.otp = None
+        user.verificationOptions.otpExpiry = None
+
+        await user.save()
 
         return {
             "success": True,
-            "message": "Account verified successfully! Welcome to AlgoNotes.",
-            "user": sanitized_user
+            "message": "Account verified successfully.",
+            "user": serialize_user(user)
         }
 
 
 # ==========================================
-# FORGOT PASSWORD SYSTEM
+# FORGOT PASSWORD
 # ==========================================
 @router.post("/forgot-password")
 async def forgot_password(
     payload: ForgotPasswordRequest,
-    background_tasks: BackgroundTasks,
-    session: AsyncSession = Depends(get_session)
+    background_tasks: BackgroundTasks
 ):
     user_email = payload.email.lower().strip()
 
-    statement = select(User).where(User.email == user_email)
-    result = await session.execute(statement)
-    user = result.scalar_one_or_none()
+    user = await User.find_one(
+        User.email == user_email
+    )
 
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User account with this email does not exist."
+            status_code=404,
+            detail="User not found."
         )
 
-    f_opts = dict(user.forgotPasswordOptions or {})
-
     if payload.step == "send-otp":
-        reset_otp = generate_otp()
-        expiry_time = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
+        otp = generate_otp()
 
-        f_opts["otp"] = reset_otp
-        f_opts["otpExpiry"] = expiry_time
-        f_opts["otpVerified"] = False
+        user.forgotPasswordOptions.otp = otp
+        user.forgotPasswordOptions.otpExpiry = (
+            datetime.now(timezone.utc)
+            + timedelta(minutes=10)
+        )
+        user.forgotPasswordOptions.otpVerified = False
 
-        user.forgotPasswordOptions = f_opts
-        flag_modified(user, "forgotPasswordOptions")
-
-        session.add(user)
-        await session.commit()
-
-        reset_email_html = f"""
-        <div style="font-family: Arial, sans-serif; padding: 30px; max-width: 600px; margin: 0 auto; border: 1px solid #eef2f6; border-radius: 8px;">
-          <h2 style="color: #0f766e; margin-bottom: 10px;">Password Reset Request</h2>
-          <p style="color: #475569; font-size: 16px;">We received a request to reset your password. Use the code below to complete the process:</p>
-          <div style="background-color: #f4f6f8; border-radius: 6px; padding: 15px 25px; margin: 20px 0; display: inline-block;">
-            <h1 style="color: #e11d48; letter-spacing: 4px; margin: 0; font-size: 32px;">{reset_otp}</h1>
-          </div>
-          <p style="color: #64748b; font-size: 14px;">This code is highly sensitive and will expire in 10 minutes.</p>
-        </div>
-        """
+        await user.save()
 
         background_tasks.add_task(
             send_email,
             user.email,
-            "Reset your ALGONOTES Password",
-            reset_email_html
+            "AlgoNotes Password Reset Code",
+            otp_email_template(
+                otp=otp,
+                title="Reset your password",
+                purpose="Use this code to reset your AlgoNotes account password.",
+                danger=True
+            )
         )
 
         return {
             "success": True,
-            "message": "A secure password reset OTP has been dispatched to your email inbox."
+            "message": "OTP sent."
         }
 
     if payload.step == "verify-otp":
         if not payload.otp:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Please provide the 6-digit verification code."
+                status_code=400,
+                detail="OTP required."
             )
 
-        expiry_str = f_opts.get("otpExpiry")
-        is_expired = datetime.now(timezone.utc) > datetime.fromisoformat(expiry_str) if expiry_str else True
+        expiry = user.forgotPasswordOptions.otpExpiry
+        
+        # FIXED: Enforce timezone awareness to handle native Mongo naive dates cleanly
+        if expiry and expiry.tzinfo is None:
+            expiry = expiry.replace(tzinfo=timezone.utc)
 
-        if f_opts.get("otp") != payload.otp or is_expired:
+        is_expired = (
+            datetime.now(timezone.utc) > expiry
+            if expiry else True
+        )
+
+        if (
+            user.forgotPasswordOptions.otp != payload.otp
+            or is_expired
+        ):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid or expired code. Please request a new code."
+                status_code=400,
+                detail="Invalid or expired OTP."
             )
 
-        f_opts["otpVerified"] = True
-
-        user.forgotPasswordOptions = f_opts
-        flag_modified(user, "forgotPasswordOptions")
-
-        session.add(user)
-        await session.commit()
+        user.forgotPasswordOptions.otpVerified = True
+        await user.save()
 
         return {
             "success": True,
-            "message": "OTP verified successfully. You can now change your new password."
+            "message": "OTP verified."
         }
 
     if payload.step == "reset-password":
         if not payload.newPassword:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Please provide your new password."
+                status_code=400,
+                detail="New password required."
             )
 
-        if not f_opts.get("otpVerified"):
+        if not user.forgotPasswordOptions.otpVerified:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Unauthorized access request. Please verify your OTP code first."
+                status_code=403,
+                detail="OTP verification required."
             )
 
-        user.password = hash_password(payload.newPassword)
+        user.password = hash_password(
+            payload.newPassword
+        )
 
-        f_opts["otp"] = None
-        f_opts["otpExpiry"] = None
-        f_opts["otpVerified"] = False
+        user.forgotPasswordOptions.otp = None
+        user.forgotPasswordOptions.otpExpiry = None
+        user.forgotPasswordOptions.otpVerified = False
 
-        user.forgotPasswordOptions = f_opts
-        flag_modified(user, "forgotPasswordOptions")
-
-        session.add(user)
-        await session.commit()
+        await user.save()
 
         return {
             "success": True,
-            "message": "Your account password has been updated successfully. Proceed to login."
+            "message": "Password reset successful."
         }

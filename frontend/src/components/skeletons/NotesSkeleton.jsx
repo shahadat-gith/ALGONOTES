@@ -1,78 +1,102 @@
 import React from "react";
 
 const NotesSkeleton = () => {
-  // Simulates a realistic vertical stack feed of 3 active note items
-  const skeletonCards = Array.from({ length: 3 });
+  // Simulates a realistic page fill of 6 table rows
+  const skeletonRows = Array.from({ length: 6 });
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-pulse select-none">
       
       {/* 1. Header Typography Skeleton Block */}
-      <div className="space-y-2">
-        <div className="h-7 bg-[var(--bg-soft)] rounded-lg w-64" />
-        <div className="h-4 bg-[var(--bg-soft)] rounded w-96 max-w-full" />
+      <div className="flex flex-col gap-4 border-b border-[var(--border-default)]/50 pb-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-2">
+          <div className="h-7 bg-[var(--bg-soft)] rounded-xl w-40" />
+          <div className="h-4 bg-[var(--bg-soft)] rounded-lg w-72 max-w-full" />
+        </div>
+        {/* Create Note Button Placeholder */}
+        <div className="h-10 bg-[var(--bg-soft)] rounded-xl w-32 shrink-0 hidden sm:block" />
       </div>
 
-      {/* 2. NotesSummary Micro Counters Row Wireframe */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[1, 2, 3].map((idx) => (
-          <div 
-            key={idx} 
-            className="p-4 bg-white border border-[var(--border-default)]/40 rounded-2xl flex items-center gap-3.5 h-[76px]"
-          >
-            <div className="w-10 h-10 bg-[var(--bg-soft)] rounded-xl shrink-0" />
-            <div className="space-y-2 flex-1">
-              <div className="h-2.5 bg-[var(--bg-soft)] rounded w-1/2" />
-              <div className="h-5 bg-[var(--bg-soft)] rounded w-1/3" />
-            </div>
+      {/* 2. Search Bar Input Component Wireframe */}
+      <div className="h-11 w-full bg-[var(--bg-soft)] rounded-xl" />
+
+      {/* 3. Table Meta & Top-Right Pagination Skeleton */}
+      <div className="flex items-center justify-between px-1 pt-2">
+        {/* Total results count block */}
+        <div className="h-3.5 bg-[var(--bg-soft)] rounded w-44" />
+        {/* Mini right pagination cluster */}
+        <div className="flex items-center gap-3">
+          <div className="h-3.5 bg-[var(--bg-soft)] rounded w-20" />
+          <div className="flex gap-1.5">
+            <div className="w-7 h-7 bg-[var(--bg-soft)] rounded-lg" />
+            <div className="w-7 h-7 bg-[var(--bg-soft)] rounded-lg" />
           </div>
-        ))}
+        </div>
       </div>
 
-      {/* 3. Search Bar Input Component Wireframe */}
-      <div className="h-10 w-full bg-[var(--bg-soft)] rounded-xl" />
+      {/* 4. Complete Tabular Grid Layout Skeleton */}
+      <div className="overflow-hidden rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left">
+            {/* Table Headers Wireframe */}
+            <thead className="bg-[var(--bg-soft)] border-b border-[var(--border-default)]">
+              <tr>
+                <th className="px-6 py-4 w-[35%]"><div className="h-3 bg-[var(--border-strong)]/30 rounded w-24" /></th>
+                <th className="px-6 py-4 w-[12%]"><div className="h-3 bg-[var(--border-strong)]/30 rounded w-16" /></th>
+                <th className="px-6 py-4 w-[12%]"><div className="h-3 bg-[var(--border-strong)]/30 rounded w-16" /></th>
+                <th className="px-6 py-4 w-[12%]"><div className="h-3 bg-[var(--border-strong)]/30 rounded w-16" /></th>
+                <th className="px-6 py-4 w-[10%]"><div className="h-3 bg-[var(--border-strong)]/30 rounded w-12" /></th>
+                <th className="px-6 py-4 w-[12%]"><div className="h-3 bg-[var(--border-strong)]/30 rounded w-16" /></th>
+                <th className="px-6 py-4 w-[7%] text-right"><div className="h-3 bg-[var(--border-strong)]/30 rounded w-8 ml-auto" /></th>
+              </tr>
+            </thead>
+            
+            {/* Table Rows Loader Wireframe */}
+            <tbody className="divide-y divide-[var(--border-default)] bg-[var(--bg-surface)]">
+              {skeletonRows.map((_, index) => (
+                <tr key={index} className="h-[61px]">
+                  {/* Problem Title Column */}
+                  <td className="px-6 py-4">
+                    <div className="h-4 bg-[var(--bg-soft)] rounded-lg w-[85%]" />
+                  </td>
 
-      {/* 4. Vertical Notes Post Feed Cards List */}
-      <div className="space-y-5">
-        {skeletonCards.map((_, index) => (
-          <div 
-            key={index}
-            className="p-5 bg-white border border-[var(--border-default)]/50 rounded-2xl space-y-4 shadow-sm"
-          >
-            {/* Card Top Title Bar Block */}
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-2.5 flex-1">
-                {/* Simulated Parent Problem Title */}
-                <div className="h-4 bg-[var(--bg-soft)] rounded w-2/3 sm:w-1/3" />
-                {/* Meta details (Difficulty tag line, etc.) */}
-                <div className="flex gap-2">
-                  <div className="h-4 bg-[var(--bg-soft)] rounded w-16" />
-                  <div className="h-4 bg-[var(--bg-soft)] rounded w-12" />
-                </div>
-              </div>
-              {/* Dynamic Status Pill Block (Draft vs Final Indicator) */}
-              <div className="h-6 bg-[var(--bg-soft)] rounded-full w-16 shrink-0" />
-            </div>
+                  {/* Platform Column */}
+                  <td className="px-6 py-4">
+                    <div className="h-4 bg-[var(--bg-soft)] rounded-lg w-16" />
+                  </td>
 
-            {/* Simulated Note Summary Text Content Lines */}
-            <div className="space-y-2 pt-1">
-              <div className="h-3 bg-[var(--bg-soft)] rounded w-full" />
-              <div className="h-3 bg-[var(--bg-soft)] rounded w-11/12" />
-              <div className="h-3 bg-[var(--bg-soft)] rounded w-4/5" />
-            </div>
+                  {/* Difficulty Badge Column */}
+                  <td className="px-6 py-4">
+                    <div className="h-6 bg-[var(--bg-soft)] rounded-full w-16" />
+                  </td>
 
-            {/* Card Bottom Panel / Footer Tools Segment */}
-            <div className="flex items-center justify-between border-t border-[var(--border-default)]/30 pt-3 mt-1">
-              {/* Last edited clock text placeholder */}
-              <div className="h-2.5 bg-[var(--bg-soft)] rounded w-24" />
-              {/* Action utility triggers blueprint (Expand, View code, etc.) */}
-              <div className="flex gap-2">
-                <div className="w-8 h-8 bg-[var(--bg-soft)] rounded-lg" />
-                <div className="w-8 h-8 bg-[var(--bg-soft)] rounded-lg" />
-              </div>
-            </div>
-          </div>
-        ))}
+                  {/* Language Snippet Column */}
+                  <td className="px-6 py-4">
+                    <div className="h-4 bg-[var(--bg-soft)] rounded-lg w-12" />
+                  </td>
+
+                  {/* Status Badge Column */}
+                  <td className="px-6 py-4">
+                    <div className="h-6 bg-[var(--bg-soft)] rounded-full w-14" />
+                  </td>
+
+                  {/* Updated Clock Column */}
+                  <td className="px-6 py-4">
+                    <div className="h-3.5 bg-[var(--bg-soft)] rounded w-20" />
+                  </td>
+
+                  {/* Actions Tools Column */}
+                  <td className="px-6 py-4">
+                    <div className="flex gap-2 justify-end">
+                      <div className="w-7 h-7 bg-[var(--bg-soft)] rounded-md" />
+                      <div className="w-7 h-7 bg-[var(--bg-soft)] rounded-md" />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

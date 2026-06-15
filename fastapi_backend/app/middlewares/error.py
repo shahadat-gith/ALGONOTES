@@ -2,7 +2,8 @@ import jwt
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-from sqlalchemy.exc import IntegrityError, NoResultFound
+from pymongo.errors import DuplicateKeyError
+from beanie.exceptions import DocumentNotFound
 
 
 class AppException(Exception):
@@ -30,32 +31,26 @@ def register_error_handlers(app):
             content={"success": False, "message": exc.message}
         )
 
-    # 2. Handle SQLAlchemy Resource Missing Checks (Replaces DocumentNotFound)
-    @app.exception_handler(NoResultFound)
-    async def resource_not_found_handler(request: Request, exc: NoResultFound):
+    # 2. Handle Beanie Resource Missing Checks
+    @app.exception_handler(DocumentNotFound)
+    async def resource_not_found_handler(request: Request, exc: DocumentNotFound):
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
             content={"success": False, "message": "Requested resource not found in the database."}
         )
 
-    # 3. Handle PostgreSQL Constraint Violations (Replaces DuplicateKeyError)
-    @app.exception_handler(IntegrityError)
-    async def duplicate_key_handler(request: Request, exc: IntegrityError):
-        error_msg = str(exc.orig) if exc.orig else ""
+    # 3. Handle MongoDB Unique Index Constraint Violations (DuplicateKeyError)
+    @app.exception_handler(DuplicateKeyError)
+    async def duplicate_key_handler(request: Request, exc: DuplicateKeyError):
+        # Mongo error messages contain the full index layout string details
+        error_msg = str(exc)
         
-        # Parse the error string to see if it is a unique constraint breakdown
-        if "unique" in error_msg.lower() or "duplicate key value" in error_msg.lower():
-            # Quick substring capture for cleaner messaging on unique constraints
-            if "email" in error_msg.lower():
-                message = "An account with this email already exists."
-            elif "username" in error_msg.lower():
-                message = "Username is already taken by another profile."
-            elif "uq_user_day" in error_msg.lower():
-                message = "Activity entry for this day already exists."
-            else:
-                message = "A record with these details already exists."
+        if "email" in error_msg.lower():
+            message = "An account with this email already exists."
+        elif "username" in error_msg.lower():
+            message = "Username is already taken by another profile."
         else:
-            message = "Database integrity constraint violation encountered."
+            message = "A record with these unique details already exists."
 
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -1,5 +1,9 @@
+# app/models/__init__.py
 
-from app.models.user import User
-from app.models.note import Note
+from .user import User
+from .note import Note
 
-__all__ = ["User", "Note"]
+__all__ = [
+    "User",
+    "Note",
+]

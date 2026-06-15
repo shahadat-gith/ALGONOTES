@@ -4,28 +4,38 @@ from .auth import (
     RegisterRequest,
     LoginRequest,
     VerifyUserRequest,
-    ForgotPasswordRequest
+    ForgotPasswordRequest,
+)
+
+from .user import (
+    UserResponse,
 )
 
 from .note import (
+    NoteResponse,
+    NoteUpdate,
     GenerateNoteRequest,
     SaveNoteRequest,
+)
+
+from app.models.note import (
     ProblemDetailSchema,
     NoteContentSchema,
-    ContentBlockSchema
 )
 
 __all__ = [
-    # Auth Controller Schema Payloads
     "RegisterRequest",
     "LoginRequest",
     "VerifyUserRequest",
     "ForgotPasswordRequest",
 
-    # AI Note Generator & Storage Payloads
+    "UserResponse",
+
     "GenerateNoteRequest",
     "SaveNoteRequest",
     "ProblemDetailSchema",
     "NoteContentSchema",
-    "ContentBlockSchema"
+
+    "NoteResponse",
+    "NoteUpdate",
 ]

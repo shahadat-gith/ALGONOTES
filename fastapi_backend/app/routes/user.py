@@ -1,66 +1,66 @@
+# app/routes/user.py
+
 from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
-from sqlmodel import select, or_
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlalchemy.orm.attributes import flag_modified
 
 from app.models import User, Note
+from app.schemas.user import UserResponse
 from app.services import upload_to_cloudinary, delete_from_cloudinary
 from app.middlewares import get_current_user
-from app.database import get_session
+
+router = APIRouter(
+    prefix="/users",
+    tags=["Users"]
+)
 
 
-router = APIRouter(prefix="/users", tags=["Users Profile Deck"])
+def serialize_user(user: User) -> UserResponse:
+    return UserResponse(
+        id=str(user.id),
+        name=user.name,
+        email=user.email,
+        username=user.username,
+        avatar={
+            "url": user.avatar.url,
+            "public_id": user.avatar.public_id,
+        },
+        verificationOptions={
+            "status": user.verificationOptions.status,
+        }
+    )
 
 
-# ==========================================
-# GET CURRENT USER DETAILS
-# ==========================================
 @router.get("/me")
 async def get_current_user_details(
     current_user: User = Depends(get_current_user)
 ):
-    sanitized_user = current_user.model_dump(
-        exclude={
-            "password",
-            "forgotPasswordOptions",
-            "verificationOptions"
-        }
-    )
-
     return {
         "success": True,
-        "user": sanitized_user
+        "user": serialize_user(current_user)
     }
 
 
-# ==========================================
-# UPDATE PROFILE
-# ==========================================
 @router.put("/profile")
 async def update_profile(
     name: Optional[str] = Form(None),
     username: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
-    current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    current_user: User = Depends(get_current_user)
 ):
     if username:
         clean_username = username.strip().lower()
 
-        statement = select(User).where(
+        existing_user = await User.find_one(
             User.username == clean_username,
             User.id != current_user.id
         )
 
-        result = await session.execute(statement)
-
-        if result.scalar_one_or_none():
+        if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Username is already taken by another profile."
+                detail="Username already taken."
             )
 
         current_user.username = clean_username
@@ -69,120 +69,96 @@ async def update_profile(
         current_user.name = name.strip()
 
     if file:
-        avatar_opts = dict(current_user.avatar or {})
-
-        if avatar_opts.get("public_id"):
-            await delete_from_cloudinary(avatar_opts["public_id"])
+        if current_user.avatar.public_id:
+            await delete_from_cloudinary(
+                current_user.avatar.public_id
+            )
 
         upload_result = await upload_to_cloudinary(
             file,
             folder="algonotes/users"
         )
 
-        img_url = (
-            upload_result.get("secure_url")
-            if isinstance(upload_result, dict)
-            else getattr(upload_result, "secure_url", "")
-        )
+        current_user.avatar.url = upload_result.get("secure_url", "")
+        current_user.avatar.public_id = upload_result.get("public_id", "")
 
-        img_id = (
-            upload_result.get("public_id")
-            if isinstance(upload_result, dict)
-            else getattr(upload_result, "public_id", "")
-        )
-
-        current_user.avatar = {
-            "url": img_url,
-            "public_id": img_id
-        }
-
-        flag_modified(current_user, "avatar")
-
-    session.add(current_user)
-    await session.commit()
-    await session.refresh(current_user)
-
-    sanitized_user = current_user.model_dump(
-        exclude={
-            "password",
-            "forgotPasswordOptions",
-            "verificationOptions"
-        }
-    )
+    current_user.updatedAt = datetime.now(timezone.utc)
+    await current_user.save()
 
     return {
         "success": True,
         "message": "Profile updated successfully.",
-        "user": sanitized_user
+        "user": serialize_user(current_user)
     }
 
 
-# ==========================================
-# GLOBAL WORKSPACE SEARCH UTILITY
-# ==========================================
 @router.get("/search")
 async def search_workspace(
     q: str = "",
-    current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
+    current_user: User = Depends(get_current_user)
 ):
-    if not q:
+    if not q.strip():
         return {
             "success": True,
             "results": []
         }
 
-    search_pattern = f"%{q}%"
+    search_regex = {
+        "$regex": q.strip(),
+        "$options": "i"
+    }
 
-    note_statement = (
-        select(Note)
-        .where(
-            Note.user_id == current_user.id,
-            Note.status != "processing",
-            or_(
-                Note.language.ilike(search_pattern),
-                Note.problem["title"].astext.ilike(search_pattern),
-                Note.problem["platform"].astext.ilike(search_pattern),
-                Note.problem["difficulty"].astext.ilike(search_pattern)
-            )
-        )
-        .order_by(Note.createdAt.desc())
-        .limit(8)
-    )
+    # Query targets matching platform indexes seamlessly
+    notes = await Note.find(
+        Note.user_id == current_user.id,
+        Note.status != "processing",
+        {
+            "$or": [
+                {"language": search_regex},
+                {"problem.title": search_regex},
+                {"problem.platform": search_regex},
+                {"problem.difficulty": search_regex},
+            ]
+        }
+    ).sort(-Note.createdAt).limit(8).to_list()
 
-    note_results = await session.execute(note_statement)
-    notes = note_results.scalars().all()
+    results = []
 
-    formatted_notes = []
-
-    for n in notes:
-        problem = n.problem or {}
-        note_content = n.note or {}
-
-        title = problem.get("title") or "Untitled Problem"
+    for note in notes:
+        title = note.problem.title or "Untitled Problem"
         snippet = "Open Study Note"
+        content = note.note
 
-        optimal_blocks = note_content.get("optimalApproach", [])
-        summary_blocks = note_content.get("summary", [])
-        intuition_blocks = note_content.get("intuition", [])
+        # Failsafe snippet finder matching complex model hierarchies
+        # 1. Look in structural optimal/brute schemas first
+        found = False
+        for approach in [content.optimalApproach, content.bruteForce]:
+            if approach and approach.description and len(approach.description) > 0:
+                paragraph = approach.description[0]
+                if paragraph and (paragraph.text or paragraph.code):
+                    snippet = paragraph.text or paragraph.code
+                    found = True
+                    break
+        
+        # 2. Look in flat string arrays if approach is empty
+        if not found:
+            for text_list in [content.summary, content.intuition]:
+                if text_list and len(text_list) > 0 and isinstance(text_list[0], str):
+                    snippet = text_list[0]
+                    break
 
-        if optimal_blocks:
-            snippet = optimal_blocks[0].get("text") or optimal_blocks[0].get("code") or snippet
-        elif summary_blocks:
-            snippet = summary_blocks[0].get("text") or snippet
-        elif intuition_blocks:
-            snippet = intuition_blocks[0].get("text") or snippet
-
-        formatted_notes.append(
-            {
-                "name": f"{title} Notes",
-                "path": f"/notes/{n.noteId}",
-                "type": "note",
-                "desc": f"{snippet[:52]}..." if len(snippet) > 55 else snippet
-            }
-        )
+        results.append({
+            "name": f"{title} Notes",
+            "path": f"/notes/{str(note.id)}",
+            "type": "note",
+            "desc": (
+                f"{snippet[:52]}..."
+                if len(snippet) > 55
+                else snippet
+            )
+        })
 
     return {
         "success": True,
-        "results": formatted_notes
+        "results": results
     }

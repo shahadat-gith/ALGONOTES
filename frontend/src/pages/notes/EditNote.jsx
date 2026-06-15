@@ -1,45 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getNoteById, updateNote } from "../../api/noteApi";
-import NoteSectionEditor from "../../components/notes/editor/NoteSectionEditor";
-
-import {
-  ArrowLeft,
-  Check,
-  Loader2,
-  ExternalLink,
-  Save,
-} from "lucide-react";
-
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+
+import { getNoteById, updateNote } from "../../api/noteApi";
 import EditNoteSkeleton from "../../components/skeletons/EditNoteSkeleton";
+
+import ListSectionEditor from "../../components/notes/ListSectionEditor";
+import ApproachSectionEditor from "../../components/notes/ApproachSectionEditor";
+import DryRunSectionEditor from "../../components/notes/DryRunSectionEditor";
 
 const EMPTY_NOTE = {
   summary: [],
   intuition: [],
-  bruteForce: [],
-  optimalApproach: [],
-  algorithm: [],
-  dryRun: [],
   complexity: [],
   edgeCases: [],
   mistakesToAvoid: [],
+  dryRun: [],
+  bruteForce: null,
+  optimalApproach: null,
 };
 
-const SECTIONS = [
-  { key: "summary", title: "Summary" },
-  { key: "intuition", title: "Core Intuition" },
-  { key: "bruteForce", title: "Brute Force" },
-  { key: "optimalApproach", title: "Optimal Approach" },
-  { key: "algorithm", title: "Algorithm Steps" },
-  { key: "dryRun", title: "Dry Run" },
-  { key: "complexity", title: "Complexity Analysis" },
-  { key: "edgeCases", title: "Edge Cases" },
-  { key: "mistakesToAvoid", title: "Mistakes to Avoid" },
-];
-
 const EditNote = () => {
-  const { noteId } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -53,19 +36,23 @@ const EditNote = () => {
   useEffect(() => {
     const loadNote = async () => {
       try {
-        const response = await getNoteById(noteId);
+        const response = await getNoteById(id);
 
-        if (response.success && response.note) {
-          setProblem(response.note.problem || {});
-          setNote({
-            ...EMPTY_NOTE,
-            ...(response.note.note || {}),
-          });
-          setLanguage(response.note.language || "C++");
-          setUserCode(response.note.userCode || "");
+        if (!response?.success || !response?.note) {
+          throw new Error("Note not found");
         }
-      } catch (err) {
-        toast.error("Failed to load note.");
+
+        const fetchedNote = response.note;
+
+        setProblem(fetchedNote.problem || {});
+        setNote({
+          ...EMPTY_NOTE,
+          ...(fetchedNote.note || {}),
+        });
+        setLanguage(fetchedNote.language || "C++");
+        setUserCode(fetchedNote.userCode || "");
+      } catch (error) {
+        toast.error("Failed to load note data.");
         navigate("/notes");
       } finally {
         setLoading(false);
@@ -73,23 +60,16 @@ const EditNote = () => {
     };
 
     loadNote();
-  }, [noteId, navigate]);
+  }, [id, navigate]);
 
-  const updateProblemField = (field, value) => {
-    setProblem((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const updateSectionBlocks = (sectionKey, blocks) => {
+  const updateSectionData = (key, data) => {
     setNote((prev) => ({
       ...prev,
-      [sectionKey]: blocks,
+      [key]: data,
     }));
   };
 
-  const handleSave = async (status = "draft") => {
+  const handleSave = async (status = "final") => {
     setSaving(true);
 
     try {
@@ -101,70 +81,78 @@ const EditNote = () => {
         status,
       };
 
-      const response = await updateNote(noteId, payload);
+      const response = await updateNote(id, payload);
 
-      if (response.success) {
-        toast.success("Note saved!");
-        navigate(`/notes/${noteId}/view`);
+      if (!response?.success) {
+        throw new Error("Update transmission failed");
       }
-    } catch (err) {
-      toast.error("Failed to save note.");
+
+      toast.success("Note saved successfully.");
+      // Navigates directly back to your clean structural reader view page
+      navigate(`/notes/${id}`);
+    } catch (error) {
+      toast.error("Failed to update note details.");
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
-    return <EditNoteSkeleton/>
+    return (
+      <div className="mx-auto min-h-screen max-w-7xl bg-[var(--bg-base)] p-4 sm:p-6 lg:p-8">
+        <EditNoteSkeleton />
+      </div>
+    );
   }
 
   return (
     <div className="mx-auto min-h-screen max-w-7xl space-y-6 bg-[var(--bg-base)] p-4 sm:p-6 lg:p-8">
-      <div className="flex flex-col gap-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-card)]">
+      {/* Actionable Save Header Wrapper Controls */}
+      <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-card)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button
-            onClick={() => navigate("/notes")}
-            className="inline-flex items-center gap-2 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--primary)]"
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors"
           >
-            <ArrowLeft size={15} />
-            Back to notes
+            <ArrowLeft size={16} /> Back
           </button>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handleSave("final")}
-              disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
-            >
-              {saving ? <Loader2 className="animate-spin" size={14} /> : <Check size={14} />}
-              Save
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => handleSave("final")}
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-60 transition-all"
+          >
+            {saving ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />}
+            Save Modifications
+          </button>
         </div>
 
-        <div>
-  <h1 className="text-2xl font-black text-[var(--text-main)]">
-    Generated notes for {problem.title || "this problem"}
-  </h1>
-
-  <p className="mt-1 text-sm text-[var(--text-muted)]">
-    Edit the generated explanation, algorithm, dry run, edge cases, and code notes.
-  </p>
-</div>
+        <div className="mt-5">
+          <h1 className="text-xl font-bold text-[var(--text-main)]">
+            Modify Notes: {problem.title || "DSA Exercise"}
+          </h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
+            Review and tweak code implementations, update step trace steps, or document newly discovered edge criteria fields.
+          </p>
+        </div>
       </div>
 
-      {SECTIONS.map((section) => (
-        <NoteSectionEditor
-          key={section.key}
-          sectionKey={section.key}
-          title={section.title}
-          blocks={note[section.key] || []}
-          onChange={(updatedBlocks) =>
-            updateSectionBlocks(section.key, updatedBlocks)
-          }
-          language={language}
-        />
-      ))}
+      {/* Grouped Type-Safe Field Section Blocks */}
+      <div className="space-y-6">
+        <ListSectionEditor title="Problem Summary List" items={note.summary} onChange={(d) => updateSectionData("summary", d)} />
+        <ListSectionEditor title="Intuition Tracking Breakdown" items={note.intuition} onChange={(d) => updateSectionData("intuition", d)} />
+
+        <ApproachSectionEditor title="Brute Force Setup Block" approach={note.bruteForce} defaultLanguage={language} onChange={(d) => updateSectionData("bruteForce", d)} />
+        <ApproachSectionEditor title="Optimal Implementation Layer" approach={note.optimalApproach} defaultLanguage={language} onChange={(d) => updateSectionData("optimalApproach", d)} />
+
+        <DryRunSectionEditor dryRun={note.dryRun} onChange={(d) => updateSectionData("dryRun", d)} />
+
+        <ListSectionEditor title="Complexity Metrics" items={note.complexity} onChange={(d) => updateSectionData("complexity", d)} />
+        <ListSectionEditor title="Important Boundary Conditions" items={note.edgeCases} onChange={(d) => updateSectionData("edgeCases", d)} />
+        <ListSectionEditor title="Critical Implementation Pitfalls" items={note.mistakesToAvoid} onChange={(d) => updateSectionData("mistakesToAvoid", d)} />
+      </div>
     </div>
   );
 };

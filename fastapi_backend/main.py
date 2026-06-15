@@ -1,3 +1,5 @@
+# main.py
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -5,31 +7,36 @@ from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
 from app.config import settings
-from app.database import init_db
+from app.database import init_db, close_db
 from app.middlewares import register_error_handlers
 from app.routes import (
     auth_router,
     user_router,
     note_router,
-    ai_generation_router,
+    ai_router,
 )
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print(f"Starting application in {settings.ENVIRONMENT} mode...")
+    print(
+        f"Starting application in {settings.ENVIRONMENT} mode..."
+    )
 
     await init_db()
 
     print("Application startup completed.")
+
     yield
 
-    print("Shutting down backend instance safely...")
+    await close_db()
+
+    print("Application shutdown completed.")
 
 
 app = FastAPI(
-    title="ALGONOTES API Backend Engine",
-    description="Python FastAPI Backend for ALGONOTES workspace",
+    title="ALGONOTES API",
+    description="AlgoNotes Backend API",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -47,36 +54,48 @@ app.add_middleware(
 )
 
 
-app.include_router(auth_router, prefix="/api/v1")
-app.include_router(user_router, prefix="/api/v1")
-app.include_router(note_router, prefix="/api/v1")
-app.include_router(ai_generation_router, prefix="/api/v1")
+# ==========================================
+# ROUTES
+# ==========================================
+app.include_router(
+    auth_router,
+    prefix="/api/v1"
+)
+
+app.include_router(
+    user_router,
+    prefix="/api/v1"
+)
+
+app.include_router(
+    note_router,
+    prefix="/api/v1"
+)
+
+app.include_router(
+    ai_router,
+    prefix="/api/v1"
+)
 
 
+# ==========================================
+# HEALTH CHECK
+# ==========================================
 @app.get("/", tags=["System"])
-async def system_health_status():
+async def health_check():
     return {
-        "status": "operational",
-        "engine": "FastAPI ASGI",
+        "status": "healthy",
         "environment": settings.ENVIRONMENT,
-        "allowed_origins": settings.ALLOWED_ORIGINS,
     }
 
 
-@app.get("/debug/env", tags=["Debug"])
-async def debug_env():
-    if settings.ENVIRONMENT.lower() == "production":
-        return {"message": "Debug information is restricted on production."}
-
-    return {
-        "environment": settings.ENVIRONMENT,
-        "frontend_url": settings.FRONTEND_URL,
-        "frontend_url_prod": settings.FRONTEND_URL_PROD,
-        "allowed_origins": settings.ALLOWED_ORIGINS,
-    }
-
-
-handler = Mangum(app, lifespan="off")
+# ==========================================
+# SERVERLESS HANDLER
+# ==========================================
+handler = Mangum(
+    app,
+    lifespan="on"
+)
 
 
 if __name__ == "__main__":
@@ -86,5 +105,8 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=settings.PORT,
-        reload=settings.ENVIRONMENT.lower() == "development",
+        reload=(
+            settings.ENVIRONMENT.lower()
+            == "development"
+        ),
     )

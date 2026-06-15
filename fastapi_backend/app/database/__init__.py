@@ -1,5 +1,5 @@
 # app/database/__init__.py
 
-from .session import init_db, get_session
+from .db import init_db, close_db
 
-__all__ = ["init_db", "get_session"]
+__all__ = ["init_db", "close_db"]

@@ -1,68 +1,97 @@
-from typing import List, Optional, Literal, Dict, Any
-from pydantic import BaseModel, Field
+# app/schemas/note.py
+
+from datetime import datetime
+from typing import Optional, Literal, Any 
+
+# Added BeforeValidator for ObjectId translation, Field for aliases, and Annotated for type-safety
+from pydantic import BaseModel, ConfigDict, Field, BeforeValidator
+from typing_extensions import Annotated
+
+from app.models.note import (
+    ProblemDetailSchema,
+    NoteContentSchema,
+    NoteStatus,
+)
+
+# ==========================================
+# CUSTOM TYPE DEFINITION
+# ==========================================
+# Reusable type modifier: Converts native MongoDB ObjectIds safely into strings 
+# before validation engine parsing rules execute.
+PyObjectId = Annotated[str, BeforeValidator(lambda v: str(v) if v is not None else v)]
 
 
 # ==========================================
-# 1. POLYMORPHIC CONTENT BLOCK SCHEMA
+# NOTE RESPONSE SCHEMA
 # ==========================================
-class ContentBlockSchema(BaseModel):
-    type: Literal["heading", "paragraph", "bullet", "step", "code", "table"]
+class NoteResponse(BaseModel):
+    # Fixed: Uses PyObjectId type and matches MongoDB's original '_id' key via alias
+    id: PyObjectId = Field(alias="_id") 
+    status: NoteStatus
+    problem: ProblemDetailSchema
+    note: NoteContentSchema
+    language: str
+    userCode: str
+    createdAt: datetime
+    updatedAt: datetime
+    user_id: PyObjectId 
 
-    text: Optional[str] = None
-    items: Optional[List[str]] = None
-    code: Optional[str] = None
+    model_config = ConfigDict(
+        from_attributes=True,
+        # Crucial: Allows fields to be populated using either their internal DB alias ('_id') 
+        # or their defined schema property name ('id') during 'model_validate()'
+        populate_by_name=True, 
+        # Forces FastAPI to drop any top-level key that is None during serialization
+        exclude_none=True 
+    )
+
+
+# ==========================================
+# PARTIAL UPDATE SCHEMAS (Granular Control)
+# ==========================================
+class NoteContentUpdate(BaseModel):
+    """
+    Allows updating individual sections of a note without rewriting 
+    the entire NoteContentSchema block. All fields default to None.
+    """
+    summary: Optional[list[str]] = None
+    intuition: Optional[list[str]] = None
+    complexity: Optional[list[str]] = None
+    edgeCases: Optional[list[str]] = None
+    mistakesToAvoid: Optional[list[str]] = None
+    dryRun: Optional[list[dict[str, Any]]] = None
+    bruteForce: Optional[dict[str, Any]] = None     # Maps to ApproachSchema
+    optimalApproach: Optional[dict[str, Any]] = None # Maps to ApproachSchema
+
+
+# ==========================================
+# NOTE UPDATE SCHEMA
+# ==========================================
+class NoteUpdate(BaseModel):
+    status: Optional[NoteStatus] = None
+    problem: Optional[ProblemDetailSchema] = None
+    note: Optional[NoteContentUpdate] = None
     language: Optional[str] = None
-    table: Optional[List[Dict[str, Any]]] = None
+    userCode: Optional[str] = None
 
-    order: int = Field(default=0, description="Sequential ordering position index")
-
-
-# ==========================================
-# 2. PROBLEM DETAILED METADATA SCHEMA
-# ==========================================
-class ProblemDetailSchema(BaseModel):
-    title: str = ""
-    problemLink: str = ""  # Stabilized with standard string fallback default
-    platform: str = ""
-    difficulty: str = ""
-    description: str = ""
-    constraints: List[str] = Field(default_factory=list)
-    testCases: List[Dict[str, Any]] = Field(default_factory=list)
-    expectedTimeComplexity: str = ""
-    expectedSpaceComplexity: str = ""
-    topics: List[str] = Field(default_factory=list)
+    model_config = ConfigDict(
+        extra="ignore",
+        exclude_none=True
+    )
 
 
 # ==========================================
-# 3. AI GENERATED STUDY NOTE NESTED TREE
-# ==========================================
-class NoteContentSchema(BaseModel):
-    summary: List[ContentBlockSchema] = Field(default_factory=list)
-    intuition: List[ContentBlockSchema] = Field(default_factory=list)
-    bruteForce: List[ContentBlockSchema] = Field(default_factory=list)
-    optimalApproach: List[ContentBlockSchema] = Field(default_factory=list)
-    algorithm: List[ContentBlockSchema] = Field(default_factory=list)
-    dryRun: List[ContentBlockSchema] = Field(default_factory=list)
-    complexity: List[ContentBlockSchema] = Field(default_factory=list)
-    edgeCases: List[ContentBlockSchema] = Field(default_factory=list)
-    mistakesToAvoid: List[ContentBlockSchema] = Field(default_factory=list)
-
-
-# ==========================================
-# 4. INITIAL AI DISPATCH INBOUND REQUEST
+# REQUEST DTO SCHEMAS
 # ==========================================
 class GenerateNoteRequest(BaseModel):
-    problemLink: str = Field(..., min_length=1, description="Target coding challenge platform URL")
-    userCode: str = Field(..., min_length=1, description="Raw source solution text payload")
-    language: str = Field(default="C++", description="Programming execution syntax label")
+    problemLink: str = Field(..., min_length=1)
+    userCode: str = Field(..., min_length=1)
+    language: str = "C++"
 
 
-# ==========================================
-# 5. USER MANUAL DRAFT SAVING REQUEST
-# ==========================================
 class SaveNoteRequest(BaseModel):
     problem: ProblemDetailSchema
     note: NoteContentSchema
     language: str = "C++"
     userCode: str = ""
-    status: Literal["processing", "draft", "final", "failed"] = "draft"
+    status: NoteStatus = NoteStatus.draft
