@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import toast from "react-hot-toast";
+import EditNoteSkeleton from "../../components/skeletons/EditNoteSkeleton";
 
 const EMPTY_NOTE = {
   summary: [],
@@ -37,7 +38,7 @@ const SECTIONS = [
   { key: "mistakesToAvoid", title: "Mistakes to Avoid" },
 ];
 
-const EditNotes = () => {
+const EditNote = () => {
   const { noteId } = useParams();
   const navigate = useNavigate();
 
@@ -103,7 +104,7 @@ const EditNotes = () => {
       const response = await updateNote(noteId, payload);
 
       if (response.success) {
-        toast.success(status === "final" ? "Note finalized." : "Note saved.");
+        toast.success("Note saved!");
         navigate(`/notes/${noteId}/view`);
       }
     } catch (err) {
@@ -114,11 +115,7 @@ const EditNotes = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-[70vh] items-center justify-center text-[var(--primary)]">
-        <Loader2 className="animate-spin" size={34} />
-      </div>
-    );
+    return <EditNoteSkeleton/>
   }
 
   return (
@@ -135,21 +132,12 @@ const EditNotes = () => {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => handleSave("draft")}
-              disabled={saving}
-              className="inline-flex items-center gap-2 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-4 py-2 text-xs font-bold text-[var(--text-main)] hover:bg-[var(--bg-soft)]"
-            >
-              <Save size={14} />
-              Save Draft
-            </button>
-
-            <button
               onClick={() => handleSave("final")}
               disabled={saving}
               className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
             >
               {saving ? <Loader2 className="animate-spin" size={14} /> : <Check size={14} />}
-              Finalize
+              Save
             </button>
           </div>
         </div>
@@ -181,4 +169,4 @@ const EditNotes = () => {
   );
 };
 
-export default EditNotes;
+export default EditNote;

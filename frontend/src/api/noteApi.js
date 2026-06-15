@@ -16,9 +16,14 @@ export const updateNote = async (noteId, payload) => {
   return data;
 };
 
-export const getAllNotesByUser = async (page = 1, size = 10) => {
+export const getAllNotesByUser = async (page = 1, size = 10, search = "") => {
   const { data } = await axiosInstance.get("/notes/user", {
-    params: { page, size }
+    params: { 
+      page, 
+      size,
+      // If search is an empty string, Axios strips it from the URL string automatically
+      search: search.trim() || undefined 
+    }
   });
   return data;
 };

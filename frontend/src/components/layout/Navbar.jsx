@@ -7,6 +7,9 @@ import logo from "/logo.png";
 import { Search } from "lucide-react";
 import Button from "../common/Button";
 
+import Logo from "../logo/Logo";
+import MinimalistLogo from "../logo/MinimalistLogo";
+
 const Navbar = () => {
   const navigate = useNavigate();
   const { logout, user, loading } = useAuth();
@@ -19,55 +22,56 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-[var(--border-default)] bg-white/80 backdrop-blur-md">
+      <header className="sticky top-0 z-40 w-full border-b border-[var(--border-default)]/60 bg-[var(--bg-surface)]/70 backdrop-blur-md transition-colors duration-200">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           
-          {/* LEFT SECTION: Brand Logo */}
+          {/* LEFT SECTION: Brand Logo & Typography */}
           <div className="flex items-center gap-6">
-            <Link
-              to="/dashboard"
-              className="flex items-center gap-2.5 transition active:scale-98 shrink-0"
-            >
-              <img
-                src={logo}
-                alt="AlgoNotes Logo"
-                className="h-8 w-8 object-contain"
-              />
-              <span className="hidden sm:inline text-xl font-extrabold tracking-tight text-[var(--text-main)]">
-                ALGO<span className="text-[var(--primary)]">NOTES</span>
+           <Link to="/dashboard" className="flex items-center gap-2.5 ...">
+              <MinimalistLogo className="h-8 w-8 text-[var(--primary)]" />
+              <span className="hidden sm:inline text-lg font-black tracking-tight text-[var(--text-main)]">
+                ALGO<span className="text-[var(--primary)] font-extrabold">NOTES</span>
               </span>
             </Link>
           </div>
 
-          {/* RIGHT SECTION: Controls & Dropdown / Login Action */}
-          <div className="flex items-center gap-3 shrink-0">
+          {/* RIGHT SECTION: Global Actions & Profile Auth Management */}
+          <div className="flex items-center gap-3.5 shrink-0">
             
-            {/* Global Search Action Trigger (Always visible across all device viewports) */}
+            {/* Search Action Trigger */}
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
-              className="p-2.5 text-[var(--text-muted)] hover:text-[var(--text-main)] bg-[var(--bg-soft)] border border-[var(--border-default)]/40 rounded-full transition-all active:scale-95 shadow-sm hover:shadow-sm"
-              title="Open Search Console"
+              className="group flex h-9 w-9 items-center justify-center text-[var(--text-light)] hover:text-[var(--primary)] bg-[var(--bg-soft)] hover:bg-[var(--primary-soft)] border border-[var(--border-default)] rounded-xl transition-all duration-200 active:scale-95"
+              title="Search Workspace (Ctrl+/)"
             >
-              <Search size={18} className="stroke-[2.2]" />
+              <Search size={16} className="stroke-[2.2] transition-transform duration-200 group-hover:scale-105" />
             </button>
 
-            {/* 🌟 CONDITIONAL PROFILE HUB / LOGIN REDIRECT */}
-            {user ? (
+            {/* Dynamic Divider */}
+            <div className="h-4 w-[1px] bg-[var(--border-default)]" />
+
+            {/* CONDITIONAL AUTH PROFILE SPLIT ENGINE */}
+            {loading ? (
+              /* Pristine Loading Skeleton Animation */
+              <div className="h-9 w-9 animate-pulse rounded-xl bg-[var(--border-default)]" />
+            ) : user ? (
+              /* Active Session Dropdown menu overlay trigger */
               <Dropdown user={user} onLogout={handleLogout} />
             ) : (
-              <Button
-               onClick = {()=> navigate("/login")}
-               loading={loading}
+              /* Public Login Outbound Handle Link */
+              <button
+                onClick={() => navigate("/login")}
+                className="inline-flex h-9 items-center justify-center rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white shadow-sm transition-all duration-200 hover:bg-[var(--primary-hover)] active:scale-95"
               >
                 Login
-              </Button>
+              </button>
             )}
           </div>
         </div>
       </header>
 
-      {/* GLOBAL ISOLATED SEARCH OVERLAY PORTAL */}
+      {/* GLOBAL OVERLAY MODAL PORTAL */}
       <SearchModal 
         isOpen={isSearchOpen} 
         onClose={() => setIsSearchOpen(false)} 

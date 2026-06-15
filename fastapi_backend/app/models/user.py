@@ -26,6 +26,7 @@ class User(SQLModel, table=True):
 
     password: str
 
+    # Profile Customization Block
     avatar: Dict[str, Any] = Field(
         default_factory=lambda: {
             "url": "",
@@ -34,6 +35,7 @@ class User(SQLModel, table=True):
         sa_column=Column(JSONB)
     )
 
+    # Core Security & Verification Tracking Options
     verificationOptions: Dict[str, Any] = Field(
         default_factory=lambda: {
             "status": "pending",
@@ -52,17 +54,14 @@ class User(SQLModel, table=True):
         sa_column=Column(JSONB)
     )
 
+    # Modernized Timezone-Aware Explicit Timestamp Registration
     createdAt: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         sa_type=DateTime(timezone=True)
     )
 
+    # Relationship Connectors pointing to your external Note/Activity schemas
     notes: List["Note"] = Relationship(
-        back_populates="user",
-        cascade_delete=True
-    )
-
-    activities: List["Activity"] = Relationship(
         back_populates="user",
         cascade_delete=True
     )

@@ -1,17 +1,10 @@
 import {
-  LayoutDashboard,
   Sparkles,
   StickyNote,
   Settings,
 } from "lucide-react";
 
 export const dropdownItems = [
-  {
-    to: "/dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    activeColor: "group-hover:text-[var(--primary)]",
-  },
   {
     to: "/notes/generate",
     label: "Generate Notes",

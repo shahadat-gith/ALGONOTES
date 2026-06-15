@@ -31,9 +31,8 @@ async def init_db() -> None:
     try:
         async with engine.begin() as conn:
             await conn.run_sync(SQLModel.metadata.create_all)
-        print("Supabase PostgreSQL tables initialized successfully.")
     except Exception as e:
-        print(f"Supabase PostgreSQL Tables Initialization Failed: {str(e)}")
+        print(f"Supabase PostgreSQL Initialization Failed: {str(e)}")
         raise e
 
 # 5. Dependency injection function for your FastAPI routes

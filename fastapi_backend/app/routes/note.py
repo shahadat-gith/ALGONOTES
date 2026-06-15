@@ -1,14 +1,14 @@
 from math import ceil
 from datetime import datetime, timezone
+from typing import Optional 
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query, status
-from sqlmodel import select, func
+from sqlmodel import select, func, or_  
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm.attributes import flag_modified
 
 from app.models import User, Note
 from app.schemas import SaveNoteRequest
-from app.utils import track_user_activity_task
 from app.middlewares import get_current_user
 from app.database import get_session
 
@@ -41,8 +41,6 @@ async def update_note(
             detail="Note not found.",
         )
 
-    is_first_time_finalizing = note.status != "final" and payload.status == "final"
-
     # Encapsulates the complete payload sent from your schemas
     note.problem = payload.problem.model_dump()
     note.note = payload.note.model_dump()
@@ -58,13 +56,6 @@ async def update_note(
     await session.commit()
     await session.refresh(note)
 
-    if is_first_time_finalizing:
-        background_tasks.add_task(
-            track_user_activity_task,
-            current_user.id,
-            "note",
-        )
-
     return {
         "success": True,
         "message": f"Note updated successfully as {note.status}.",
@@ -72,46 +63,53 @@ async def update_note(
     }
 
 
-# ==========================================
-# GET ALL USER NOTES (Lightweight Dashboard Feed)
-# ==========================================
+
+
 @router.get("/user")
 async def get_all_notes_by_user(
-    page: int = Query(default=1, ge=1, description="Page number, starting from 1"),
-    size: int = Query(default=10, ge=1, le=50, description="Number of items per page"),
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=10, ge=1, le=50),
+    search: Optional[str] = Query(default=None, description="Search term for notes"),
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
     offset_value = (page - 1) * size
 
-    # Count total non-processing entries for frontend pagination math
-    count_statement = (
-        select(func.count())
-        .select_from(Note)
-        .where(
-            Note.user_id == current_user.id,
-            Note.status != "processing"
+    # 1. Base query requirements
+    base_filters = [
+        Note.user_id == current_user.id,
+        Note.status != "processing"
+    ]
+
+    # 2. Add search parameters dynamically using SQL iLike pattern matches
+    if search:
+        search_pattern = f"%{search}%"
+        base_filters.append(
+            or_(
+                Note.language.ilike(search_pattern),
+                # Extracts values from JSONB layout maps safely to apply partial string matches
+                Note.problem["title"].astext.ilike(search_pattern),
+                Note.problem["platform"].astext.ilike(search_pattern),
+                Note.problem["difficulty"].astext.ilike(search_pattern)
+            )
         )
-    )
+
+    # 3. Calculate accurate total items count matching search filters
+    count_statement = select(func.count()).select_from(Note).where(*base_filters)
     count_result = await session.execute(count_statement)
     total_items = count_result.scalar() or 0
 
-    # Fetch a paginated chunk from Supabase Mumbai
+    # 4. Fetch the paginated dataset slice matching criteria from Supabase
     data_statement = (
         select(Note)
-        .where(
-            Note.user_id == current_user.id,
-            Note.status != "processing" 
-        )
+        .where(*base_filters)
         .order_by(Note.createdAt.desc())
         .offset(offset_value)
         .limit(size)
     )
-
     result = await session.execute(data_statement)
     notes = result.scalars().all()
 
-    # Returns only what is needed for summary cards to keep payload tiny
     formatted_notes = []
     for note in notes:
         formatted_notes.append({
@@ -144,7 +142,6 @@ async def get_all_notes_by_user(
             "hasPrevious": page > 1
         }
     }
-
 
 # ==========================================
 # GET SINGLE NOTE DETAILS (Returns All Data)

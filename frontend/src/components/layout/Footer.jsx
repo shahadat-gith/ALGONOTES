@@ -75,21 +75,21 @@ const Footer = () => {
             </h4>
             <ul className="space-y-2.5 text-xs font-semibold text-[var(--text-muted)]">
               <li>
-                <Link to="/dashboard" className="hover:text-[var(--primary)] flex items-center gap-2 transition-colors group">
+                <Link to="/" className="hover:text-[var(--primary)] flex items-center gap-2 transition-colors group">
                   <LayoutDashboard size={13} className="text-[var(--text-light)] group-hover:text-[var(--primary)] transition-colors" />
-                  Workspace Dashboard
+                  home
                 </Link>
               </li>
               <li>
-                <Link to="/problems" className="hover:text-[var(--primary)] flex items-center gap-2 transition-colors group">
+                <Link to="/notes/generate" className="hover:text-[var(--primary)] flex items-center gap-2 transition-colors group">
                   <Code size={13} className="text-[var(--text-light)] group-hover:text-[var(--primary)] transition-colors" />
-                  Problem Repository
+                  generate notes
                 </Link>
               </li>
               <li>
                 <Link to="/notes" className="hover:text-[var(--primary)] flex items-center gap-2 transition-colors group">
                   <BookOpen size={13} className="text-[var(--text-light)] group-hover:text-[var(--primary)] transition-colors" />
-                  Study Notes Deck
+                  Your notes
                 </Link>
               </li>
             </ul>

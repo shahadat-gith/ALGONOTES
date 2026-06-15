@@ -1,5 +1,7 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from typing import Dict, Any
+
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -16,13 +18,19 @@ from app.config import settings
 router = APIRouter(prefix="/auth", tags=["Authentication Controller"])
 
 
+# ==========================================
+# REGISTER USER
+# ==========================================
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
     payload: RegisterRequest,
     background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(get_session)
 ):
-    statement = select(User).where(User.email == payload.email)
+    # Enforce safe lowercasing for system lookups
+    user_email = payload.email.lower().strip()
+
+    statement = select(User).where(User.email == user_email)
     result = await session.execute(statement)
 
     if result.scalar_one_or_none():
@@ -35,7 +43,7 @@ async def register(
 
     new_user = User(
         name=payload.name,
-        email=payload.email,
+        email=user_email,
         password=hashed_pwd,
         avatar={"url": "", "public_id": ""},
         verificationOptions={
@@ -54,16 +62,15 @@ async def register(
     await session.commit()
     await session.refresh(new_user)
 
-
     verification_url = f"{settings.FRONTEND_URL_PROD}/verify?email={new_user.email}"
 
     email_html = f"""
     <div style="font-family: Arial, sans-serif; padding: 30px; max-width: 600px; margin: 0 auto; border: 1px solid #eef2f6; border-radius: 8px;">
-        <h2 style="color: #1e1b4b; margin-bottom: 10px;">Welcome to AlgoNotes!</h2>
+        <h2 style="color: #0f766e; margin-bottom: 10px;">Welcome to AlgoNotes!</h2>
         <p style="color: #475569; font-size: 16px; line-height: 1.5;">Thank you for signing up. Please click the button below to complete your email verification:</p>
-        <a href="{verification_url}" target="_blank" style="display: inline-block; background-color: #4f46e5; color: #ffffff; text-decoration: none; padding: 12px 24px; font-weight: bold; border-radius: 6px; font-size: 14px; margin: 20px 0;">Verify Account</a>
+        <a href="{verification_url}" target="_blank" style="display: inline-block; background-color: #0f766e; color: #ffffff; text-decoration: none; padding: 12px 24px; font-weight: bold; border-radius: 6px; font-size: 14px; margin: 20px 0;">Verify Account</a>
         <p style="color: #94a3b8; font-size: 12px;">If the button isn't working, copy and paste this link into your browser:<br />
-        <a href="{verification_url}" style="color: #4f46e5; word-break: break-all;">{verification_url}</a></p>
+        <a href="{verification_url}" style="color: #0f766e; word-break: break-all;">{verification_url}</a></p>
     </div>
     """
 
@@ -80,12 +87,17 @@ async def register(
     }
 
 
+# ==========================================
+# USER LOGIN
+# ==========================================
 @router.post("/login")
 async def login(
     payload: LoginRequest,
     session: AsyncSession = Depends(get_session)
 ):
-    statement = select(User).where(User.email == payload.email)
+    user_email = payload.email.lower().strip()
+
+    statement = select(User).where(User.email == user_email)
     result = await session.execute(statement)
     user = result.scalar_one_or_none()
 
@@ -97,10 +109,12 @@ async def login(
 
     token = create_access_token(str(user.id))
 
+    # Sanitize and completely exclude security tracking options from frontend view models
     sanitized_user = user.model_dump(
         exclude={
             "password",
-            "forgotPasswordOptions"
+            "forgotPasswordOptions",
+            "verificationOptions"
         }
     )
 
@@ -112,13 +126,18 @@ async def login(
     }
 
 
+# ==========================================
+# ACCOUNT VERIFICATION SYSTEM (OTP)
+# ==========================================
 @router.post("/verify")
 async def verify_user(
     payload: VerifyUserRequest,
     background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(get_session)
 ):
-    statement = select(User).where(User.email == payload.email)
+    user_email = payload.email.lower().strip()
+
+    statement = select(User).where(User.email == user_email)
     result = await session.execute(statement)
     user = result.scalar_one_or_none()
 
@@ -138,7 +157,8 @@ async def verify_user(
 
     if payload.step == "send-otp":
         fresh_otp = generate_otp()
-        expiry_time = (datetime.utcnow() + timedelta(minutes=10)).isoformat()
+        # Refactored: Modern Python 3.12+ Timezone-Aware Explicit Expiry offsets
+        expiry_time = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
 
         v_opts["otp"] = fresh_otp
         v_opts["otpExpiry"] = expiry_time
@@ -151,10 +171,10 @@ async def verify_user(
 
         otp_email_html = f"""
         <div style="font-family: Arial, sans-serif; padding: 30px; max-width: 600px; margin: 0 auto; border: 1px solid #eef2f6; border-radius: 8px;">
-          <h2 style="color: #1e1b4b; margin-bottom: 10px;">Your Verification Code</h2>
+          <h2 style="color: #0f766e; margin-bottom: 10px;">Your Verification Code</h2>
           <p style="color: #475569; font-size: 16px;">Enter this 6-digit OTP code on your screen to activate your account:</p>
-          <div style="background-color: #f8fafc; border-radius: 6px; padding: 15px 25px; margin: 20px 0; display: inline-block;">
-            <h1 style="color: #4f46e5; letter-spacing: 4px; margin: 0; font-size: 32px;">{fresh_otp}</h1>
+          <div style="background-color: #f4f6f8; border-radius: 6px; padding: 15px 25px; margin: 20px 0; display: inline-block;">
+            <h1 style="color: #0f766e; letter-spacing: 4px; margin: 0; font-size: 32px;">{fresh_otp}</h1>
           </div>
           <p style="color: #64748b; font-size: 14px;">This code is valid for 10 minutes.</p>
         </div>
@@ -180,7 +200,8 @@ async def verify_user(
             )
 
         expiry_str = v_opts.get("otpExpiry")
-        is_expired = datetime.utcnow() > datetime.fromisoformat(expiry_str) if expiry_str else True
+        # Refactored: Dynamic Timezone-Aware evaluation
+        is_expired = datetime.now(timezone.utc) > datetime.fromisoformat(expiry_str) if expiry_str else True
 
         if v_opts.get("otp") != payload.otp or is_expired:
             raise HTTPException(
@@ -202,7 +223,8 @@ async def verify_user(
         sanitized_user = user.model_dump(
             exclude={
                 "password",
-                "forgotPasswordOptions"
+                "forgotPasswordOptions",
+                "verificationOptions"
             }
         )
 
@@ -213,13 +235,18 @@ async def verify_user(
         }
 
 
+# ==========================================
+# FORGOT PASSWORD SYSTEM
+# ==========================================
 @router.post("/forgot-password")
 async def forgot_password(
     payload: ForgotPasswordRequest,
     background_tasks: BackgroundTasks,
     session: AsyncSession = Depends(get_session)
 ):
-    statement = select(User).where(User.email == payload.email)
+    user_email = payload.email.lower().strip()
+
+    statement = select(User).where(User.email == user_email)
     result = await session.execute(statement)
     user = result.scalar_one_or_none()
 
@@ -233,7 +260,8 @@ async def forgot_password(
 
     if payload.step == "send-otp":
         reset_otp = generate_otp()
-        expiry_time = (datetime.utcnow() + timedelta(minutes=10)).isoformat()
+        # Refactored: Modern Python 3.12+ Timezone-Aware Explicit Expiry offsets
+        expiry_time = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
 
         f_opts["otp"] = reset_otp
         f_opts["otpExpiry"] = expiry_time
@@ -247,10 +275,10 @@ async def forgot_password(
 
         reset_email_html = f"""
         <div style="font-family: Arial, sans-serif; padding: 30px; max-width: 600px; margin: 0 auto; border: 1px solid #eef2f6; border-radius: 8px;">
-          <h2 style="color: #1e1b4b; margin-bottom: 10px;">Password Reset Request</h2>
+          <h2 style="color: #0f766e; margin-bottom: 10px;">Password Reset Request</h2>
           <p style="color: #475569; font-size: 16px;">We received a request to reset your password. Use the code below to complete the process:</p>
-          <div style="background-color: #f8fafc; border-radius: 6px; padding: 15px 25px; margin: 20px 0; display: inline-block;">
-            <h1 style="color: #ef4444; letter-spacing: 4px; margin: 0; font-size: 32px;">{reset_otp}</h1>
+          <div style="background-color: #f4f6f8; border-radius: 6px; padding: 15px 25px; margin: 20px 0; display: inline-block;">
+            <h1 style="color: #e11d48; letter-spacing: 4px; margin: 0; font-size: 32px;">{reset_otp}</h1>
           </div>
           <p style="color: #64748b; font-size: 14px;">This code is highly sensitive and will expire in 10 minutes.</p>
         </div>
@@ -276,7 +304,8 @@ async def forgot_password(
             )
 
         expiry_str = f_opts.get("otpExpiry")
-        is_expired = datetime.utcnow() > datetime.fromisoformat(expiry_str) if expiry_str else True
+        # Refactored: Dynamic Timezone-Aware evaluation
+        is_expired = datetime.now(timezone.utc) > datetime.fromisoformat(expiry_str) if expiry_str else True
 
         if f_opts.get("otp") != payload.otp or is_expired:
             raise HTTPException(

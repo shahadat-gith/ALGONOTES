@@ -20,7 +20,3 @@ export const searchWorkspace = async (query) => {
   return data;
 };
 
-export const getDashboardMetrics = async () => {
-  const { data } = await axiosInstance.get("/users/dashboard-metrics");
-  return data;
-};

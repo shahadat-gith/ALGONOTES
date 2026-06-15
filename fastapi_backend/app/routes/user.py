@@ -1,13 +1,12 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlmodel import select, func, or_
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlalchemy import cast, String
 from sqlalchemy.orm.attributes import flag_modified
 
-from app.models import User, Note, Activity
+from app.models import User, Note
 from app.services import upload_to_cloudinary, delete_from_cloudinary
 from app.middlewares import get_current_user
 from app.database import get_session
@@ -16,6 +15,9 @@ from app.database import get_session
 router = APIRouter(prefix="/users", tags=["Users Profile Deck"])
 
 
+# ==========================================
+# GET CURRENT USER DETAILS
+# ==========================================
 @router.get("/me")
 async def get_current_user_details(
     current_user: User = Depends(get_current_user)
@@ -23,7 +25,8 @@ async def get_current_user_details(
     sanitized_user = current_user.model_dump(
         exclude={
             "password",
-            "forgotPasswordOptions"
+            "forgotPasswordOptions",
+            "verificationOptions"
         }
     )
 
@@ -33,6 +36,9 @@ async def get_current_user_details(
     }
 
 
+# ==========================================
+# UPDATE PROFILE
+# ==========================================
 @router.put("/profile")
 async def update_profile(
     name: Optional[str] = Form(None),
@@ -99,7 +105,8 @@ async def update_profile(
     sanitized_user = current_user.model_dump(
         exclude={
             "password",
-            "forgotPasswordOptions"
+            "forgotPasswordOptions",
+            "verificationOptions"
         }
     )
 
@@ -110,25 +117,10 @@ async def update_profile(
     }
 
 
-@router.delete("/account")
-async def delete_account(
-    current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
-):
-    avatar_opts = dict(current_user.avatar or {})
 
-    if avatar_opts.get("public_id"):
-        await delete_from_cloudinary(avatar_opts["public_id"])
-
-    await session.delete(current_user)
-    await session.commit()
-
-    return {
-        "success": True,
-        "message": "Your profile account has been permanently deactivated and erased."
-    }
-
-
+# ==========================================
+# GLOBAL WORKSPACE SEARCH UTILITY
+# ==========================================
 @router.get("/search")
 async def search_workspace(
     q: str = "",
@@ -143,15 +135,17 @@ async def search_workspace(
 
     search_pattern = f"%{q}%"
 
+
     note_statement = (
         select(Note)
         .where(
             Note.user_id == current_user.id,
             Note.status != "processing",
             or_(
-                cast(Note.problem, String).ilike(search_pattern),
-                cast(Note.note, String).ilike(search_pattern),
                 Note.language.ilike(search_pattern),
+                Note.problem["title"].astext.ilike(search_pattern),
+                Note.problem["platform"].astext.ilike(search_pattern),
+                Note.problem["difficulty"].astext.ilike(search_pattern)
             )
         )
         .order_by(Note.createdAt.desc())
@@ -168,7 +162,6 @@ async def search_workspace(
         note_content = n.note or {}
 
         title = problem.get("title") or "Untitled Problem"
-
         snippet = "Open Study Note"
 
         optimal_blocks = note_content.get("optimalApproach", [])
@@ -176,11 +169,7 @@ async def search_workspace(
         intuition_blocks = note_content.get("intuition", [])
 
         if optimal_blocks:
-            snippet = (
-                optimal_blocks[0].get("text")
-                or optimal_blocks[0].get("code")
-                or snippet
-            )
+            snippet = optimal_blocks[0].get("text") or optimal_blocks[0].get("code") or snippet
         elif summary_blocks:
             snippet = summary_blocks[0].get("text") or snippet
         elif intuition_blocks:
@@ -201,136 +190,3 @@ async def search_workspace(
     }
 
 
-@router.get("/dashboard-metrics")
-async def get_dashboard_metrics(
-    current_user: User = Depends(get_current_user),
-    session: AsyncSession = Depends(get_session)
-):
-    lookback_date = datetime.utcnow() - timedelta(days=365)
-
-    threshold_key = int(
-        f"{lookback_date.year}{lookback_date.month:02d}{lookback_date.day:02d}"
-    )
-
-    note_count_stmt = (
-        select(func.count())
-        .select_from(Note)
-        .where(
-            Note.user_id == current_user.id,
-            Note.status != "processing"
-        )
-    )
-
-    total_notes = (await session.execute(note_count_stmt)).scalar() or 0
-
-    all_notes_stmt = (
-        select(Note)
-        .where(
-            Note.user_id == current_user.id,
-            Note.status != "processing"
-        )
-    )
-
-    all_notes = (await session.execute(all_notes_stmt)).scalars().all()
-
-    difficulty_map = {
-        "easy": 0,
-        "medium": 0,
-        "hard": 0
-    }
-
-    for note in all_notes:
-        difficulty = (note.problem or {}).get("difficulty", "")
-
-        if difficulty:
-            key = difficulty.lower()
-
-            if key in difficulty_map:
-                difficulty_map[key] += 1
-
-    recent_note_stmt = (
-        select(Note)
-        .where(
-            Note.user_id == current_user.id,
-            Note.status != "processing"
-        )
-        .order_by(Note.lastEditedAt.desc().nullslast(), Note.createdAt.desc())
-        .limit(3)
-    )
-
-    recent_notes = (
-        await session.execute(recent_note_stmt)
-    ).scalars().all()
-
-    activity_stmt = (
-        select(Activity)
-        .where(
-            Activity.user_id == current_user.id,
-            Activity.dayKey >= threshold_key
-        )
-        .order_by(Activity.dayKey.asc())
-    )
-
-    activities = (
-        await session.execute(activity_stmt)
-    ).scalars().all()
-
-    activity_map = {
-        act.dayKey: {
-            "total": act.totalCount,
-            "notes": act.notesGenerated
-        }
-        for act in activities
-    }
-
-    formatted_notes = []
-
-    for n in recent_notes:
-        problem = n.problem or {}
-        note_content = n.note or {}
-
-        title = problem.get("title") or "Untitled Problem"
-        snippet = "Open Study Note"
-
-        optimal_blocks = note_content.get("optimalApproach", [])
-        summary_blocks = note_content.get("summary", [])
-        intuition_blocks = note_content.get("intuition", [])
-
-        if optimal_blocks:
-            snippet = (
-                optimal_blocks[0].get("text")
-                or optimal_blocks[0].get("code")
-                or snippet
-            )
-        elif summary_blocks:
-            snippet = summary_blocks[0].get("text") or snippet
-        elif intuition_blocks:
-            snippet = intuition_blocks[0].get("text") or snippet
-
-        formatted_notes.append(
-            {
-                "_id": n.id,
-                "noteId": n.noteId,
-                "title": f"{title} Notes",
-                "platform": problem.get("platform", ""),
-                "difficulty": problem.get("difficulty", ""),
-                "language": n.language,
-                "status": n.status,
-                "updated": n.lastEditedAt or n.createdAt,
-                "desc": f"{snippet[:57]}..." if len(snippet) > 60 else snippet
-            }
-        )
-
-    return {
-        "success": True,
-        "data": {
-            "counters": {
-                "totalNotes": total_notes,
-                "difficulty": difficulty_map
-            },
-            "recentActivity": {
-                "notes": formatted_notes
-            },
-            "activityGrid": activity_map
-        }
-    }

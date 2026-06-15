@@ -14,7 +14,7 @@ import toast from "react-hot-toast";
 
 const LANGUAGE_OPTIONS = ["C++", "Java", "Python", "JavaScript", "TypeScript", "C"];
 
-const GenerateNotes = () => {
+const GenerateNote = () => {
   const navigate = useNavigate();
   const pollTimer = useRef(null);
 
@@ -288,4 +288,4 @@ const GenerateNotes = () => {
   );
 };
 
-export default GenerateNotes;
+export default GenerateNote;

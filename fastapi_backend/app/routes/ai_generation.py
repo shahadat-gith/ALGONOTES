@@ -33,6 +33,7 @@ async def call_gemini_and_save_task(
     user_code: str,
     language: str,
 ):
+    # Spawns a completely isolated context instance independent of the API layer
     async with async_session_maker() as session:
         try:
             # 1. Compile the prompt template
@@ -87,25 +88,27 @@ async def call_gemini_and_save_task(
 
         except (json.JSONDecodeError, ValidationError) as parse_err:
             print(f"LLM Structural Parsing Validation failed for note {note_id}: {str(parse_err)}")
-            await _mark_note_as_failed(session, note_id, user_id)
+            # Safe execution using un-shared context trees
+            await _mark_note_as_failed(note_id, user_id)
 
         except Exception as e:
             print(f"AI generation pipeline failed for note {note_id}: {str(e)}")
-            await _mark_note_as_failed(session, note_id, user_id)
+            await _mark_note_as_failed(note_id, user_id)
 
 
-async def _mark_note_as_failed(session: AsyncSession, note_id: str, user_id: int):
-    """Helper to atomically flag a generation task state as failed."""
-    try:
-        stmt = (
-            update(Note)
-            .where(Note.noteId == note_id, Note.user_id == user_id)
-            .values(status="failed", lastEditedAt=datetime.now(timezone.utc))
-        )
-        await session.execute(stmt)
-        await session.commit()
-    except Exception as db_err:
-        print(f"Critical: Failed to update status flag to 'failed': {str(db_err)}")
+async def _mark_note_as_failed(note_id: str, user_id: int):
+    """Helper to atomically flag a generation task state as failed using a clean session."""
+    async with async_session_maker() as failure_session:
+        try:
+            stmt = (
+                update(Note)
+                .where(Note.noteId == note_id, Note.user_id == user_id)
+                .values(status="failed", lastEditedAt=datetime.now(timezone.utc))
+            )
+            await failure_session.execute(stmt)
+            await failure_session.commit()
+        except Exception as db_err:
+            print(f"Critical: Failed to update status flag to 'failed': {str(db_err)}")
 
 
 # ==========================================

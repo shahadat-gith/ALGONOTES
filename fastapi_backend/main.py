@@ -17,22 +17,25 @@ from app.routes import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # App Startup Routine Engine
     print(f"Starting application in {settings.ENVIRONMENT} mode...")
-    print("Initializing database...")
+    print("connecting to database...")
     await init_db()
-    print("Database initialized successfully.")
+    print("connected to database.")
     yield
-    print("Shutting down backend...")
+    # App Shutdown Routine Execution Path
+    print("Shutting down backend instance safely...")
 
 
 app = FastAPI(
     title="ALGONOTES API Backend Engine",
-    description="Python FastAPI Backend for ALGONOTES",
+    description="Python FastAPI Backend for ALGONOTES workspace",
     version="1.0.0",
     lifespan=lifespan,
 )
 
 
+# Core System Middleware Integrations
 register_error_handlers(app)
 
 
@@ -45,11 +48,16 @@ app.add_middleware(
 )
 
 
+# Register Global Decentralized Route Clusters Under Standardized API Prefixes
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
 app.include_router(note_router, prefix="/api/v1")
 app.include_router(ai_generation_router, prefix="/api/v1")
 
+
+# ==========================================
+# SYSTEM CORE ROUTERS
+# ==========================================
 
 @app.get("/", tags=["System Verification Gateway"])
 async def system_health_status():
@@ -58,18 +66,33 @@ async def system_health_status():
         "engine": "FastAPI ASGI",
         "database": "Connected via SQLModel",
         "environment": settings.ENVIRONMENT,
+        "allowed_origins": settings.ALLOWED_ORIGINS,
     }
 
 
-handler = Mangum(app)
+@app.get("/debug/env", tags=["Debug"])
+async def debug_env():
+    # Defensive Guardrail: Completely hide production debug profiles if exposed to public paths
+    if settings.ENVIRONMENT.lower() == "production":
+        return {"message": "Debug information is restricted on production instances."}
+        
+    return {
+        "environment": settings.ENVIRONMENT,
+        "frontend_url": settings.FRONTEND_URL,
+        "frontend_url_prod": settings.FRONTEND_URL_PROD,
+        "allowed_origins": settings.ALLOWED_ORIGINS,
+    }
+
+
+
+handler = Mangum(app, lifespan="on")
 
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=settings.PORT,
-        reload=True if settings.ENVIRONMENT == "development" else False,
+        reload=settings.ENVIRONMENT.lower() == "development",
     )

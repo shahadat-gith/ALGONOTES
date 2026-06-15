@@ -13,11 +13,10 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyUser from "./pages/auth/VerifyUser";
 import Home from "./pages/home/Home";
-import Dashboard from "./pages/dashboard/Dashboard";
 import Notes from "./pages/notes/Notes";
-import GenerateNotes from "./pages/notes/GenerateNotes";
-import EditNotes from "./pages/notes/EditNotes";
-import ViewNotes from "./pages/notes/ViewNotes";
+import GenerateNote from "./pages/notes/GenerateNote";
+import EditNote from "./pages/notes/EditNote";
+import ViewNote from "./pages/notes/ViewNote";
 import NotFound from "./pages/general/NotFound";
 import Developer from "./pages/developer/Developer";
 import Privacy from "./pages/disclaimers/Privacy";
@@ -78,12 +77,10 @@ const App = () => {
           }
         >
           <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-
             <Route path="/notes" element={<Notes />} />
-            <Route path="/notes/generate" element={<GenerateNotes />} />
-            <Route path="/notes/:noteId/view" element={<ViewNotes />} />
-            <Route path="/notes/:noteId/edit" element={<EditNotes />} />
+            <Route path="/notes/generate" element={<GenerateNote />} />
+            <Route path="/notes/:noteId/view" element={<ViewNote />} />
+            <Route path="/notes/:noteId/edit" element={<EditNote />} />
           </Route>
         </Route>
 

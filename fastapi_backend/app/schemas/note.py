@@ -1,9 +1,10 @@
-# app/schemas/note.py
-
 from typing import List, Optional, Literal, Dict, Any
 from pydantic import BaseModel, Field
 
 
+# ==========================================
+# 1. POLYMORPHIC CONTENT BLOCK SCHEMA
+# ==========================================
 class ContentBlockSchema(BaseModel):
     type: Literal["heading", "paragraph", "bullet", "step", "code", "table"]
 
@@ -13,12 +14,15 @@ class ContentBlockSchema(BaseModel):
     language: Optional[str] = None
     table: Optional[List[Dict[str, Any]]] = None
 
-    order: Optional[int] = 0
+    order: int = Field(default=0, description="Sequential ordering position index")
 
 
+# ==========================================
+# 2. PROBLEM DETAILED METADATA SCHEMA
+# ==========================================
 class ProblemDetailSchema(BaseModel):
     title: str = ""
-    problemLink: str = ""
+    problemLink: str = ""  # Stabilized with standard string fallback default
     platform: str = ""
     difficulty: str = ""
     description: str = ""
@@ -29,6 +33,9 @@ class ProblemDetailSchema(BaseModel):
     topics: List[str] = Field(default_factory=list)
 
 
+# ==========================================
+# 3. AI GENERATED STUDY NOTE NESTED TREE
+# ==========================================
 class NoteContentSchema(BaseModel):
     summary: List[ContentBlockSchema] = Field(default_factory=list)
     intuition: List[ContentBlockSchema] = Field(default_factory=list)
@@ -41,12 +48,18 @@ class NoteContentSchema(BaseModel):
     mistakesToAvoid: List[ContentBlockSchema] = Field(default_factory=list)
 
 
+# ==========================================
+# 4. INITIAL AI DISPATCH INBOUND REQUEST
+# ==========================================
 class GenerateNoteRequest(BaseModel):
-    problemLink: str = Field(..., min_length=1)
-    userCode: str = Field(..., min_length=1)
-    language: str = "C++"
+    problemLink: str = Field(..., min_length=1, description="Target coding challenge platform URL")
+    userCode: str = Field(..., min_length=1, description="Raw source solution text payload")
+    language: str = Field(default="C++", description="Programming execution syntax label")
 
 
+# ==========================================
+# 5. USER MANUAL DRAFT SAVING REQUEST
+# ==========================================
 class SaveNoteRequest(BaseModel):
     problem: ProblemDetailSchema
     note: NoteContentSchema

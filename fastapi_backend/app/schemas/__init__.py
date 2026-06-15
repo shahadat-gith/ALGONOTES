@@ -1,10 +1,11 @@
+# app/schemas/__init__.py
+
 from .auth import (
     RegisterRequest,
     LoginRequest,
     VerifyUserRequest,
     ForgotPasswordRequest
 )
-
 
 from .note import (
     GenerateNoteRequest,
@@ -14,16 +15,14 @@ from .note import (
     ContentBlockSchema
 )
 
-
 __all__ = [
-    # auth
+    # Auth Controller Schema Payloads
     "RegisterRequest",
     "LoginRequest",
     "VerifyUserRequest",
     "ForgotPasswordRequest",
 
-
-    # note
+    # AI Note Generator & Storage Payloads
     "GenerateNoteRequest",
     "SaveNoteRequest",
     "ProblemDetailSchema",
