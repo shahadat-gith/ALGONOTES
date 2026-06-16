@@ -1,4 +1,5 @@
 import React from "react";
+import { ListMinus, AlertOctagon } from "lucide-react";
 
 const BulletListCard = ({ title, items = [], variant = "default" }) => {
   if (!items.length) return null;
@@ -7,26 +8,36 @@ const BulletListCard = ({ title, items = [], variant = "default" }) => {
 
   return (
     <section
-      className={`rounded-2xl border bg-[var(--bg-surface)] p-6 shadow-sm ${
-        isDanger ? "border-[var(--danger-soft)] bg-gradient-to-br from-[var(--bg-surface)] to-[var(--danger-soft)]/5" : "border-[var(--border-default)]"
+      className={`rounded-md border p-6 shadow-card bg-bg-surface select-none transition-all duration-300 ${
+        isDanger
+          ? "border-danger/30 ring-1 ring-danger-soft/30 bg-gradient-to-b from-bg-surface to-danger-soft/2"
+          : "border-border-default"
       }`}
     >
+      {/* Card Section Header */}
       <h2
-        className={`mb-4 border-b border-[var(--border-default)] pb-2 text-base font-bold ${
-          isDanger ? "text-[var(--danger)]" : "text-[var(--text-main)]"
+        className={`text-xs font-bold uppercase tracking-widest border-b pb-3.5 flex items-center gap-2 font-mono ${isDanger ? "text-danger border-danger/20" : "text-text-main border-border-default"
         }`}
-      >
-        {title}
+        >
+        {isDanger ? (
+          <AlertOctagon size={14} className="text-danger stroke-[2]" />
+        ) : (
+          <ListMinus size={14} className="text-text-light stroke-[2]" />
+        )}
+        <span>{title}</span>
       </h2>
-      <ul className="space-y-2.5 text-sm text-[var(--text-muted)]">
+
+      {/* Bullet Items Collection Flow Stack */}
+      <ul className="space-y-3 mt-4 text-xs text-text-muted">
         {items.map((item, index) => (
-          <li key={index} className="flex items-start gap-2.5">
+          <li key={index} className="flex items-start gap-3 leading-6 tracking-wide">
+            {/* Custom High-Contrast Indicator Capsule */}
             <span
-              className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${
-                isDanger ? "bg-[var(--danger)]" : "bg-[var(--primary)]"
+              className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full transition-transform group-hover:scale-110 ${
+                isDanger ? "bg-danger shadow-xs shadow-danger/40" : "bg-primary shadow-xs shadow-primary/40"
               }`}
             />
-            <span className="leading-relaxed">{item}</span>
+            <span className="font-normal">{item}</span>
           </li>
         ))}
       </ul>

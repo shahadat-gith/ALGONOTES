@@ -21,7 +21,7 @@ const Developer = () => {
         setProfile(json);
       } catch (err) {
         console.error("Failed to parse remote identity configuration payload:", err);
-      }finally {
+      } finally {
         setLoading(false);
       }
     };
@@ -29,26 +29,42 @@ const Developer = () => {
   }, []);
 
   if (loading) return <DeveloperSkeleton />;
-  if (!profile) return <div className="text-center py-20 text-xs font-bold text-[var(--text-muted)]">could not find developer information. please check back later.</div>;
+  
+  if (!profile) {
+    return (
+      <div className="text-center py-24 text-xs font-semibold text-text-muted select-none">
+        Could not find developer information. Please check back later.
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 animate-fade-in pb-12 mt-10">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6 animate-fade-in pb-20">
       
-      {/* Card Row 1: Hero Banner Component (Full-Width) */}
-      <DevHero personalInfo={profile.personalInfo} />
+      {/* Card Row 1: Hero Banner Component (Full-Width Within Core Limits) */}
+      <div className="relative z-10">
+        <DevHero personalInfo={profile.personalInfo} />
+      </div>
 
-      {/* Card Row 2: Social Channels Array Grid (Full-Width card layer) */}
-      <DevSocials socialLinks={profile.socialLinks} />
+      {/* Card Row 2: Social Channels Array Grid */}
+      <div className="relative z-10">
+        <DevSocials socialLinks={profile.socialLinks} />
+      </div>
 
-      {/* Card Row 3: Technical Skills Matrix Block (Full-Width) */}
-      <DevSkills skills={profile.skills} />
+      {/* Card Row 3: Technical Skills Matrix Block */}
+      <div className="relative z-10">
+        <DevSkills skills={profile.skills} />
+      </div>
 
-      {/* Card Row 4: Chronological Education Path (Full-Width) */}
-      <DevEducation education={profile.education} />
+      {/* Card Row 4: Chronological Education Path */}
+      <div className="relative z-10">
+        <DevEducation education={profile.education} />
+      </div>
 
-      {/* last updates */}
-      <div className="text-center pt-4 flex items-center justify-center gap-1 text-[10px] font-bold text-[var(--text-light)] font-mono select-none">
-        <span>Last updated on {profile.meta.lastUpdated}</span>
+      {/* Meta Build Metrics Timestamp Footer */}
+      <div className="text-center pt-6 flex items-center justify-center gap-1.5 text-[10px] font-mono font-medium text-text-light select-none">
+        <span>Last updated on:</span>
+        <span className="text-text-muted font-semibold">{profile.meta.lastUpdated}</span>
       </div>
 
     </div>

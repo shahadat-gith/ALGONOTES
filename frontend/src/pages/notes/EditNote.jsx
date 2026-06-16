@@ -88,7 +88,6 @@ const EditNote = () => {
       }
 
       toast.success("Note saved successfully.");
-      // Navigates directly back to your clean structural reader view page
       navigate(`/notes/${id}`);
     } catch (error) {
       toast.error("Failed to update note details.");
@@ -99,48 +98,50 @@ const EditNote = () => {
 
   if (loading) {
     return (
-      <div className="mx-auto min-h-screen max-w-7xl bg-[var(--bg-base)] p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen">
         <EditNoteSkeleton />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-7xl space-y-6 bg-[var(--bg-base)] p-4 sm:p-6 lg:p-8">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen space-y-6 select-none animate-fade-in relative z-10">
+      
       {/* Actionable Save Header Wrapper Controls */}
-      <div className="rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 shadow-[var(--shadow-card)]">
+      <div className="bg-bg-surface border border-border-default rounded-md p-5 sm:p-6 shadow-card space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-primary transition-colors cursor-pointer"
           >
-            <ArrowLeft size={16} /> Back
+            <ArrowLeft size={14} className="stroke-[2]" /> 
+            <span>Back</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleSave("final")}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-[var(--primary-hover)] disabled:cursor-not-allowed disabled:opacity-60 transition-all"
+            className="inline-flex items-center gap-2 rounded-sm bg-primary px-4 h-9 text-xs font-semibold text-white shadow-xs hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 transition-all cursor-pointer"
           >
-            {saving ? <Loader2 className="animate-spin" size={16} /> : <Check size={16} />}
-            Save Modifications
+            {saving ? <Loader2 className="animate-spin" size={13} /> : <Check size={13} className="stroke-[2.5]" />}
+            <span>Save Modifications</span>
           </button>
         </div>
 
-        <div className="mt-5">
-          <h1 className="text-xl font-bold text-[var(--text-main)]">
-            Modify Notes: {problem.title || "DSA Exercise"}
+        <div className="space-y-1 border-t border-border-default/40 pt-4">
+          <h1 className="text-xl font-bold text-text-main tracking-wide">
+            Modify Notes: <span className="text-primary font-semibold">{problem.title || "DSA Exercise"}</span>
           </h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">
-            Review and tweak code implementations, update step trace steps, or document newly discovered edge criteria fields.
+          <p className="text-xs text-text-muted tracking-wide leading-relaxed">
+            Review and tweak code implementations, update step trace states, or document newly discovered edge criteria fields.
           </p>
         </div>
       </div>
 
-      {/* Grouped Type-Safe Field Section Blocks */}
-      <div className="space-y-6">
+      {/* Grouped Type-Safe Field Section Editor Canvas Blocks */}
+      <div className="space-y-5">
         <ListSectionEditor title="Problem Summary List" items={note.summary} onChange={(d) => updateSectionData("summary", d)} />
         <ListSectionEditor title="Intuition Tracking Breakdown" items={note.intuition} onChange={(d) => updateSectionData("intuition", d)} />
 
@@ -153,6 +154,7 @@ const EditNote = () => {
         <ListSectionEditor title="Important Boundary Conditions" items={note.edgeCases} onChange={(d) => updateSectionData("edgeCases", d)} />
         <ListSectionEditor title="Critical Implementation Pitfalls" items={note.mistakesToAvoid} onChange={(d) => updateSectionData("mistakesToAvoid", d)} />
       </div>
+
     </div>
   );
 };

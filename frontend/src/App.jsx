@@ -8,7 +8,6 @@ import { ProtectedRoute, PublicOnlyRoute } from "./components/auth/RouteGuards";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
-import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyUser from "./pages/auth/VerifyUser";
 
 import Home from "./pages/home/Home";
@@ -65,7 +64,6 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
 
         <Route

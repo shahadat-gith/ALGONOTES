@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Edit3 } from "lucide-react";
+import { Edit3, ArrowLeft, AlertCircle, FileText, Code2, Activity, ShieldAlert, Code } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { getNoteById } from "../../api/noteApi";
@@ -22,6 +22,7 @@ const NoteDetails = () => {
 
   const [noteData, setNoteData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("problem");
 
   useEffect(() => {
     const fetchNote = async () => {
@@ -46,7 +47,7 @@ const NoteDetails = () => {
 
   if (loading) {
     return (
-      <div className="mx-auto min-h-screen max-w-7xl bg-[var(--bg-base)] p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen">
         <NoteDetailsSkeleton />
       </div>
     );
@@ -54,12 +55,14 @@ const NoteDetails = () => {
 
   if (!noteData) {
     return (
-      <EmptyState
-        title="Note not found"
-        description="This note does not exist or could not be loaded."
-        actionText="Back to Notes"
-        onAction={() => navigate("/notes")}
-      />
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <EmptyState
+          title="Note not found"
+          description="This note does not exist or could not be loaded."
+          actionText="Back to Notes"
+          onAction={() => navigate("/notes")}
+        />
+      </div>
     );
   }
 
@@ -70,61 +73,126 @@ const NoteDetails = () => {
     language = "C++",
   } = noteData;
 
+  // Unified Tab Configuration Array
+  const tabOptions = [
+    { id: "problem", label: "Problem Statement", icon: Code },
+    { id: "overview", label: "Overview & Intuition", icon: FileText },
+    { id: "strategies", label: "Approach & Solutions", icon: Code2 },
+    { id: "dryrun", label: "Dry run execution", icon: Activity },
+    { id: "analysis", label: "complexity, edges cases and mistakes", icon: ShieldAlert },
+  ];
+
   return (
-    <div className="mx-auto min-h-screen max-w-[1400px] space-y-6 bg-[var(--bg-base)] p-4 sm:pt-6 lg:pt-8">
-      {/* Upper Navigation Header Grid */}
-      <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-4">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen space-y-6 select-none animate-fade-in relative z-10">
+      
+      {/* Upper Navigation Header Row */}
+      <div className="flex items-center justify-between border-b border-border-default pb-5">
         <Button
           size="sm"
           variant="outline"
           onClick={() => navigate(-1)}
+          className="h-9 text-xs font-semibold px-4 border-border-default hover:bg-bg-soft hover:border-border-strong text-text-main flex items-center gap-1.5 cursor-pointer"
         >
-          Back
+          <ArrowLeft size={14} className="stroke-[2]" />
+          <span>Back</span>
         </Button>
 
-        <div className="flex items-center gap-3">
-          <Badge variant="default">{language}</Badge>
-          <Badge variant={status === "final" ? "success" : "warning"}>
+        <div className="flex items-center gap-3.5">
+          <Badge variant="default" className="font-mono text-[11px] px-2.5 py-0.5">
+            {language}
+          </Badge>
+          <Badge variant={status === "final" ? "success" : "warning"} className="text-[11px] px-2.5 py-0.5">
             {status}
           </Badge>
 
-          <Link to={`/notes/${id}/edit`}>
-            <Button size="sm" className="flex items-center gap-1.5">
-              <Edit3 size={14} />
-              Edit
+          <Link to={`/notes/${id}/edit`} className="block">
+            <Button 
+              size="sm" 
+              variant="primary"
+              className="h-9 text-xs font-semibold px-4 flex items-center gap-1.5 cursor-pointer shadow-xs"
+            >
+              <Edit3 size={13} className="stroke-[2]" />
+              <span>Edit Note</span>
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Main Container View Splits */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        <aside className="space-y-6 lg:sticky lg:top-6 lg:col-span-5 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
-          <ProblemDetails problem={problem} />
-        </aside>
-
-        <main className="space-y-6 lg:col-span-7">
-          {/* Plain Text Lists */}
-          <SummaryCard summary={note.summary} />
-          
-          <BulletListCard title="Intuition" items={note.intuition} />
-
-          {/* Deep Approach Layout Blocks */}
-          <ApproachCard title="Brute Force Approach" approach={note.bruteForce} />
-          
-          <ApproachCard title="Optimal Approach" approach={note.optimalApproach} highlight />
-
-          {/* Table Execution Matrix */}
-          <DryRunCard dryRun={note.dryRun} />
-
-          {/* Specialized Bullet Metrics */}
-          <BulletListCard title="Complexity Analysis" items={note.complexity} />
-          
-          <BulletListCard title="Important Edge Cases" items={note.edgeCases} />
-          
-          <BulletListCard title="Mistakes To Avoid" items={note.mistakesToAvoid} variant="danger" />
-        </main>
+      {/* Segmented Tab Controller Rail Bar (Full Width Canvas Layout) */}
+      <div className="flex items-center gap-1 bg-bg-soft/40 p-1 rounded-md border border-border-default/60 overflow-x-auto custom-scrollbar w-full">
+        {tabOptions.map((tab) => {
+          const TabIcon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-sm text-xs font-semibold tracking-wide transition-all cursor-pointer shrink-0 whitespace-nowrap ${
+                isActive
+                  ? "bg-bg-surface border border-border-default text-primary shadow-xs"
+                  : "text-text-muted hover:text-text-main hover:bg-bg-soft/20"
+              }`}
+            >
+              <TabIcon size={13} className={isActive ? "text-primary stroke-[2]" : "text-text-light stroke-[1.75]"} />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
+
+      {/* Dynamic Tab Render Area (100% Structural Width Container) */}
+      <main className="focus:outline-hidden animate-fade-in w-full min-h-[50vh]">
+        
+        {/* TAB 1: PROBLEM STATEMENT */}
+        {activeTab === "problem" && (
+          <div className="w-full animate-fade-in">
+            {problem && Object.keys(problem).length > 0 ? (
+              <ProblemDetails problem={problem} />
+            ) : (
+              <div className="bg-bg-surface border border-border-default rounded-md p-6 text-center space-y-2 shadow-card">
+                <AlertCircle size={20} className="text-text-light mx-auto stroke-[1.75]" />
+                <p className="text-xs text-text-muted tracking-wide font-medium">
+                  Problem descriptions could not be resolved cleanly for this document snapshot.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: OVERVIEW & INTUITION */}
+        {activeTab === "overview" && (
+          <div className="space-y-6 animate-fade-in">
+            <SummaryCard summary={note.summary} />
+            <BulletListCard title="Intuition" items={note.intuition} />
+          </div>
+        )}
+
+        {/* TAB 3: CODE SOLUTIONS */}
+        {activeTab === "strategies" && (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start animate-fade-in">
+            <ApproachCard title="Brute Force Approach" approach={note.bruteForce} />
+            <ApproachCard title="Optimal Approach" approach={note.optimalApproach} highlight />
+          </div>
+        )}
+
+        {/* TAB 4: EXECUTION TRACE MATRIX */}
+        {activeTab === "dryrun" && (
+          <div className="w-full animate-fade-in">
+            <DryRunCard dryRun={note.dryRun} />
+          </div>
+        )}
+
+        {/* TAB 5: ANALYTICS & PITFALLS */}
+        {activeTab === "analysis" && (
+          <div className="space-y-6 animate-fade-in">
+            <BulletListCard title="Complexity Analysis" items={note.complexity} />
+            <BulletListCard title="Important Edge Cases" items={note.edgeCases} />
+            <BulletListCard title="Mistakes To Avoid" items={note.mistakesToAvoid} variant="danger" />
+          </div>
+        )}
+
+      </main>
     </div>
   );
 };

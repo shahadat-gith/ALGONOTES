@@ -8,21 +8,21 @@ const EmptyState = ({
   onAction,
 }) => {
   return (
-    <div className="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border-default)] bg-white p-8 text-center">
-      <div className="mb-4 rounded-full bg-[var(--primary-soft)] p-4 text-[var(--primary)]">
-        <FileText size={32} />
+    <div className="flex min-h-[360px] flex-col items-center justify-center rounded-lg border border-dashed border-border-default bg-bg-surface p-8 text-center shadow-card transition-all duration-200">
+      <div className="mb-4 inline-flex items-center justify-center rounded-full bg-primary-soft p-4 text-primary group-hover:scale-105 transition-transform duration-200">
+        <FileText size={28} className="stroke-[1.75]" />
       </div>
 
-      <h3 className="text-lg font-bold text-[var(--text-main)]">
+      <h3 className="text-base font-semibold text-text-main tracking-tight">
         {title}
       </h3>
 
-      <p className="mt-2 max-w-md text-sm text-[var(--text-muted)]">
+      <p className="mt-1.5 max-w-sm text-sm text-text-light leading-relaxed">
         {description}
       </p>
 
       {actionText && (
-        <Button className="mt-5" onClick={onAction}>
+        <Button className="mt-6 shadow-xs" onClick={onAction} size="sm">
           {actionText}
         </Button>
       )}

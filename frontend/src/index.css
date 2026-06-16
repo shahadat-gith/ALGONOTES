@@ -1,89 +1,87 @@
 @import "tailwindcss";
 
-:root {
-  --bg-base: #f4f6f8;
-  --bg-surface: #ffffff;
-  --bg-soft: #eef2f5;
+@theme {
+  /* CodeHelp Specific Deep Dark Palette */
+  --color-bg-base: #0a0a0c;      /* Infinite obsidian black background */
+  --color-bg-surface: #111115;   /* Slightly elevated container jet black */
+  --color-bg-soft: #181820;      /* Clear tag/button backgrounds */
 
-  --text-main: #1e293b;
-  --text-muted: #475569;
-  --text-light: #64748b;
+  /* CodeHelp High Contrast Typography Scale */
+  --color-text-main: #ffffff;    /* Pure blinding white for main headlines */
+  --color-text-muted: #94a3b8;   /* Cool slate-gray for descriptions */
+  --color-text-light: #4b5563;   /* Muted gray for boundaries / search hotkeys */
 
-  --border-default: #e2e8f0;
-  --border-strong: #94a3b8;
+  /* CodeHelp Ultra-Thin Premium Borders */
+  --color-border-default: rgba(255, 255, 255, 0.06); /* Invisible grid layout rules */
+  --color-border-strong: rgba(255, 255, 255, 0.15);  /* Interactive border highlights */
 
-  --primary: #0f766e;
-  --primary-hover: #115e59;
-  --primary-soft: #ccfbf1;
+  /* The Signature Brand Accent (Vibrant Blur Purple & Indigo) */
+  --color-primary: #8b5cf6;        /* Bright purple key accent */
+  --color-primary-hover: #7c3aed;  /* Saturated interactive violet */
+  --color-primary-soft: rgba(139, 92, 246, 0.12); /* Ambient glow background text */
 
-  --success: #0d9488;
-  --success-soft: #f0fdfa;
+  /* Status Tokens modified for deep contrast profiles */
+  --color-success: #10b981;
+  --color-success-soft: rgba(16, 185, 129, 0.08);
+  --color-warning: #f59e0b;
+  --color-warning-soft: rgba(245, 158, 11, 0.08);
+  --color-danger: #f43f5e;
+  --color-danger-soft: rgba(244, 63, 94, 0.08);
 
-  --warning: #d97706;
-  --warning-soft: #fffbeb;
+  /* Border Radii (CodeHelp uses heavily rounded, smooth capsules) */
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
 
-  --danger: #e11d48;
-  --danger-soft: #fff1f2;
-
-  --radius-lg: 12px;
-  --radius-md: 8px;
-  --radius-sm: 4px;
-
-  --shadow-card: 0 4px 20px rgba(15, 32, 50, 0.04);
-  --shadow-hover: 0 12px 28px rgba(15, 32, 50, 0.09);
+  /* Ambient Blur Gradients */
+  --shadow-card: 0 4px 30px rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 0 25px rgba(139, 92, 246, 0.2);
 }
 
-* {
-  box-sizing: border-box;
-}
+/* Base resets & global background canvas setup */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
 
-body {
-  margin: 0;
-  background: var(--bg-base);
-  color: var(--text-main);
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-}
+  body {
+    margin: 0;
+    background-color: var(--color-bg-base);
+    color: var(--color-text-main);
+    /* Adding CodeHelp's background spot glow using a CSS radial background layer */
+    background-image: 
+      radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.07) 0%, transparent 60%),
+      radial-gradient(circle at 50% -10%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+    background-attachment: fixed;
+    font-family:
+      "Plus Jakarta Sans",
+      Inter,
+      system-ui,
+      sans-serif;
+    letter-spacing: -0.01em;
+  }
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
 
-::-webkit-scrollbar-track {
-  background: var(--bg-base);
-}
+  
 
-::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: var(--radius-lg);
-  border: 2px solid var(--bg-base);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary);
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-html {
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) var(--bg-base);
+  /* Thin premium scrollbars matching the page */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-base);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+  }
 }
 
 
-button, a{
+button{
   cursor: pointer;
 }

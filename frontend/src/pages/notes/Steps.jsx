@@ -7,14 +7,7 @@ import { Check, Loader2, X } from "lucide-react";
  */
 const Steps = ({ steps = [] }) => {
   return (
-    <div 
-      className="relative flex flex-col justify-start items-start space-y-8 select-none max-w-sm mx-auto p-5 rounded-3xl transition-all duration-300"
-      style={{
-        backgroundColor: "var(--bg-surface)",
-        border: "1px solid var(--border-default)",
-        boxShadow: "var(--shadow-card)"
-      }}
-    >
+    <div className="w-full max-w-sm mx-auto p-5 bg-bg-surface border border-border-default rounded-md shadow-card flex flex-col justify-start items-start space-y-8 select-none relative z-10 transition-all duration-300">
       {steps.map((step, index) => {
         const isCompleted = step.status === "completed";
         const isRunning = step.status === "running";
@@ -22,111 +15,80 @@ const Steps = ({ steps = [] }) => {
         const isWaiting = step.status === "waiting";
         const isUninitiated = step.status === ""; 
 
-        // Determine if this row belongs to active/passed context or a future pending state
+        // Determine typography and layout opacity baselines based on pipeline states
         const isActiveOrDone = isRunning || isCompleted || isFailed;
-        const shouldDim = (isWaiting || isUninitiated) && !isRunning;
 
         return (
           <div 
             key={step.id} 
-            className="relative flex items-center gap-6 group w-full transition-all duration-500 ease-in-out"
-            style={{
-              opacity: isUninitiated ? 0.4 : shouldDim ? 0.25 : 1,
-              transform: isRunning ? "scale(1.02)" : "scale(1)"
-            }}
+            className={`relative flex items-center gap-5 group w-full transition-all duration-500 ease-in-out ${
+              isUninitiated 
+                ? "opacity-40 scale-100" 
+                : isRunning 
+                ? "opacity-100 scale-[1.02]" 
+                : isWaiting 
+                ? "opacity-25 scale-100" 
+                : "opacity-100 scale-100"
+            }`}
           >
             
             {/* --- VERTICAL CONNECTING BRANCH LINE --- */}
             {index !== steps.length - 1 && (
               <div 
-                className="absolute left-5 top-10 w-0.5 h-10 transition-all duration-500 ease-in-out"
-                style={{
-                  backgroundColor: isCompleted 
-                    ? "var(--success)" 
+                className={`absolute left-[19px] top-10 w-0.5 h-9 transition-all duration-500 ease-in-out pointer-events-none ${
+                  isCompleted 
+                    ? "bg-success shadow-[0_0_8px_rgba(var(--success-rgb),0.3)] opacity-100" 
                     : isFailed 
-                    ? "var(--danger)" 
-                    : "var(--border-default)",
-                  boxShadow: isCompleted 
-                    ? "0 0 8px rgba(16, 185, 129, 0.3)" 
-                    : isFailed 
-                    ? "0 0 8px rgba(239, 68, 68, 0.3)" 
-                    : "none",
-                  opacity: isCompleted || isFailed ? 1 : 0.4
-                }}
+                    ? "bg-danger shadow-[0_0_8px_rgba(var(--danger-rgb),0.3)] opacity-100" 
+                    : "bg-border-default opacity-40"
+                }`}
               />
             )}
 
             {/* --- STEP NODE CIRCLE --- */}
-            <div className="relative z-10 flex items-center justify-center transition-transform duration-300">
+            <div className="relative z-10 flex items-center justify-center shrink-0">
+              
               {/* Completed State: Solid Green Success Badge */}
               {isCompleted && (
-                <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white animate-fade-in"
-                  style={{
-                    backgroundColor: "var(--success)",
-                    boxShadow: "0 4px 12px rgba(16, 185, 129, 0.35)"
-                  }}
-                >
-                  <Check size={18} strokeWidth={3} />
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-success shadow-md shadow-success/20 animate-fade-in">
+                  <Check size={16} className="stroke-[3]" />
                 </div>
               )}
 
               {/* Active Running State: Bright Pulsing Accent Border */}
               {isRunning && (
-                <div 
-                  className="w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold text-sm animate-pulse"
-                  style={{
-                    backgroundColor: "var(--bg-surface)",
-                    borderColor: "var(--primary)",
-                    color: "var(--primary)",
-                    boxShadow: "0 0 16px rgba(37, 99, 235, 0.35)"
-                  }}
-                >
-                  <Loader2 size={16} className="animate-spin" />
+                <div className="w-10 h-10 rounded-full border-2 border-primary bg-bg-surface text-primary flex items-center justify-center shadow-md shadow-primary/20 animate-pulse">
+                  <Loader2 size={15} className="animate-spin stroke-[2.25]" />
                 </div>
               )}
 
-              {/* ADDED: Failed State: Solid Red Critical Cross Badge */}
+              {/* Failed State: Solid Red Critical Cross Badge */}
               {isFailed && (
-                <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white animate-fade-in"
-                  style={{
-                    backgroundColor: "var(--danger)",
-                    boxShadow: "0 4px 12px rgba(239, 68, 68, 0.35)"
-                  }}
-                >
-                  <X size={18} strokeWidth={3} />
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white bg-danger shadow-md shadow-danger/20 animate-fade-in">
+                  <X size={16} className="stroke-[3]" />
                 </div>
               )}
 
               {/* Inactive / Waiting State: Clean, Flat Disabled Ring */}
               {(isWaiting || isUninitiated) && (
-                <div 
-                  className="w-10 h-10 rounded-full border-2 flex items-center justify-center font-mono font-bold text-sm transition-all duration-300"
-                  style={{
-                    backgroundColor: "var(--bg-soft)",
-                    borderColor: "var(--border-strong)",
-                    color: "var(--text-light)"
-                  }}
-                >
+                <div className="w-10 h-10 rounded-full border border-border-strong bg-bg-soft text-text-light flex items-center justify-center font-mono font-bold text-xs tracking-wide">
                   {step.id}
                 </div>
               )}
             </div>
 
             {/* --- TEXT CONTENT --- */}
-            <div className="flex flex-col space-y-0.5 transition-all duration-300">
+            <div className="flex flex-col gap-0.5 min-w-0">
               <span 
-                className="text-sm font-semibold tracking-tight transition-colors duration-300"
-                style={{
-                  color: isRunning 
-                    ? "var(--primary)" 
+                className={`text-xs font-semibold tracking-wide transition-colors duration-300 truncate ${
+                  isRunning 
+                    ? "text-primary" 
                     : isFailed
-                    ? "var(--danger)"
+                    ? "text-danger"
                     : isActiveOrDone 
-                    ? "var(--text-main)" 
-                    : "var(--text-light)"
-                }}
+                    ? "text-text-main" 
+                    : "text-text-light"
+                }`}
               >
                 {step.text}
               </span>
@@ -134,16 +96,15 @@ const Steps = ({ steps = [] }) => {
               {/* Status Indicator Tag */}
               {!isUninitiated && (
                 <span 
-                  className="text-[10px] font-bold uppercase tracking-wider transition-colors duration-300" 
-                  style={{ 
-                    color: isRunning 
-                      ? "var(--primary)" 
+                  className={`text-[9px] font-bold font-mono uppercase tracking-widest transition-colors duration-300 ${
+                    isRunning 
+                      ? "text-primary" 
                       : isCompleted 
-                      ? "var(--success)" 
+                      ? "text-success" 
                       : isFailed
-                      ? "var(--danger)"
-                      : "var(--text-light)" 
-                  }}
+                      ? "text-danger"
+                      : "text-text-light" 
+                  }`}
                 >
                   {isCompleted && "Completed"}
                   {isRunning && "In Progress"}

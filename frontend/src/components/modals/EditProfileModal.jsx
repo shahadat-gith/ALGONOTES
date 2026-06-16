@@ -55,7 +55,6 @@ const EditProfileModal = ({ isOpen, onClose }) => {
 
     setUpdating(true);
     try {
-      // Package payload fields onto native multipart FormData for Multer/Cloudinary backend parsers
       const formData = new FormData();
       formData.append("name", name.trim());
       formData.append("username", username.trim());
@@ -72,7 +71,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
         if (setUser) {
           setUser(response.user);
         }
-        onClose(); // Shut the modal frame cleanly upon database commit response
+        onClose(); 
       }
     } catch (err) {
       const errorMsg =
@@ -88,52 +87,51 @@ const EditProfileModal = ({ isOpen, onClose }) => {
     <AnimatedModal
       isOpen={isOpen}
       onClose={onClose}
-      /* Centering: max-w-md keeps it clean, mx-auto centers horizontally if needed, shadow blocks elevate it */
-      className="max-w-md w-full bg-white p-6 rounded-2xl relative space-y-5 shadow-2xl"
+      className="max-w-md w-full bg-bg-surface p-6 rounded-md border border-border-default space-y-6 shadow-card"
     >
-      <div>
+      <div className="space-y-6">
         {/* Upper Modal Window Actions Bar */}
-        <div className="flex items-center justify-between border-b border-[var(--border-default)]/60 pb-3 select-none">
-          <div>
-            <h2 className="text-lg font-bold text-[var(--text-main)] tracking-tight">
+        <div className="flex items-start justify-between border-b border-border-default pb-4 select-none">
+          <div className="space-y-1">
+            <h2 className="text-base font-bold text-text-main tracking-wide">
               Edit Profile
             </h2>
-            <p className="text-xs text-[var(--text-muted)]">
+            <p className="text-xs text-text-muted leading-none">
               Modify credentials and update account images.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[var(--text-light)] hover:text-[var(--text-main)] hover:bg-[var(--bg-soft)] transition-colors"
+            className="p-1.5 rounded-sm text-text-light hover:text-text-main hover:bg-bg-soft transition-colors cursor-pointer"
             disabled={updating}
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         </div>
 
         {/* Dynamic Image Upload Zone Thumbnail Circle */}
-        <div className="flex flex-col items-center justify-center text-center py-4">
+        <div className="flex flex-col items-center justify-center text-center pt-2 pb-4">
           <div
             onClick={() => !updating && fileInputRef.current?.click()}
-            className="h-20 w-20 rounded-full border-2 border-dashed border-[var(--primary)]/40 hover:border-[var(--primary)] bg-[var(--primary-soft)]/20 text-[var(--primary)] flex items-center justify-center overflow-hidden shadow-inner cursor-pointer group relative transition-all duration-300"
+            className="h-20 w-20 rounded-full border border-dashed border-primary/40 hover:border-primary bg-bg-soft text-primary flex items-center justify-center overflow-hidden shadow-inner cursor-pointer group relative transition-all duration-200 ring-4 ring-transparent hover:ring-primary-soft"
             title="Click to pick a photo"
           >
             {previewUrl ? (
               <img
                 src={previewUrl}
                 alt="Avatar preview thumbnail"
-                className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
               />
             ) : (
-              <span className="text-xl font-black">
+              <span className="text-lg font-bold text-text-main select-none">
                 {name?.charAt(0).toUpperCase() || "A"}
               </span>
             )}
 
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white transition-opacity duration-150">
-              <Upload size={14} className="animate-pulse" />
-              <span className="text-[9px] font-bold mt-1 uppercase tracking-wider">
+            <div className="absolute inset-0 bg-bg-base/80 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-text-main transition-opacity duration-200">
+              <Upload size={13} className="text-primary stroke-[2.2]" />
+              <span className="text-[9px] font-semibold mt-1 uppercase tracking-wider text-text-muted">
                 Change
               </span>
             </div>
@@ -150,58 +148,51 @@ const EditProfileModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Input Parameters Fields Form */}
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-5">
+          
           {/* Full Name field */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider block">
-              Full Name
-            </label>
-            <div className="relative w-full">
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-light)]">
-                <UserIcon size={16} />
-              </div>
-              <Input
-                type="text"
-                placeholder="Your display name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="pl-11 h-11 text-sm"
-                disabled={updating}
-                required
-              />
+          <div className="space-y-1.5 relative">
+            <div className="absolute top-[34px] left-3.5 z-10 text-text-light pointer-events-none flex items-center">
+              <UserIcon size={14} className="stroke-[1.75]" />
             </div>
+            <Input
+              label="Full Name"
+              type="text"
+              placeholder="Your display name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="pl-10 text-sm h-10 bg-bg-base"
+              disabled={updating}
+              required
+            />
           </div>
 
           {/* Unique Username field */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider block">
-              Unique Username
-            </label>
-            <div className="relative w-full">
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--text-light)]">
-                <AtSign size={16} />
-              </div>
-              <Input
-                type="text"
-                placeholder="Your unique handle identifier"
-                value={username}
-                onChange={(e) =>
-                  setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))
-                }
-                className="pl-11 h-11 font-mono text-sm"
-                disabled={updating}
-              />
+          <div className="space-y-1.5 relative">
+            <div className="absolute top-[34px] left-3.5 z-10 text-text-light pointer-events-none flex items-center">
+              <AtSign size={14} className="stroke-[1.75]" />
             </div>
+            <Input
+              label="Unique Username"
+              type="text"
+              placeholder="Your unique handle identifier"
+              value={username}
+              onChange={(e) =>
+                setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))
+              }
+              className="pl-10 text-sm h-10 font-mono bg-bg-base"
+              disabled={updating}
+            />
           </div>
 
           {/* Lower Actions Operation Control Deck Toolbar */}
-          <div className="pt-4 border-t border-[var(--border-default)]/60 flex items-center justify-end gap-2">
+          <div className="pt-5 border-t border-border-default flex items-center justify-end gap-2.5">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
               disabled={updating}
-              className="text-xs h-9 font-bold bg-white"
+              size="sm"
             >
               Cancel
             </Button>
@@ -210,7 +201,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
               type="submit"
               variant="primary"
               loading={updating}
-              className="text-xs h-9 font-bold shadow-none"
+              size="sm"
             >
               <Save size={13} />
               Save Changes

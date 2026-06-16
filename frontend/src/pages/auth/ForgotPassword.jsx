@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { forgotPassword } from "../../api/authApi";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
-import { KeyRound, Mail, Lock, ShieldCheck, ArrowLeft } from "lucide-react";
+import { KeyRound, Mail, Lock, ShieldCheck, ArrowLeft, Loader2 } from "lucide-react";
 
 const ForgotPassword = () => {
   // Navigation & Form State
-  const [step, setStep] = useState("send-otp"); // 'send-otp' | 'verify-otp' | 'reset-password'
+  const [step, setStep] = useState("send-otp"); // 'send-otp' | 'verify-otp' | 'reset-password' | 'complete'
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -19,7 +19,7 @@ const ForgotPassword = () => {
 
   // Step 1: Dispatch Reset OTP Code
   const handleSendOtp = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!email) return setError("Please enter your email address.");
 
     setLoading(true);
@@ -79,29 +79,23 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-base)] px-4 py-12 selection:bg-[var(--primary-soft)]">
-      <div className="w-full max-w-md bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-[var(--radius-lg)] shadow-[var(--shadow-card)] p-8 md:p-10 transition-all">
+    <div className="flex min-h-screen items-center justify-center bg-bg-base px-4 py-12 relative overflow-hidden selection:bg-primary/20">
+      {/* Visual background gradient circle overlay decoration */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none z-0" />
+
+      <div className="w-full max-w-[420px] bg-bg-surface border border-border-default rounded-md shadow-card p-8 relative z-10 select-none transition-all">
         
-        {/* Back navigation handle link */}
-        {step !== "complete" && (
-          <a 
-            href="/login" 
-            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-main)] mb-6 transition-colors group"
-          >
-            <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5" />
-            Back to Sign In
-          </a>
-        )}
+       
 
         {/* Global Alert Notification banners */}
         {error && (
-          <div className="mb-6 p-4 rounded-[var(--radius-md)] bg-[var(--danger-soft)] border border-[var(--danger)]/10 text-sm font-medium text-[var(--danger)]">
+          <div className="mb-5 p-3.5 rounded-sm bg-danger-soft border border-danger/10 text-xs font-medium text-danger">
             {error}
           </div>
         )}
         
         {successMessage && step !== "complete" && (
-          <div className="mb-6 p-4 rounded-[var(--radius-md)] bg-[var(--success-soft)] border border-[var(--success)]/10 text-sm font-medium text-[var(--success)]">
+          <div className="mb-5 p-3.5 rounded-sm bg-success-soft border border-success/10 text-xs font-medium text-success">
             {successMessage}
           </div>
         )}
@@ -110,27 +104,34 @@ const ForgotPassword = () => {
             SCREEN 1: ENTER EMAIL STRING FOR INITIAL OTP CAPTURE
            ========================================================== */}
         {step === "send-otp" && (
-          <form onSubmit={handleSendOtp} className="space-y-6">
-            <div className="text-center md:text-left">
-              <div className="h-12 w-12 mx-auto md:mx-0 rounded-[var(--radius-md)] bg-[var(--primary-soft)] flex items-center justify-center text-[var(--primary)] mb-4">
-                <KeyRound size={24} />
+          <form onSubmit={handleSendOtp} className="space-y-5">
+            <div className="text-center md:text-left space-y-1.5">
+              <div className="h-10 w-10 mx-auto md:mx-0 rounded-sm bg-primary-soft border border-primary/10 flex items-center justify-center text-primary mb-2 shadow-xs">
+                <KeyRound size={18} className="stroke-[1.75]" />
               </div>
-              <h2 className="text-2xl font-bold tracking-tight text-[var(--text-main)]">Forgot Password?</h2>
-              <p className="text-sm text-[var(--text-muted)] mt-1.5"> No worries! Enter your email and we'll send over a secure confirmation code. </p>
+              <h2 className="text-xl font-bold tracking-wide text-text-main">Forgot Password?</h2>
+              <p className="text-xs text-text-muted leading-normal">
+                No worries! Enter your email and we'll send over a secure confirmation code.
+              </p>
             </div>
 
-            <Input
-              label="Email Address"
-              type="email"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-              className="pl-4"
-            />
+            <div className="relative">
+              <div className="absolute top-[34px] left-3.5 z-10 text-text-light pointer-events-none flex items-center">
+                <Mail size={14} className="stroke-[1.75]" />
+              </div>
+              <Input
+                label="Email Address"
+                type="email"
+                placeholder="name@domain.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                className="pl-10 text-sm h-10 bg-bg-base rounded-md"
+              />
+            </div>
 
-            <Button type="submit" loading={loading} className="w-full">
+            <Button type="submit" loading={loading} className="w-full mt-2" size="md">
               Send Verification Code
             </Button>
           </form>
@@ -140,37 +141,46 @@ const ForgotPassword = () => {
             SCREEN 2: SUBMIT CODE STRING SENT BY BACKEND INBOX
            ========================================================== */}
         {step === "verify-otp" && (
-          <form onSubmit={handleVerifyOtp} className="space-y-6">
-            <div className="text-center md:text-left">
-              <div className="h-12 w-12 mx-auto md:mx-0 rounded-[var(--radius-md)] bg-[var(--primary-soft)] flex items-center justify-center text-[var(--primary)] mb-4">
-                <Mail size={24} />
+          <form onSubmit={handleVerifyOtp} className="space-y-5">
+            <div className="text-center md:text-left space-y-1.5">
+              <div className="h-10 w-10 mx-auto md:mx-0 rounded-sm bg-primary-soft border border-primary/10 flex items-center justify-center text-primary mb-2 shadow-xs">
+                <Mail size={18} className="stroke-[1.75]" />
               </div>
-              <h2 className="text-2xl font-bold tracking-tight text-[var(--text-main)]">Check Your Inbox</h2>
-              <p className="text-sm text-[var(--text-muted)] mt-1.5"> We dispatched a secure 6-digit confirmation code to <span className="font-semibold text-[var(--text-main)]">{email}</span>. </p>
+              <h2 className="text-xl font-bold tracking-wide text-text-main">Check Your Inbox</h2>
+              <p className="text-xs text-text-muted leading-normal">
+                We dispatched a secure 6-digit confirmation code to <span className="font-semibold text-text-main font-mono">{email}</span>.
+              </p>
             </div>
 
-            <Input
-              label="6-Digit Code"
-              type="text"
-              maxLength={6}
-              placeholder="000000"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))} // Numbers only sanity pattern filter
-              required
-              disabled={loading}
-              className="text-center font-mono text-lg tracking-[0.5em] focus:placeholder:opacity-0"
-            />
+            <div className="relative">
+              <Input
+                label="6-Digit Code"
+                type="text"
+                maxLength={6}
+                placeholder="000000"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                required
+                disabled={loading}
+                className="text-center font-mono text-lg tracking-[0.4em] pl-4 font-bold h-11 bg-bg-base rounded-md focus:placeholder:opacity-0"
+              />
+              {loading && (
+                <div className="absolute top-[34px] right-4 flex items-center text-primary">
+                  <Loader2 className="animate-spin" size={15} />
+                </div>
+              )}
+            </div>
 
-            <Button type="submit" loading={loading} className="w-full">
+            <Button type="submit" loading={loading} className="w-full" size="md">
               Verify Secure Code
             </Button>
 
-            <div className="text-center mt-4">
+            <div className="text-center pt-1">
               <button
                 type="button"
-                onClick={handleSendOtp}
+                onClick={() => handleSendOtp(null)}
                 disabled={loading}
-                className="text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)] underline transition-colors disabled:opacity-50"
+                className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors disabled:opacity-40 cursor-pointer"
               >
                 Resend Code
               </button>
@@ -183,12 +193,14 @@ const ForgotPassword = () => {
            ========================================================== */}
         {step === "reset-password" && (
           <form onSubmit={handleResetPassword} className="space-y-5">
-            <div className="text-center md:text-left">
-              <div className="h-12 w-12 mx-auto md:mx-0 rounded-[var(--radius-md)] bg-[var(--primary-soft)] flex items-center justify-center text-[var(--primary)] mb-4">
-                <Lock size={24} />
+            <div className="text-center md:text-left space-y-1.5">
+              <div className="h-10 w-10 mx-auto md:mx-0 rounded-sm bg-primary-soft border border-primary/10 flex items-center justify-center text-primary mb-2 shadow-xs">
+                <Lock size={18} className="stroke-[1.75]" />
               </div>
-              <h2 className="text-2xl font-bold tracking-tight text-[var(--text-main)]">Set New Password</h2>
-              <p className="text-sm text-[var(--text-muted)] mt-1.5"> Secure your profile. Pick a brand-new alphanumeric string configuration. </p>
+              <h2 className="text-xl font-bold tracking-wide text-text-main">Set New Password</h2>
+              <p className="text-xs text-text-muted leading-normal">
+                Secure your profile. Pick a brand-new alphanumeric string configuration.
+              </p>
             </div>
 
             <Input
@@ -199,6 +211,7 @@ const ForgotPassword = () => {
               onChange={(e) => setNewPassword(e.target.value)}
               required
               disabled={loading}
+              className="text-sm h-10 bg-bg-base rounded-md"
             />
 
             <Input
@@ -209,9 +222,10 @@ const ForgotPassword = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               disabled={loading}
+              className="text-sm h-10 bg-bg-base rounded-md"
             />
 
-            <Button type="submit" loading={loading} className="w-full mt-2">
+            <Button type="submit" loading={loading} className="w-full mt-2" size="md">
               Update Password
             </Button>
           </form>
@@ -221,18 +235,20 @@ const ForgotPassword = () => {
             SCREEN 4: TRANSACTION TERMINATION AND COMPLETION CANVAS
            ========================================================== */}
         {step === "complete" && (
-          <div className="text-center py-4 space-y-6">
-            <div className="h-16 w-16 mx-auto rounded-full bg-[var(--success-soft)] flex items-center justify-center text-[var(--success)] animate-bounce">
-              <ShieldCheck size={36} />
+          <div className="text-center py-2 space-y-5 flex flex-col items-center">
+            <div className="h-12 w-12 rounded-full bg-success-soft border border-success/10 flex items-center justify-center text-success animate-pulse shadow-xs">
+              <ShieldCheck size={24} className="stroke-[2]" />
             </div>
             
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight text-[var(--text-main)]">Password Reset!</h2>
-              <p className="text-sm text-[var(--text-muted)] mt-2 px-2"> Your credential layout configurations have been cleanly overwritten. You can now access your account workspace. </p>
+            <div className="space-y-1.5">
+              <h2 className="text-xl font-bold tracking-wide text-text-main">Password Reset!</h2>
+              <p className="text-xs text-text-muted leading-normal max-w-xs mx-auto">
+                Your credential layout configurations have been cleanly overwritten. You can now access your account workspace.
+              </p>
             </div>
 
             <a href="/login" className="block w-full">
-              <Button type="button" className="w-full">
+              <Button type="button" className="w-full" size="md">
                 Sign In to Workspace
               </Button>
             </a>
