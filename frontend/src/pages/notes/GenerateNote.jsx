@@ -122,14 +122,14 @@ const GenerateNote = () => {
           setSteps((prev) => prev.map((s) => ({ ...s, status: "completed" })));
           toast.success("Note generated successfully!");
           setTimeout(
-            () => navigate(`/notes/${noteId}`, { replace: true }),
+            () => navigate(`/notes/${noteId}/edit`, { replace: true }),
             800,
           );
           return;
         }
 
         if (check.status === "failed") {
-          // Pass down noteId to execute post-failure collection sweeping rules safely
+
           handleGenerationFailure(
             noteId,
             check.message ||
