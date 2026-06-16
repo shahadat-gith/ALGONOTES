@@ -1,9 +1,9 @@
 import React from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, X } from "lucide-react";
 
 /**
  * Steps Component
- * @param {Array} steps - Array of objects: [{ id: 1, text: "Step Text", status: "waiting" | "running" | "completed" | "" }]
+ * @param {Array} steps - Array of objects: [{ id: 1, text: "Step Text", status: "waiting" | "running" | "completed" | "failed" | "" }]
  */
 const Steps = ({ steps = [] }) => {
   return (
@@ -18,11 +18,12 @@ const Steps = ({ steps = [] }) => {
       {steps.map((step, index) => {
         const isCompleted = step.status === "completed";
         const isRunning = step.status === "running";
+        const isFailed = step.status === "failed";
         const isWaiting = step.status === "waiting";
         const isUninitiated = step.status === ""; 
 
-        // 💡 Determine if this specific row should be highlighted or dimmed out
-        const isActiveOrDone = isRunning || isCompleted;
+        // Determine if this row belongs to active/passed context or a future pending state
+        const isActiveOrDone = isRunning || isCompleted || isFailed;
         const shouldDim = (isWaiting || isUninitiated) && !isRunning;
 
         return (
@@ -30,7 +31,6 @@ const Steps = ({ steps = [] }) => {
             key={step.id} 
             className="relative flex items-center gap-6 group w-full transition-all duration-500 ease-in-out"
             style={{
-              // If the pipeline hasn't reached this step yet, drop opacity to look beautifully disabled
               opacity: isUninitiated ? 0.4 : shouldDim ? 0.25 : 1,
               transform: isRunning ? "scale(1.02)" : "scale(1)"
             }}
@@ -41,10 +41,17 @@ const Steps = ({ steps = [] }) => {
               <div 
                 className="absolute left-5 top-10 w-0.5 h-10 transition-all duration-500 ease-in-out"
                 style={{
-                  backgroundColor: isCompleted ? "var(--success)" : "var(--border-default)",
-                  boxShadow: isCompleted ? "0 0 8px rgba(16, 185, 129, 0.3)" : "none",
-                  // Dim the connector line if the next step hasn't been initialized
-                  opacity: isCompleted ? 1 : 0.4
+                  backgroundColor: isCompleted 
+                    ? "var(--success)" 
+                    : isFailed 
+                    ? "var(--danger)" 
+                    : "var(--border-default)",
+                  boxShadow: isCompleted 
+                    ? "0 0 8px rgba(16, 185, 129, 0.3)" 
+                    : isFailed 
+                    ? "0 0 8px rgba(239, 68, 68, 0.3)" 
+                    : "none",
+                  opacity: isCompleted || isFailed ? 1 : 0.4
                 }}
               />
             )}
@@ -54,13 +61,13 @@ const Steps = ({ steps = [] }) => {
               {/* Completed State: Solid Green Success Badge */}
               {isCompleted && (
                 <div 
-                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white"
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white animate-fade-in"
                   style={{
                     backgroundColor: "var(--success)",
                     boxShadow: "0 4px 12px rgba(16, 185, 129, 0.35)"
                   }}
                 >
-                  <Check size={18} strokeWidth={3} className="animate-fade-in" />
+                  <Check size={18} strokeWidth={3} />
                 </div>
               )}
 
@@ -76,6 +83,19 @@ const Steps = ({ steps = [] }) => {
                   }}
                 >
                   <Loader2 size={16} className="animate-spin" />
+                </div>
+              )}
+
+              {/* ADDED: Failed State: Solid Red Critical Cross Badge */}
+              {isFailed && (
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm text-white animate-fade-in"
+                  style={{
+                    backgroundColor: "var(--danger)",
+                    boxShadow: "0 4px 12px rgba(239, 68, 68, 0.35)"
+                  }}
+                >
+                  <X size={18} strokeWidth={3} />
                 </div>
               )}
 
@@ -101,6 +121,8 @@ const Steps = ({ steps = [] }) => {
                 style={{
                   color: isRunning 
                     ? "var(--primary)" 
+                    : isFailed
+                    ? "var(--danger)"
                     : isActiveOrDone 
                     ? "var(--text-main)" 
                     : "var(--text-light)"
@@ -109,7 +131,7 @@ const Steps = ({ steps = [] }) => {
                 {step.text}
               </span>
               
-              {/* Status Indicator Tag: Hidden completely if app is idle (pre-click) */}
+              {/* Status Indicator Tag */}
               {!isUninitiated && (
                 <span 
                   className="text-[10px] font-bold uppercase tracking-wider transition-colors duration-300" 
@@ -118,11 +140,14 @@ const Steps = ({ steps = [] }) => {
                       ? "var(--primary)" 
                       : isCompleted 
                       ? "var(--success)" 
+                      : isFailed
+                      ? "var(--danger)"
                       : "var(--text-light)" 
                   }}
                 >
                   {isCompleted && "Completed"}
                   {isRunning && "In Progress"}
+                  {isFailed && "Failed"}
                   {isWaiting && "Pending"}
                 </span>
               )}

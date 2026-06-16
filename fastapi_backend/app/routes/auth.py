@@ -38,7 +38,7 @@ def base_email_template(title: str, body: str) -> str:
                 
                 <tr>
                   <td style="padding:28px 32px; background:linear-gradient(135deg,#0f766e,#14b8a6); color:#ffffff;">
-                    <h1 style="margin:0; font-size:26px; letter-spacing:-0.5px;">AlgoNotes</h1>
+                    <h1 style="margin:0; font-size:26px; letter-spacing:-0.5px;">ALGONOTES</h1>
                     <p style="margin:8px 0 0; font-size:14px; opacity:0.9;">Your AI-powered DSA notes workspace</p>
                   </td>
                 </tr>
@@ -53,7 +53,7 @@ def base_email_template(title: str, body: str) -> str:
                 <tr>
                   <td style="padding:20px 32px; background:#f8fafc; border-top:1px solid #e5eaf0;">
                     <p style="margin:0; color:#64748b; font-size:12px; line-height:1.6;">
-                      This email was sent by AlgoNotes. If you did not request this action, you can safely ignore this email.
+                      This email was sent by ALGONOTES. If you did not request this action, you can safely ignore this email.
                     </p>
                   </td>
                 </tr>
@@ -70,7 +70,7 @@ def base_email_template(title: str, body: str) -> str:
 def welcome_email_template(verification_url: str) -> str:
     body = f"""
     <p style="color:#475569; font-size:15px; line-height:1.7; margin:0 0 22px;">
-      Welcome to AlgoNotes. Verify your email address to activate your account and start generating clean DSA notes.
+      Welcome to ALGONOTES. Verify your email address to activate your account and start generating clean DSA notes.
     </p>
 
     <a href="{verification_url}" target="_blank"
@@ -254,7 +254,7 @@ async def verify_user(
         background_tasks.add_task(
             send_email,
             user.email,
-            "AlgoNotes Verification Code",
+            "ALGONOTES Verification Code",
             otp_email_template(
                 otp=otp,
                 title="Verify your email address",
@@ -342,7 +342,7 @@ async def forgot_password(
         background_tasks.add_task(
             send_email,
             user.email,
-            "AlgoNotes Password Reset Code",
+            "ALGONOTES Password Reset Code",
             otp_email_template(
                 otp=otp,
                 title="Reset your password",

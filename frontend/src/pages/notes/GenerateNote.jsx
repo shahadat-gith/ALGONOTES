@@ -7,13 +7,7 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 
-import {
-  Sparkles,
-  Link as LinkIcon,
-  Code2,
-  Languages,
-} from "lucide-react";
-
+import { Sparkles, Code2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const LANGUAGE_OPTIONS = [
@@ -31,7 +25,7 @@ const INITIAL_STEPS = [
   { id: 3, text: "Understanding your algorithmic approach", status: "waiting" },
   { id: 4, text: "Creating concise revision notes", status: "waiting" },
   { id: 5, text: "Preparing dry run, edge cases, and complexity", status: "waiting" },
-  { id: 6, text: "Saving your generated study note", status: "waiting" },
+  { id: 6, text: "finalising the note", status: "waiting" },
 ];
 
 const GenerateNote = () => {
@@ -44,7 +38,6 @@ const GenerateNote = () => {
     language: "C++",
   });
 
-  // Track explicit semantic validation errors for your Input/Select elements
   const [errors, setErrors] = useState({
     problemLink: "",
     userCode: "",
@@ -55,22 +48,15 @@ const GenerateNote = () => {
   const [steps, setSteps] = useState(INITIAL_STEPS);
 
   useEffect(() => {
-    return () => {
-      if (pollTimer.current) {
-        clearInterval(pollTimer.current);
-      }
-    };
+    return () => stopPolling();
   }, []);
 
-  const resetSteps = () => {
-    setSteps(INITIAL_STEPS);
-  };
+  const resetSteps = () => setSteps(INITIAL_STEPS);
 
+  // FIXED: Keeps historical steps locked into 'completed' status
   const updateCurrentStep = () => {
     setSteps((prevSteps) => {
-      const activeIndex = prevSteps.findIndex(
-        (step) => step.status === "running"
-      );
+      const activeIndex = prevSteps.findIndex((step) => step.status === "running");
 
       if (activeIndex === -1) {
         return prevSteps.map((step, index) =>
@@ -78,29 +64,19 @@ const GenerateNote = () => {
         );
       }
 
-      if (activeIndex >= prevSteps.length - 1) {
-        return prevSteps;
-      }
+      if (activeIndex >= prevSteps.length - 1) return prevSteps;
 
       return prevSteps.map((step, index) => {
-        if (index === activeIndex) {
-          return { ...step, status: "completed" };
-        }
-        if (index === activeIndex + 1) {
-          return { ...step, status: "running" };
-        }
+        if (index < activeIndex) return { ...step, status: "completed" }; // Lock history
+        if (index === activeIndex) return { ...step, status: "completed" };
+        if (index === activeIndex + 1) return { ...step, status: "running" };
         return step;
       });
     });
   };
 
   const completeAllSteps = () => {
-    setSteps((prevSteps) =>
-      prevSteps.map((step) => ({
-        ...step,
-        status: "completed",
-      }))
-    );
+    setSteps((prevSteps) => prevSteps.map((step) => ({ ...step, status: "completed" })));
   };
 
   const failActiveSteps = () => {
@@ -122,15 +98,8 @@ const GenerateNote = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Clear operational error flags instantly on text touch mutations
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const validateForm = () => {
@@ -154,7 +123,6 @@ const GenerateNote = () => {
     stopPolling();
     completeAllSteps();
     toast.success("Note generated successfully!");
-
     setTimeout(() => {
       navigate(`/notes/${noteId}`, { replace: true });
     }, 800);
@@ -170,13 +138,12 @@ const GenerateNote = () => {
 
   const startPolling = (noteId) => {
     let tickCount = 0;
+    stopPolling(); // Defensive check to clear existing timers
 
     pollTimer.current = setInterval(async () => {
       tickCount += 1;
-
       try {
         const check = await checkNoteStatus(noteId);
-
         if (!check?.success) return;
 
         if (check.status === "draft" || check.status === "final") {
@@ -189,6 +156,7 @@ const GenerateNote = () => {
           return;
         }
 
+        // Advance visual stepper steps every 4 seconds (2 ticks)
         if (tickCount % 2 === 0) {
           updateCurrentStep();
         }
@@ -219,16 +187,14 @@ const GenerateNote = () => {
         language: formData.language,
       });
 
-      const noteId = initResponse?.id;
-
-      if (!initResponse?.success || !noteId) {
-        throw new Error("Handshake tracking key initialization failed.");
+      if (!initResponse?.success || !initResponse?.id) {
+        throw new Error("Initialization failed.");
       }
 
-      startPolling(noteId);
+      startPolling(initResponse.id);
     } catch (error) {
       console.error(error);
-      handleGenerationFailure("Failed to kickstart task worker thread. Try again.");
+      handleGenerationFailure("Failed to queue generation task. Please try again.");
     }
   };
 
@@ -253,7 +219,6 @@ const GenerateNote = () => {
           </div>
 
           <div className="space-y-5">
-            {/* Custom Input Component */}
             <Input
               label="Problem Link"
               type="url"
@@ -262,10 +227,9 @@ const GenerateNote = () => {
               onChange={handleChange}
               disabled={loading}
               error={errors.problemLink}
-              placeholder="for e.g -> https://leetcode.com/problems/two-sum/"
+              placeholder="e.g. https://leetcode.com/problems/two-sum/"
             />
 
-            {/* Custom Select Component */}
             <Select
               label="Language"
               name="language"
@@ -275,7 +239,6 @@ const GenerateNote = () => {
               options={LANGUAGE_OPTIONS}
             />
 
-            {/* Solution Block Textarea (leveraging customized error handling traits natively) */}
             <div className="w-full">
               <label className="mb-2 flex items-center gap-2 text-sm font-medium text-[var(--text-main)]">
                 <Code2 size={14} /> Your Solution Code
@@ -287,8 +250,8 @@ const GenerateNote = () => {
                 disabled={loading}
                 rows={12}
                 placeholder="Paste your accepted solution code here..."
-                className={`w-full resize-y rounded-[var(--radius-md)] border bg-white px-4 py-3 font-mono text-xs leading-6 text-[var(--text-main)] transition outline-none focus:border-[var(--primary)] ${
-                  errors.userCode ? "border-[var(--danger)] focus:border-[var(--danger)]" : "border-[var(--border-default)]"
+                className={`w-full resize-y rounded-xl border bg-white px-4 py-3 font-mono text-xs leading-6 text-[var(--text-main)] transition-all outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] ${
+                  errors.userCode ? "border-[var(--danger)] focus:ring-[var(--danger)]/20 focus:border-[var(--danger)]" : "border-[var(--border-default)]"
                 }`}
               />
               {errors.userCode && (
@@ -298,7 +261,6 @@ const GenerateNote = () => {
               )}
             </div>
 
-            {/* Custom Button Component */}
             <Button
               variant="primary"
               size="lg"

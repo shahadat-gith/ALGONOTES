@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     DATABASE_URL: str
+    AI_GENERATION_QUEUE_URL: str
 
     JWT_SECRET: str
     JWT_EXPIRES_IN: str = "7d"

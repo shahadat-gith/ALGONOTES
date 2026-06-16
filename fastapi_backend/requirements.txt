@@ -23,3 +23,7 @@ bcrypt
 google-genai
 cloudinary
 fastapi-mail
+
+
+# sqs
+boto3

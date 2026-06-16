@@ -19,9 +19,7 @@ from app.routes import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print(
-        f"Starting application in {settings.ENVIRONMENT} mode..."
-    )
+    print(f"Starting application in {settings.ENVIRONMENT} mode...")
 
     await init_db()
 
@@ -54,33 +52,12 @@ app.add_middleware(
 )
 
 
-# ==========================================
-# ROUTES
-# ==========================================
-app.include_router(
-    auth_router,
-    prefix="/api/v1"
-)
-
-app.include_router(
-    user_router,
-    prefix="/api/v1"
-)
-
-app.include_router(
-    note_router,
-    prefix="/api/v1"
-)
-
-app.include_router(
-    ai_router,
-    prefix="/api/v1"
-)
+app.include_router(auth_router, prefix="/api/v1")
+app.include_router(user_router, prefix="/api/v1")
+app.include_router(note_router, prefix="/api/v1")
+app.include_router(ai_router, prefix="/api/v1")
 
 
-# ==========================================
-# HEALTH CHECK
-# ==========================================
 @app.get("/", tags=["System"])
 async def health_check():
     return {
@@ -89,13 +66,7 @@ async def health_check():
     }
 
 
-# ==========================================
-# SERVERLESS HANDLER
-# ==========================================
-handler = Mangum(
-    app,
-    lifespan="on"
-)
+handler = Mangum(app, lifespan="on")
 
 
 if __name__ == "__main__":
@@ -105,8 +76,5 @@ if __name__ == "__main__":
         "main:app",
         host="0.0.0.0",
         port=settings.PORT,
-        reload=(
-            settings.ENVIRONMENT.lower()
-            == "development"
-        ),
+        reload=settings.ENVIRONMENT.lower() == "development",
     )
