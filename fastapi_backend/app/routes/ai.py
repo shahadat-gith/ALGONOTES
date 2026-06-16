@@ -62,6 +62,10 @@ async def generate_ai_note(
     }
 
 
+
+
+
+
 @router.get("/status/{note_id}")
 async def check_note_generation_status(
     note_id: str,
@@ -74,6 +78,15 @@ async def check_note_generation_status(
             status_code=404,
             detail="Note not found.",
         )
+
+    # If the background worker marked it as failed, attach a helpful message
+    if note.status == NoteStatus.failed:
+        return {
+            "success": True,
+            "status": "failed",
+            "message": "AI is currently experiencing high demand. Please try again in a few minutes.",
+            "id": str(note.id),
+        }
 
     return {
         "success": True,

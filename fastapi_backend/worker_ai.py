@@ -17,16 +17,15 @@ from app.schemas.note import ProblemDetailSchema, NoteContentSchema
 
 
 async def mark_note_failed(note_id: str, reason: str):
-    try:
-        note = await Note.get(note_id)
-        if not note:
-            return
-        note.status = NoteStatus.failed
-        note.updatedAt = datetime.now(timezone.utc)
-        await note.save()
-        print(f"[AI Worker] Note failed: {note_id}. Reason: {reason}")
-    except Exception as db_err:
-        print(f"[AI Worker] Failed to mark note as failed in DB: {str(db_err)}")
+    note = await Note.get(note_id)
+    if not note:
+        return
+
+    note.status = NoteStatus.failed
+    note.updatedAt = datetime.now(timezone.utc)
+
+    await note.save()
+    print(f"[AI Worker] Note failed: {note_id}. Reason: {reason}")
 
 
 async def process_ai_job(message: dict):
