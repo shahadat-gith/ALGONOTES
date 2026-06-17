@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { Edit3, ArrowLeft, AlertCircle, FileText, Code2, Activity, ShieldAlert, Code } from "lucide-react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import {
+  Edit3,
+  ArrowLeft,
+  AlertCircle,
+  FileText,
+  Code2,
+  Activity,
+  ShieldAlert,
+  Code,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 import { getNoteById } from "../../api/noteApi";
@@ -10,11 +19,14 @@ import Badge from "../../components/common/Badge";
 import EmptyState from "../../components/common/EmptyState";
 import NoteDetailsSkeleton from "../../components/skeletons/NoteDetailsSkeleton";
 
-import ProblemDetails from "../../components/notes/ProblemDetails";
-import SummaryCard from "../../components/notes/SummaryCard";
-import ApproachCard from "../../components/notes/ApproachCard";
-import DryRunCard from "../../components/notes/DryRunCard";
-import BulletListCard from "../../components/notes/BulletListCard";
+
+import Problem from "../../components/notes/details/Problem";
+import UserNotes from "../../components/notes/details/UserNotes";
+import DryRun from "../../components/notes/details/DryRun";
+import Intuition from "../../components/notes/details/Intuition";
+import Approach from "../../components/notes/details/Approach";
+import EdgeCases from "../../components/notes/details/EdgeCases";
+import Mistakes from "../../components/notes/details/Mistakes";
 
 const NoteDetails = () => {
   const { id } = useParams();
@@ -28,11 +40,9 @@ const NoteDetails = () => {
     const fetchNote = async () => {
       try {
         const response = await getNoteById(id);
-
         if (!response?.success || !response?.note) {
           throw new Error("Note not found");
         }
-
         setNoteData(response.note);
       } catch (error) {
         toast.error("Failed to load note.");
@@ -41,7 +51,6 @@ const NoteDetails = () => {
         setLoading(false);
       }
     };
-
     fetchNote();
   }, [id]);
 
@@ -71,15 +80,15 @@ const NoteDetails = () => {
     note = {},
     status = "draft",
     language = "C++",
+    userNotes = "",
   } = noteData;
 
-  // Unified Tab Configuration Array
   const tabOptions = [
     { id: "problem", label: "Problem Statement", icon: Code },
     { id: "overview", label: "Overview & Intuition", icon: FileText },
     { id: "strategies", label: "Approach & Solutions", icon: Code2 },
     { id: "dryrun", label: "Dry run execution", icon: Activity },
-    { id: "analysis", label: "complexity, edges cases and mistakes", icon: ShieldAlert },
+    { id: "analysis", label: "Edge Cases & Pitfalls", icon: ShieldAlert },
   ];
 
   return (
@@ -98,16 +107,22 @@ const NoteDetails = () => {
         </Button>
 
         <div className="flex items-center gap-3.5">
-          <Badge variant="default" className="font-mono text-[11px] px-2.5 py-0.5">
+          <Badge
+            variant="default"
+            className="font-mono text-[11px] px-2.5 py-0.5"
+          >
             {language}
           </Badge>
-          <Badge variant={status === "final" ? "success" : "warning"} className="text-[11px] px-2.5 py-0.5">
+          <Badge
+            variant={status === "final" ? "success" : "warning"}
+            className="text-[11px] px-2.5 py-0.5"
+          >
             {status}
           </Badge>
 
           <Link to={`/notes/${id}/edit`} className="block">
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="primary"
               className="h-9 text-xs font-semibold px-4 flex items-center gap-1.5 cursor-pointer shadow-xs"
             >
@@ -118,7 +133,7 @@ const NoteDetails = () => {
         </div>
       </div>
 
-      {/* Segmented Tab Controller Rail Bar (Full Width Canvas Layout) */}
+      {/* Segmented Tab Controller Rail Bar */}
       <div className="flex items-center gap-1 bg-bg-soft/40 p-1 rounded-md border border-border-default/60 overflow-x-auto custom-scrollbar w-full">
         {tabOptions.map((tab) => {
           const TabIcon = tab.icon;
@@ -134,26 +149,36 @@ const NoteDetails = () => {
                   : "text-text-muted hover:text-text-main hover:bg-bg-soft/20"
               }`}
             >
-              <TabIcon size={13} className={isActive ? "text-primary stroke-[2]" : "text-text-light stroke-[1.75]"} />
+              <TabIcon
+                size={13}
+                className={
+                  isActive
+                    ? "text-primary stroke-[2]"
+                    : "text-text-light stroke-[1.75]"
+                }
+              />
               <span>{tab.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Dynamic Tab Render Area (100% Structural Width Container) */}
+      {/* Dynamic Tab Render Area */}
       <main className="focus:outline-hidden animate-fade-in w-full min-h-[50vh]">
         
         {/* TAB 1: PROBLEM STATEMENT */}
         {activeTab === "problem" && (
           <div className="w-full animate-fade-in">
             {problem && Object.keys(problem).length > 0 ? (
-              <ProblemDetails problem={problem} />
+              <Problem problem={problem} />
             ) : (
               <div className="bg-bg-surface border border-border-default rounded-md p-6 text-center space-y-2 shadow-card">
-                <AlertCircle size={20} className="text-text-light mx-auto stroke-[1.75]" />
+                <AlertCircle
+                  size={20}
+                  className="text-text-light mx-auto stroke-[1.75]"
+                />
                 <p className="text-xs text-text-muted tracking-wide font-medium">
-                  Problem descriptions could not be resolved cleanly for this document snapshot.
+                  Problem descriptions could not be resolved cleanly for this snapshot.
                 </p>
               </div>
             )}
@@ -163,35 +188,44 @@ const NoteDetails = () => {
         {/* TAB 2: OVERVIEW & INTUITION */}
         {activeTab === "overview" && (
           <div className="space-y-6 animate-fade-in">
-            <SummaryCard summary={note.summary} />
-            <BulletListCard title="Intuition" items={note.intuition} />
+            <UserNotes userNotes={userNotes} />
+            <Intuition intuition={note.intuition} />
           </div>
         )}
 
         {/* TAB 3: CODE SOLUTIONS */}
         {activeTab === "strategies" && (
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start animate-fade-in">
-            <ApproachCard title="Brute Force Approach" approach={note.bruteForce} />
-            <ApproachCard title="Optimal Approach" approach={note.optimalApproach} highlight />
+          <div className="space-y-6 animate-fade-in">
+            <Approach
+              title="1. Brute Force Approach"
+              approach={note.bruteForce}
+            />
+            <Approach 
+              title="2. Better Solution" 
+              approach={note.better} 
+            />
+            <Approach
+              title="3. Optimal Approach"
+              approach={note.optimalApproach}
+              highlight={true}
+            />
           </div>
         )}
 
         {/* TAB 4: EXECUTION TRACE MATRIX */}
         {activeTab === "dryrun" && (
           <div className="w-full animate-fade-in">
-            <DryRunCard dryRun={note.dryRun} />
+            <DryRun dryRun={note.dryRun} />
           </div>
         )}
 
         {/* TAB 5: ANALYTICS & PITFALLS */}
         {activeTab === "analysis" && (
           <div className="space-y-6 animate-fade-in">
-            <BulletListCard title="Complexity Analysis" items={note.complexity} />
-            <BulletListCard title="Important Edge Cases" items={note.edgeCases} />
-            <BulletListCard title="Mistakes To Avoid" items={note.mistakesToAvoid} variant="danger" />
+            <EdgeCases edgeCases={note.edgeCases} />
+            <Mistakes mistakesToAvoid={note.mistakesToAvoid} />
           </div>
         )}
-
       </main>
     </div>
   );

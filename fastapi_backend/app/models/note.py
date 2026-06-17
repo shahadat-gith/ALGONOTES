@@ -1,6 +1,5 @@
 # app/models/note.py
 
-
 from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Dict, Any, Optional
@@ -9,23 +8,11 @@ from beanie import Document, Indexed, PydanticObjectId
 from pydantic import BaseModel, Field, ConfigDict
 
 
-# ==========================================
-# ENUMS
-# ==========================================
 class NoteStatus(str, Enum):
     processing = "processing"
     draft = "draft"
     final = "final"
     failed = "failed"
-
-
-# ==========================================
-# REUSABLE COMPONENT SCHEMAS (No Nulls)
-# ==========================================
-class TextParagraph(BaseModel):
-    """Simple rich-text style paragraph or heading."""
-    type: str = "paragraph"  # e.g., "heading", "paragraph"
-    text: str
 
 
 class CodeImplementation(BaseModel):
@@ -34,22 +21,21 @@ class CodeImplementation(BaseModel):
     code: str
 
 
-# ==========================================
-# APPROACH SCHEMA (Brute Force & Optimal)
-# ==========================================
+class ComplexitySchema(BaseModel):
+    time: str = ""   # e.g., "O(N^2)"
+    space: str = ""  # e.g., "O(1)"
+
+
 class ApproachSchema(BaseModel):
-    """Used for bruteForce and optimalApproach."""
-    description: List[TextParagraph] = Field(default_factory=list)
+    """Used for bruteForce, better, and optimalApproach."""
+    complexity: ComplexitySchema = Field(default_factory=ComplexitySchema)
+    description: str = ""  
     codeBlock: Optional[CodeImplementation] = None
     algorithmSteps: List[str] = Field(default_factory=list)
-
-    # Automatically drops 'codeBlock' key if it is None when serialized
+    
     model_config = ConfigDict(exclude_none=True)
 
 
-# ==========================================
-# PROBLEM DETAILS SCHEMA
-# ==========================================
 class ProblemDetailSchema(BaseModel):
     title: str = ""
     problemLink: str = ""
@@ -63,35 +49,25 @@ class ProblemDetailSchema(BaseModel):
     topics: List[str] = Field(default_factory=list)
 
 
-# ==========================================
-# STRONGLY TYPED NOTE CONTENT
-# ==========================================
 class NoteContentSchema(BaseModel):
-    summary: List[str] = Field(default_factory=list)
-    intuition: List[str] = Field(default_factory=list)
-    complexity: List[str] = Field(default_factory=list)
+    intuition: str = ""
     edgeCases: List[str] = Field(default_factory=list)
     mistakesToAvoid: List[str] = Field(default_factory=list)
-
-    # Fixed: Changed lower 'any' to 'Any' to avoid runtime NameError
     dryRun: List[Dict[str, Any]] = Field(default_factory=list)
-
     bruteForce: Optional[ApproachSchema] = None
+    better: Optional[ApproachSchema] = None
     optimalApproach: Optional[ApproachSchema] = None
 
-    # Keeps MongoDB completely clean of null optional approaches
     model_config = ConfigDict(exclude_none=True)
 
 
-# ==========================================
-# NOTE DOCUMENT
-# ==========================================
 class Note(Document):
     status: NoteStatus = Indexed(default=NoteStatus.processing)
     problem: ProblemDetailSchema = Field(default_factory=ProblemDetailSchema)
     note: NoteContentSchema = Field(default_factory=NoteContentSchema)
     language: str = "C++"
     userCode: str = ""
+    userNotes: str = ""
     user_id: PydanticObjectId = Indexed()
 
     createdAt: datetime = Field(
@@ -104,8 +80,7 @@ class Note(Document):
     class Settings:
         name = "notes"
 
-    # Correct Pydantic v2 configuration style for Beanie documents
     model_config = ConfigDict(
         extra="ignore",
-        exclude_none=True  # Crucial: This explicitly blocks null fields from writing to Mongo
+        exclude_none=True  
     )

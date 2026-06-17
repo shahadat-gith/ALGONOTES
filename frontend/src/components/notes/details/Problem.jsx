@@ -1,8 +1,8 @@
 import React from "react";
 import { ExternalLink, AlertCircle, Cpu } from "lucide-react";
-import Badge from "../common/Badge";
+import Badge from "../../common/Badge";
 
-const ProblemDetails = ({ problem }) => {
+const Problem = ({ problem }) => {
   if (!problem) return null;
 
   const difficultyVariant = {
@@ -53,19 +53,19 @@ const ProblemDetails = ({ problem }) => {
         </div>
       </div>
 
-      {/* Description */}
+      {/* Description - Updated text baseline: 14px on mobile, scales to 16px on desktop */}
       {problem.description && (
         <div className="space-y-2">
           <h3 className="text-xs font-bold uppercase tracking-widest text-text-light font-mono">
             Description
           </h3>
-          <p className="text-xs leading-6 text-text-muted whitespace-pre-wrap font-normal tracking-wide">
+          <p className="text-[14px] md:text-[16px] leading-7 text-text-muted whitespace-pre-wrap font-normal tracking-wide">
             {problem.description}
           </p>
         </div>
       )}
 
-      {/* Constraints */}
+      {/* Constraints - List items updated to 14px on mobile, 16px on desktop */}
       {problem.constraints?.length > 0 && (
         <div className="space-y-2.5">
           <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-text-main font-mono">
@@ -74,7 +74,7 @@ const ProblemDetails = ({ problem }) => {
           </h3>
 
           <div className="rounded-sm bg-bg-soft/40 border border-border-default/60 p-4">
-            <ul className="space-y-2 text-xs text-text-muted font-mono leading-relaxed">
+            <ul className="space-y-2.5 text-[14px] md:text-[16px] text-text-muted font-mono leading-relaxed">
               {problem.constraints.map((constraint, index) => (
                 <li key={index} className="tracking-wide">• {constraint}</li>
               ))}
@@ -83,24 +83,24 @@ const ProblemDetails = ({ problem }) => {
         </div>
       )}
 
-      {/* Examples */}
+      {/* Examples - Code properties use custom sizing, explanation uses 14px to 16px split */}
       {problem.testCases?.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-xs font-bold uppercase tracking-widest text-text-light font-mono">
             Examples
           </h3>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {problem.testCases.map((testCase, index) => (
               <div
                 key={index}
-                className="rounded-sm border border-border-default p-4 space-y-3 bg-bg-soft/20"
+                className="rounded-sm border border-border-default p-4 space-y-3.5 bg-bg-soft/20"
               >
                 <div className="text-[10px] font-mono font-bold text-text-light uppercase tracking-widest border-b border-border-default/40 pb-1.5">
                   Example {index + 1}
                 </div>
 
-                <div className="font-mono text-xs space-y-1.5 text-text-muted">
+                <div className="font-mono text-[13px] md:text-[14px] space-y-2 text-text-muted">
                   <p className="tracking-wide">
                     <span className="text-text-light font-semibold">Input:</span>{" "}
                     {testCase.input}
@@ -112,8 +112,8 @@ const ProblemDetails = ({ problem }) => {
                 </div>
 
                 {testCase.explanation && (
-                  <div className="pt-2.5 border-t border-border-default/40 text-xs text-text-muted italic leading-relaxed font-normal tracking-wide">
-                    <span className="not-italic font-mono font-semibold text-[10px] uppercase text-text-light block mb-0.5">Explanation:</span>
+                  <div className="pt-3 border-t border-border-default/40 text-[14px] md:text-[16px] text-text-muted italic leading-7 font-normal tracking-wide">
+                    <span className="not-italic font-mono font-semibold text-[10px] uppercase text-text-light block mb-1">Explanation:</span>
                     {testCase.explanation}
                   </div>
                 )}
@@ -132,7 +132,7 @@ const ProblemDetails = ({ problem }) => {
           </h3>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="rounded-sm bg-bg-base p-3 flex items-center text-xs border border-border-default">
+            <div className="rounded-sm bg-bg-base p-3 flex items-center text-[13px] md:text-[14px] border border-border-default">
               <span className="text-text-muted font-normal tracking-wide">
                 Time:{" "}
                 <strong className="text-primary font-mono font-semibold ml-1 bg-primary-soft/10 px-1.5 py-0.5 rounded-xs border border-primary/10">
@@ -141,7 +141,7 @@ const ProblemDetails = ({ problem }) => {
               </span>
             </div>
 
-            <div className="rounded-sm bg-bg-base p-3 flex items-center text-xs border border-border-default">
+            <div className="rounded-sm bg-bg-base p-3 flex items-center text-[13px] md:text-[14px] border border-border-default">
               <span className="text-text-muted font-normal tracking-wide">
                 Space:{" "}
                 <strong className="text-purple-400 font-mono font-semibold ml-1 bg-purple-500/10 px-1.5 py-0.5 rounded-xs border border-purple-500/10">
@@ -176,4 +176,4 @@ const ProblemDetails = ({ problem }) => {
   );
 };
 
-export default ProblemDetails;
+export default Problem;

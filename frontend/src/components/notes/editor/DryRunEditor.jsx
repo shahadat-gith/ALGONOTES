@@ -1,7 +1,7 @@
 import React from "react";
 import { Plus, Trash2, Activity } from "lucide-react";
 
-const DryRunSectionEditor = ({ dryRun = [], onChange }) => {
+const DryRunEditor = ({ dryRun = [], onChange }) => {
   const handleRowChange = (index, field, value) => {
     const updated = [...dryRun];
     updated[index] = { ...updated[index], [field]: value };
@@ -14,14 +14,10 @@ const DryRunSectionEditor = ({ dryRun = [], onChange }) => {
 
   return (
     <div className="bg-bg-surface border border-border-default rounded-md p-5 sm:p-6 space-y-5 shadow-card select-none">
-      
-      {/* Header Block Section */}
       <div className="flex items-center justify-between border-b border-border-default pb-3.5 font-mono">
         <div className="flex items-center gap-2">
           <Activity size={14} className="text-primary stroke-[2]" />
-          <h3 className="text-xs font-bold uppercase tracking-widest text-text-main">
-            Execution Dry Run Matrix
-          </h3>
+          <h3 className="text-xs font-bold uppercase tracking-widest text-text-main">Execution Dry Run Matrix</h3>
         </div>
         <button
           type="button"
@@ -33,10 +29,7 @@ const DryRunSectionEditor = ({ dryRun = [], onChange }) => {
         </button>
       </div>
 
-      {/* Grid Dynamic Core Layout Stack */}
       <div className="space-y-3.5">
-        
-        {/* Implicit Column Label Headings for Desktop Framework views */}
         {dryRun.length > 0 && (
           <div className="hidden md:flex gap-2.5 px-1 text-[10px] font-mono font-bold uppercase tracking-widest text-text-light">
             <span className="w-16 text-center">Step</span>
@@ -49,68 +42,58 @@ const DryRunSectionEditor = ({ dryRun = [], onChange }) => {
 
         <div className="space-y-2.5">
           {dryRun.map((row, index) => (
-            <div 
-              key={index} 
-              className="flex flex-col md:flex-row gap-2.5 items-stretch md:items-center border border-border-default/40 md:border-none p-3.5 md:p-0 bg-bg-base/30 md:bg-transparent rounded-sm md:rounded-none animate-fade-in relative group"
-            >
-              {/* Step Pointer Field */}
+            <div key={index} className="flex flex-col md:flex-row gap-2.5 items-stretch md:items-center border border-border-default/40 md:border-none p-3.5 md:p-0 bg-bg-base/30 md:bg-transparent rounded-sm md:rounded-none animate-fade-in relative group">
+              
               <input
                 type="text"
                 value={row.step}
-                placeholder="Step"
                 onChange={(e) => handleRowChange(index, "step", e.target.value)}
-                className="w-full md:w-16 rounded-sm border border-border-default bg-bg-base px-2 py-1.5 text-xs font-mono font-bold text-center text-primary focus:border-primary/40 focus:bg-bg-base/80 outline-hidden transition-all"
+                className="w-full md:w-16 rounded-sm border border-border-default bg-bg-base px-2 py-1.5 text-[14px] md:text-[16px] font-mono font-bold text-center text-primary focus:border-primary/40 outline-hidden transition-all"
               />
-
-              {/* Memory State Matrix Field */}
+              
               <input
                 type="text"
                 value={row.state}
-                placeholder="State maps (e.g., i=0, sum=0)"
                 onChange={(e) => handleRowChange(index, "state", e.target.value)}
-                className="w-full rounded-sm border border-border-default bg-bg-base px-3 py-1.5 text-xs font-mono font-normal text-text-main placeholder-text-light/30 focus:border-primary/40 focus:bg-bg-base/80 outline-hidden transition-all"
+                className="w-full rounded-sm border border-border-default bg-bg-base px-3 py-1.5 text-[14px] md:text-[16px] font-mono text-text-main focus:border-primary/40 outline-hidden transition-all"
+                placeholder="State maps (e.g., left=0, right=n-1)"
               />
-
-              {/* Action Operations Field */}
+              
               <input
                 type="text"
                 value={row.action}
-                placeholder="Details of operation statement..."
                 onChange={(e) => handleRowChange(index, "action", e.target.value)}
-                className="w-full rounded-sm border border-border-default bg-bg-base px-3 py-1.5 text-xs font-normal text-text-main placeholder-text-light/30 focus:border-primary/40 focus:bg-bg-base/80 outline-hidden transition-all"
+                className="w-full rounded-sm border border-border-default bg-bg-base px-3 py-1.5 text-[14px] md:text-[16px] text-text-main focus:border-primary/40 outline-hidden transition-all"
+                placeholder="Details of operation statement..."
               />
-
-              {/* Target Mutation Evaluation Result Field */}
+              
               <input
                 type="text"
                 value={row.result}
-                placeholder="Resulting code changes..."
                 onChange={(e) => handleRowChange(index, "result", e.target.value)}
-                className="w-full rounded-sm border border-border-default bg-bg-base px-3 py-1.5 text-xs font-mono font-semibold text-success placeholder-success/30 focus:border-success/40 focus:bg-bg-base/80 outline-hidden transition-all"
+                className="w-full rounded-sm border border-border-default bg-bg-base px-3 py-1.5 text-[14px] md:text-[16px] font-mono font-semibold text-success focus:border-success/40 outline-hidden transition-all"
+                placeholder="Resulting code changes..."
               />
-
-              {/* Destruction Link Button Trigger */}
+              
               <button
                 type="button"
                 onClick={() => onChange(dryRun.filter((_, i) => i !== index))}
-                className="p-1.5 rounded-sm text-text-light hover:text-danger hover:bg-danger-soft/10 transition-colors cursor-pointer shrink-0 flex items-center justify-center"
-                title="Purge trace row"
+                className="p-1.5 rounded-sm text-text-light hover:text-danger hover:bg-danger-soft/10 transition-colors cursor-pointer shrink-0"
               >
-                <Trash2 size={13} className="stroke-[1.75]" />
+                <Trash2 size={13} />
               </button>
             </div>
           ))}
         </div>
 
         {dryRun.length === 0 && (
-          <div className="text-center py-6 border border-dashed border-border-default rounded-sm bg-bg-soft/10 text-xs text-text-muted font-normal tracking-wide">
-            No dry-run metrics generated yet. Tap "+ Add Row" to trace your execution loop state blocks.
+          <div className="text-center py-6 border border-dashed border-border-default rounded-sm bg-bg-soft/10 text-xs text-text-muted">
+            No dry-run traces tracked yet. Tap "+ Add Row" to initialize code dry-run matrices.
           </div>
         )}
-
       </div>
     </div>
   );
 };
 
-export default DryRunSectionEditor;
+export default DryRunEditor;

@@ -1,22 +1,22 @@
-import axiosInstance from "./axiosInstance";
+import api from "./axios";
 
 export const getCurrentUser = async () => {
-  const { data } = await axiosInstance.get("/users/me");
+  const { data } = await api.get("/users/me");
   return data;
 };
 
 export const updateProfile = async (payload) => {
-  const { data } = await axiosInstance.put("/users/profile", payload);
+  const { data } = await api.put("/users/profile", payload);
   return data;
 };
 
 export const deleteAccount = async () => {
-  const { data } = await axiosInstance.delete("/users/account");
+  const { data } = await api.delete("/users/account");
   return data;
 };
 
 export const searchWorkspace = async (query) => {
-  const { data } = await axiosInstance.get(`/users/search?q=${encodeURIComponent(query)}`);
+  const { data } = await api.get(`/users/search?q=${encodeURIComponent(query)}`);
   return data;
 };
 

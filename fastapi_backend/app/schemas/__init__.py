@@ -18,6 +18,12 @@ from .note import (
     SaveNoteRequest,
 )
 
+from .theory import (
+    GenerateTheoryRequest, 
+    TheoryResponse,         
+    TheoryUpdate,           
+)
+
 from app.models.note import (
     ProblemDetailSchema,
     NoteContentSchema,
@@ -38,4 +44,8 @@ __all__ = [
 
     "NoteResponse",
     "NoteUpdate",
+
+    "GenerateTheoryRequest",  
+    "TheoryResponse",         
+    "TheoryUpdate",           
 ]

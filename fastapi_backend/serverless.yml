@@ -2,11 +2,6 @@ service: algonotes-backend
 
 frameworkVersion: "4"
 
-# ==========================================
-# PLUGINS REGISTRY
-# ==========================================
-plugins:
-  - serverless-python-requirements
 
 # ==========================================
 # PROVIDER CONFIGURATION
@@ -71,7 +66,7 @@ functions:
 
   # Background Asynchronous SQS Worker
   aiWorker:
-    handler: worker_ai.handler
+    handler: app.sqs.handler.handler
     timeout: 300
     memorySize: 1024
     events:
@@ -92,7 +87,6 @@ resources:
       Type: AWS::SQS::Queue
       Properties:
         QueueName: algonotes-ai-generation-queue
-        # Crucial: VisibilityTimeout must be longer than your function's max execution timeout (300s)
         VisibilityTimeout: 360
         MessageRetentionPeriod: 86400
 
@@ -114,6 +108,8 @@ custom:
 # ==========================================
 package:
   patterns:
+    - "app/**"              
+    - "main.py"
     - "!env/**"
     - "!venv/**"
     - "!node_modules/**"

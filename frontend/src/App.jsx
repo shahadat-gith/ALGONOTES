@@ -12,8 +12,8 @@ import VerifyUser from "./pages/auth/VerifyUser";
 
 import Home from "./pages/home/Home";
 import Notes from "./pages/notes/Notes";
-import GenerateNote from "./pages/notes/GenerateNote";
-import EditNote from "./pages/notes/EditNote";
+import NoteGenerator from "./pages/notes/NoteGenerator";
+import NoteEditor from "./pages/notes/NoteEditor";
 import NoteDetails from "./pages/notes/NoteDetails";
 
 import NotFound from "./pages/general/NotFound";
@@ -76,10 +76,10 @@ const App = () => {
         >
           <Route element={<Layout />}>
             <Route path="/notes" element={<Notes />} />
-            <Route path="/notes/generate" element={<GenerateNote />} />
+            <Route path="/notes/generate" element={<NoteGenerator />} />
 
             <Route path="/notes/:id" element={<NoteDetails />} />
-            <Route path="/notes/:id/edit" element={<EditNote />} />
+            <Route path="/notes/:id/edit" element={<NoteEditor />} />
           </Route>
         </Route>
 

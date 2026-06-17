@@ -1,11 +1,11 @@
 import React from "react";
 import { Activity } from "lucide-react";
 
-const DryRunCard = ({ dryRun = [] }) => {
-  if (!dryRun.length) return null;
+const DryRun = ({ dryRun = [] }) => {
+  if (!dryRun || !dryRun.length) return null;
 
   return (
-    <section className="bg-bg-surface border border-border-default rounded-md p-6 shadow-card select-none">
+    <section className="bg-bg-surface border border-border-default rounded-md p-6 shadow-card select-none animate-fade-in">
       
       {/* Section Header */}
       <h2 className="text-xs font-bold uppercase tracking-widest text-text-main border-b border-border-default pb-3.5 flex items-center gap-2 font-mono">
@@ -16,7 +16,7 @@ const DryRunCard = ({ dryRun = [] }) => {
       {/* Tabular Matrix Container Block */}
       <div className="overflow-hidden rounded-sm border border-border-default bg-bg-surface mt-4 shadow-inner">
         <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full border-collapse text-left text-xs">
+          <table className="w-full border-collapse text-left">
             
             {/* Matrix Data Field Labels */}
             <thead className="bg-bg-soft/60 border-b border-border-default text-[10px] font-bold uppercase tracking-widest text-text-light font-mono">
@@ -29,7 +29,8 @@ const DryRunCard = ({ dryRun = [] }) => {
             </thead>
             
             {/* Step-by-Step State Mutators Stack */}
-            <tbody className="divide-y divide-border-default font-mono text-[11px] text-text-main bg-bg-surface">
+            {/* Updated text alignment baseline: 13px on mobile, scales seamlessly to 16px on desktop frames */}
+            <tbody className="divide-y divide-border-default font-mono text-[13px] md:text-[16px] text-text-main bg-bg-surface">
               {dryRun.map((row, idx) => (
                 <tr 
                   key={idx} 
@@ -52,7 +53,7 @@ const DryRunCard = ({ dryRun = [] }) => {
                   
                   {/* Post-execution Evaluation Result Conditional */}
                   <td className="px-5 py-4 font-semibold text-success tracking-wide text-right">
-                    <span className="inline-block bg-success-soft px-2 py-0.5 rounded-xs border border-success/10 text-[10px]">
+                    <span className="inline-block bg-success-soft px-2 py-0.5 rounded-xs border border-success/10 text-[10px] md:text-[11px]">
                       {row.result}
                     </span>
                   </td>
@@ -68,4 +69,4 @@ const DryRunCard = ({ dryRun = [] }) => {
   );
 };
 
-export default DryRunCard;
+export default DryRun;

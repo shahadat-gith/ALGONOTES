@@ -13,7 +13,7 @@ from app.routes import (
     auth_router,
     user_router,
     note_router,
-    ai_router,
+    theory_router,
 )
 
 
@@ -55,7 +55,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
 app.include_router(note_router, prefix="/api/v1")
-app.include_router(ai_router, prefix="/api/v1")
+app.include_router(theory_router, prefix="/api/v1")
 
 
 @app.get("/", tags=["System"])

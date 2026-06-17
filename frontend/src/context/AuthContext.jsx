@@ -11,7 +11,6 @@ export const AuthProvider = ({ children }) => {
   });
 
   const loadUser = async () => {
-    // If no state token exists, clean out variables and halt execution maps instantly
     if (!token) {
       setUser(null);
       setLoading(false);
@@ -25,7 +24,6 @@ export const AuthProvider = ({ children }) => {
       if (data?.success && data?.user) {
         setUser(data.user);
       } else {
-        // Fallback catch if token is expired/invalid on backend
         handleSessionClear();
       }
     } catch (error) {
@@ -36,7 +34,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Helper method to clear storage arrays safely without resetting active states mid-flight
   const handleSessionClear = () => {
     localStorage.removeItem("auth-token");
     setUser(null);

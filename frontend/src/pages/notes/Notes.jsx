@@ -63,6 +63,7 @@ const Notes = () => {
         hasPrevious: data.pagination?.hasPrevious || false,
       });
     } catch (error) {
+      console.log(error)
       toast.error("Could not load notes.");
     } finally {
       setLoading(false);
