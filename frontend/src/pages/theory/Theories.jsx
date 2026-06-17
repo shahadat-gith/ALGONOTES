@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { getAllTheoriesByUser, deleteTheoryNote } from "../../api/theoryApi"; 
 
 import Button from "../../components/common/Button";
-import Input from "../../components/common/Input";
 import Alert from "../../components/common/Alert";
 
 import { 
@@ -14,6 +13,8 @@ import {
   ArrowLeft, 
   ArrowRight, 
   Trash2, 
+  Edit2,
+  Eye,
   FileText, 
   Sparkles 
 } from "lucide-react";
@@ -38,19 +39,18 @@ const Theories = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Clean data-fetching layer utilizing the new theoryApi abstraction
   useEffect(() => {
     const fetchUserTheories = async () => {
       setLoading(true);
       try {
-        const data = await getAllTheoriesByUser(page, 8, debouncedSearch);
+        const data = await getAllTheoriesByUser(page, 10, debouncedSearch); // Upped to 10 rows for clean table distributions
         if (data?.success) {
           setTheories(data.theories || []);
           setPagination(data.pagination || { totalPages: 1, totalItems: 0 });
           setApiError("");
         }
       } catch (err) {
-        setApiError("Failed to synchronize your computer science theory collection.");
+        setApiError("We couldn't load your study notes collection at the moment.");
       } finally {
         setLoading(false);
       }
@@ -60,17 +60,17 @@ const Theories = () => {
 
   const handleDeleteRecord = async (e, id) => {
     e.stopPropagation();
-    if (!window.confirm("Are you sure you want to delete this theory guide?")) return;
+    if (!window.confirm("Are you sure you want to permanently delete this study note?")) return;
 
-    const toastId = toast.loading("Purging masterclass record from index logs...");
+    const toastId = toast.loading("Deleting study note...");
     try {
       const res = await deleteTheoryNote(id);
       if (res?.success) {
-        toast.success("Theory guide removed successfully.", { id: toastId });
+        toast.success("Study note deleted.", { id: toastId });
         setTheories((prev) => prev.filter((item) => item._id !== id));
       }
     } catch (err) {
-      toast.error("Failed to clear document record.", { id: toastId });
+      toast.error("Could not delete the note.", { id: toastId });
     }
   };
 
@@ -83,19 +83,26 @@ const Theories = () => {
     });
   };
 
+  // Safely strips both markdown tokens AND raw HTML tags to extract a pristine plaintext summary
+  const cleanSnippetPreview = (htmlOrMarkdown) => {
+    if (!htmlOrMarkdown) return "No content written yet...";
+    const withoutHtml = htmlOrMarkdown.replace(/<[^>]*>/g, "");
+    const cleanText = withoutHtml.replace(/[#*`!\[\]()]/g, "");
+    return cleanText.length > 90 ? `${cleanText.substring(0, 90)}...` : cleanText;
+  };
+
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 select-none animate-fade-in relative z-10 flex flex-col min-h-[calc(100vh-6rem)]">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 select-none animate-fade-in relative z-10 flex flex-col min-h-[calc(100vh-6rem)] font-sans">
       
-      {/* Header Block Element */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-default pb-5 mb-6 shrink-0">
+      {/* Upper Title Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-default pb-5 mb-6 shrink-0">
         <div className="space-y-1">
           <h1 className="text-xl font-bold tracking-wide text-text-main flex items-center gap-2">
             <BookOpen size={22} className="text-primary stroke-[2]" />
-            <span>Theory Masterclasses</span>
+            <span>My Study Notes</span>
           </h1>
           <p className="text-xs text-text-muted tracking-wide max-w-xl leading-relaxed">
-            Review and refine your custom-compiled computer science study material, academic guides, 
-            and architectural definitions.
+            Manage your custom computer science study materials, subject explanations, and exam review guides.
           </p>
         </div>
 
@@ -103,106 +110,147 @@ const Theories = () => {
           variant="primary"
           size="md"
           onClick={() => navigate("/theory/generate")}
-          className="font-semibold text-xs tracking-widest uppercase h-10 px-5 bg-primary hover:bg-primary-hover text-white flex items-center gap-2 shadow-xs cursor-pointer self-start md:self-auto shrink-0"
+          className="font-bold text-xs tracking-wider uppercase h-10 px-5 bg-primary hover:bg-primary-hover text-white flex items-center gap-2 shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
         >
           <Plus size={14} className="stroke-[2.5]" />
-          <span>Compile New Guide</span>
+          <span>Create New Note</span>
         </Button>
       </div>
 
-      {/* Control Utility Search */}
+      {/* Input Filtering Bar */}
       <div className="w-full max-w-md mb-6 relative group shrink-0">
         <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-light group-focus-within:text-primary transition-colors stroke-[2]" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by topic title or summary description parameters..."
-          className="w-full h-10 bg-bg-surface border border-border-default rounded-md pl-10 pr-4 text-xs font-mono text-text-main transition-all outline-hidden focus:border-primary/40 focus:bg-bg-surface/80 shadow-xs placeholder-text-light/50"
+          placeholder="Search by topic title or description contents..."
+          className="w-full h-10 bg-bg-surface border border-border-default rounded-md pl-10 pr-4 text-xs font-sans text-text-main transition-all outline-hidden focus:border-primary/40 focus:bg-bg-surface/80 shadow-xs placeholder-text-light/50"
         />
       </div>
 
-      {/* Main Core Document Collection Space */}
-      <div className="flex-1">
+      {/* Data Table Component Core Sheet Area */}
+      <div className="flex-1 overflow-x-auto border border-border-default rounded-md bg-bg-surface shadow-card min-h-0">
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-40 bg-bg-surface/40 border border-border-default rounded-md" />
+          <div className="p-8 space-y-4 animate-pulse">
+            <div className="h-6 bg-bg-soft/60 rounded-sm w-full" />
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-10 bg-bg-soft/30 rounded-sm w-full" />
             ))}
           </div>
         ) : apiError ? (
-          <div className="max-w-xl">
-            <Alert title="Collection Synchronizer Failure" message={apiError} variant="danger" />
+          <div className="p-6 max-w-xl">
+            <Alert title="Sync Error" message={apiError} variant="danger" />
           </div>
         ) : theories.length === 0 ? (
-          <div className="rounded-md border border-border-default bg-bg-surface/30 p-12 text-center max-w-xl mx-auto my-8 border-dashed">
-            <FileText size={32} className="text-text-light mx-auto mb-3 stroke-[1.5]" />
-            <h3 className="text-sm font-bold text-text-main tracking-wide mb-1">No Theory Guides Indexed</h3>
-            <p className="text-xs text-text-muted leading-relaxed max-w-xs mx-auto mb-5">
-              {search ? "No matching records met your active case-insensitive lookahead criteria pool." : "You haven't compiled any core subject guides yet."}
+          <div className="p-16 text-center max-w-md mx-auto">
+            <FileText size={36} className="text-text-light mx-auto mb-3 stroke-[1.5]" />
+            <h3 className="text-sm font-bold text-text-main tracking-wide mb-1">No study notes found</h3>
+            <p className="text-xs text-text-muted leading-relaxed mb-6">
+              {search ? "No notes matched your search query phrase." : "You haven't added any study materials to your dashboard account yet."}
             </p>
             {!search && (
               <Button
                 variant="primary"
                 size="sm"
                 onClick={() => navigate("/theory/generate")}
-                className="font-mono text-[11px] uppercase tracking-wider px-4 h-8 mx-auto"
+                className="text-[11px] font-bold tracking-wider px-4 h-8 mx-auto flex items-center gap-1.5"
               >
-                <Sparkles size={11} />
-                <span>Initialize AI Compiler</span>
+                <Sparkles size={12} />
+                <span>Create with AI Assistant</span>
               </Button>
             )}
           </div>
         ) : (
-          /* Architecture Content Grid List */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {theories.map((item) => (
-              <div
-                key={item._id}
-                onClick={() => navigate(`/theory/${item._id}/edit`)}
-                className="group bg-bg-surface border border-border-default hover:border-primary/40 rounded-md p-4 flex flex-col justify-between min-h-40 transition-all cursor-pointer shadow-card select-none hover:translate-y-[-2px]"
-              >
-                <div className="space-y-2 min-w-0">
-                  <div className="flex items-start justify-between gap-3">
-                    <h2 className="text-xs font-bold text-text-main tracking-wide line-clamp-2 leading-5 group-hover:text-primary transition-colors">
-                      {item.topic}
-                    </h2>
-                    
-                    <button
-                      type="button"
-                      onClick={(e) => handleDeleteRecord(e, item._id)}
-                      className="p-1 rounded-xs border border-transparent text-text-light hover:text-danger hover:bg-danger-soft/10 hover:border-danger/10 transition-colors shrink-0 cursor-pointer"
-                    >
-                      <Trash2 size={13} className="stroke-[2]" />
-                    </button>
-                  </div>
+          <table className="w-full border-collapse text-left text-xs font-sans">
+            <thead>
+              <tr className="bg-bg-soft border-b border-border-default text-text-main font-bold tracking-wide select-none">
+                <th className="p-4 w-[25%]">Topic Title</th>
+                <th className="p-4 w-[35%]">Description Preview</th>
+                <th className="p-4 w-[15%]">Date Created</th>
+                <th className="p-4 w-[10%]">Status</th>
+                <th className="p-4 w-[15%] text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border-default/50 text-text-muted">
+              {theories.map((item) => (
+                <tr 
+                  key={item._id}
+                  className="hover:bg-bg-soft/30 transition-colors group"
+                >
+                  {/* Column 1: Title */}
+                  <td className="p-4 font-bold text-text-main max-w-xs truncate group-hover:text-primary transition-colors">
+                    {item.topic}
+                  </td>
                   
-                  {item.content && (
-                    <p className="text-[11px] text-text-muted leading-5 line-clamp-3 font-normal font-mono opacity-80">
-                      {item.content.replace(/[#*`!\[\]()]/g, "").substring(0, 120)}...
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-1.5 pt-3 border-t border-border-default/50 text-[10px] font-mono text-text-light font-medium tracking-wide shrink-0">
-                  <Calendar size={11} className="stroke-[2]" />
-                  <span>{formatDate(item.createdAt)}</span>
-                  <span className="mx-0.5 text-border-strong">•</span>
-                  <span className={`px-1.5 py-0.5 rounded-xs text-[9px] font-bold uppercase tracking-wider ${
-                    item.status === "final" ? "bg-success-soft text-success border border-success/10" : "bg-bg-soft text-text-muted border border-border-strong"
-                  }`}>
-                    {item.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+                  {/* Column 2: Text Preview */}
+                  <td className="p-4 max-w-sm truncate text-text-muted font-normal">
+                    {cleanSnippetPreview(item.content)}
+                  </td>
+                  
+                  {/* Column 3: Date */}
+                  <td className="p-4 whitespace-nowrap text-text-light font-mono text-[11px]">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar size={12} className="stroke-[1.5]" />
+                      <span>{formatDate(item.createdAt)}</span>
+                    </div>
+                  </td>
+                  
+                  {/* Column 4: Status Indicator Badge */}
+                  <td className="p-4 whitespace-nowrap">
+                    <span className={`px-2 py-0.5 rounded-xs text-[9px] font-bold uppercase tracking-wider ${
+                      item.status === "final" 
+                        ? "bg-success-soft text-success border border-success/10" 
+                        : "bg-bg-soft text-text-muted border border-border-strong"
+                    }`}>
+                      {item.status}
+                    </span>
+                  </td>
+                  
+                  {/* Column 5: Action Button Panel */}
+                  <td className="p-4 whitespace-nowrap text-right font-medium">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/theory/${item._id}/details`)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-sm border border-border-default bg-bg-surface text-text-muted hover:text-text-main hover:border-border-strong transition-all text-[11px] font-semibold cursor-pointer"
+                        title="Read Note"
+                      >
+                        <Eye size={12} />
+                        <span>View</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/theory/${item._id}/edit`)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-sm border border-border-default bg-bg-surface text-text-muted hover:text-primary hover:border-primary/20 transition-all text-[11px] font-semibold cursor-pointer"
+                        title="Edit Content"
+                      >
+                        <Edit2 size={12} />
+                        <span>Edit</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteRecord(e, item._id)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-sm border border-transparent bg-transparent text-text-light hover:text-danger hover:bg-danger-soft/10 hover:border-danger/10 transition-all text-[11px] font-semibold cursor-pointer"
+                        title="Delete Note"
+                      >
+                        <Trash2 size={12} />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
       {/* Global Footer Pagination Track */}
       {pagination.totalPages > 1 && !loading && (
-        <div className="flex items-center justify-between border-t border-border-default pt-4 mt-8 shrink-0 font-mono text-[11px]">
+        <div className="flex items-center justify-between border-t border-border-default pt-4 mt-6 shrink-0 font-mono text-[11px]">
           <p className="text-text-light">
             Page <span className="font-bold text-text-muted">{page}</span> of <span className="font-bold text-text-muted">{pagination.totalPages}</span>
           </p>

@@ -23,12 +23,14 @@ import NoteDetails from "./pages/notes/NoteDetails";
 import Theories from "./pages/theory/Theories";
 import TheoryGenerator from "./pages/theory/TheoryGenerator";
 import TheoryEditor from "./pages/theory/TheoryEditor";
+import TheoryDetails from "./pages/theory/TheoryDetails";
 
 import NotFound from "./pages/general/NotFound";
 import Developer from "./pages/developer/Developer";
 import Privacy from "./pages/disclaimers/Privacy";
 import Terms from "./pages/disclaimers/Terms";
 import DataPrivacy from "./pages/disclaimers/DataPrivacy";
+
 
 const App = () => {
   const { isAuthenticated, user, loading } = useAuth();
@@ -94,6 +96,7 @@ const App = () => {
             <Route path="/theory" element={<Theories />} />
             <Route path="/theory/generate" element={<TheoryGenerator />} />
             <Route path="/theory/:id/edit" element={<TheoryEditor />} />
+            <Route path="/theory/:id/details" element={<TheoryDetails />} />
           </Route>
         </Route>
 

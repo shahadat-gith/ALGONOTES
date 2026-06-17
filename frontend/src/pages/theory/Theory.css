@@ -1,0 +1,292 @@
+/* ==========================================================================
+   CodeHelp Design Tokens & Scope
+   ========================================================================== */
+:root {
+  --ah-bg-base: #0a0a0c;
+  --ah-bg-surface: #111115;
+  --ah-bg-soft: #181820;
+  --ah-text-main: #ffffff;
+  --ah-text-muted: #94a3b8;
+  --ah-text-light: #4b5563;
+  --ah-border-default: rgba(255, 255, 255, 0.06);
+  --ah-border-strong: rgba(255, 255, 255, 0.15);
+  --ah-primary: #8b5cf6;
+  --ah-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================================================
+   Core Document Article Wrapper
+   ========================================================================== */
+.algonotes-article {
+  max-width: 1400px;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--ah-text-muted);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Fallback placeholder string when the contentEditable container is empty */
+.algonotes-article:empty::before {
+  content: attr(placeholder);
+  color: var(--ah-text-light);
+  opacity: 0.6;
+  pointer-events: none;
+  display: block;
+}
+
+/* ==========================================================================
+   Typography Scale
+   ========================================================================== */
+.algonotes-h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--ah-text-main);
+  border-bottom: 1px solid var(--ah-border-default);
+  padding-bottom: 0.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.algonotes-h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ah-text-main);
+  border-bottom: 1px solid var(--ah-border-default);
+  padding-bottom: 0.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.algonotes-h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ah-text-main);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.algonotes-p {
+  margin-bottom: 1rem;
+  color: var(--ah-text-muted);
+  line-height: 1.7;
+}
+
+/* ==========================================================================
+   Lists Formatting
+   ========================================================================== */
+.algonotes-ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.algonotes-ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.algonotes-li {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  color: var(--ah-text-muted);
+}
+
+/* ==========================================================================
+   Blockquotes, Notes, & Callouts
+   ========================================================================== */
+.algonotes-blockquote {
+  border-left: 3px solid var(--ah-primary);
+  background-color: rgba(139, 92, 246, 0.05);
+  padding: 0.5rem 1rem;
+  border-radius: 0 4px 4px 0;
+  margin: 1rem 0;
+  font-style: italic;
+}
+
+/* ==========================================================================
+   Code Blocks & Snippets
+   ========================================================================== */
+.algonotes-inline-code {
+  color: var(--ah-primary);
+  background-color: var(--ah-bg-soft);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.algonotes-pre {
+  background-color: var(--ah-bg-base);
+  border: 1px solid var(--ah-border-default);
+  padding: 1.25rem;
+  border-radius: 6px;
+  margin: 1.25rem 0;
+  box-shadow: var(--ah-shadow);
+  overflow-x: auto;
+}
+
+.algonotes-code-block {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+  color: var(--ah-text-main);
+  white-space: pre;
+  line-height: 1.6;
+}
+
+/* ==========================================================================
+   Tabular Content (Tables)
+   ========================================================================== */
+.algonotes-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.85rem;
+}
+
+.algonotes-tr {
+  transition: background-color 0.2s ease;
+}
+
+.algonotes-tr:hover {
+  background-color: rgba(24, 24, 32, 0.4);
+}
+
+.algonotes-th {
+  border-bottom: 2px solid var(--ah-border-strong);
+  padding-bottom: 0.75rem;
+  color: var(--ah-text-main);
+  font-weight: 700;
+  text-align: left;
+}
+
+.algonotes-td {
+  border-bottom: 1px solid var(--ah-border-default);
+  padding: 0.75rem 0;
+  color: var(--ah-text-muted);
+}
+
+/* ==========================================================================
+   Finalized Images & Descriptions
+   ========================================================================== */
+.algonotes-img {
+  max-width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--ah-border-default);
+  max-height: 380px;
+  object-fit: contain;
+  margin: 1.5rem auto 0.5rem auto;
+  display: block;
+  background-color: var(--ah-bg-base);
+  box-shadow: var(--ah-shadow);
+}
+
+.algonotes-image-description {
+  text-align: center;
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--ah-text-light);
+  margin-top: 0.25rem;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   Editor Specific Placeholder Cards (Hidden automatically in Viewer Mode)
+   ========================================================================== */
+.algonotes-editor-placeholder-card {
+  margin: 1.5rem auto;
+  max-width: 650px;
+  border: 1px dashed rgba(139, 92, 246, 0.3);
+  background-color: rgba(139, 92, 246, 0.02);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.algonotes-editor-placeholder-card:hover {
+  border-color: rgba(139, 92, 246, 0.5);
+  background-color: rgba(139, 92, 246, 0.04);
+}
+
+.algonotes-editor-placeholder-card .placeholder-icon-wrap {
+  padding: 0.5rem;
+  border-radius: 4px;
+  background-color: rgba(139, 92, 246, 0.1);
+  color: var(--ah-primary);
+  display: inline-flex;
+}
+
+.algonotes-editor-placeholder-card .placeholder-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.algonotes-editor-placeholder-card .placeholder-title {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: var(--ah-primary);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+}
+
+.algonotes-editor-placeholder-card .placeholder-copy-btn {
+  background: transparent;
+  border: none;
+  color: var(--ah-text-light);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.algonotes-editor-placeholder-card .placeholder-copy-btn:hover {
+  color: var(--ah-text-main);
+  background-color: var(--ah-bg-soft);
+}
+
+.algonotes-editor-placeholder-card .placeholder-desc {
+  font-size: 13px;
+  color: var(--ah-text-muted);
+  max-w: 480px;
+  line-height: 1.5;
+  margin: 0 0 0.5rem 0;
+  font-weight: 400;
+}
+
+.algonotes-editor-placeholder-card .placeholder-action-btn {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: var(--ah-bg-surface);
+  border: 1px solid var(--ah-border-strong);
+  color: var(--ah-text-main);
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.algonotes-editor-placeholder-card .placeholder-action-btn:hover {
+  background-color: var(--ah-bg-soft);
+  border-color: rgba(139, 92, 246, 0.4);
+}
