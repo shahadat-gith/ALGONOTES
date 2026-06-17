@@ -1,5 +1,3 @@
-# app/prompts/theory_prompt.py
-
 from typing import Optional
 
 def generate_theory_prompt(topic: str, instructions: Optional[str] = None) -> str:
@@ -7,7 +5,6 @@ def generate_theory_prompt(topic: str, instructions: Optional[str] = None) -> st
     Assembles the masterclass prompt layout payload, dynamically incorporating
     custom runtime user instructions if they are present.
     """
-    # Base configuration rules for Gemini
     prompt = f"""
 You are an expert Professor and an authoritative technical writer.
 Generate an extensive, masterclass-level study guide and technical breakdown for the topic: "{topic}".
@@ -19,7 +16,6 @@ IMAGE INJECTION LAYOUT RULES
 - Increment the numeric index for each unique diagram placeholder required throughout the content guide sequence (e.g., ai-placeholder-1, ai-placeholder-2, etc.).
 """
 
-    # Dynamically inject explicit user instructions block if provided
     if instructions and instructions.strip():
         prompt += f"""
 CRITICAL USER REQUEST & INSTRUCTIONS
@@ -28,18 +24,12 @@ You MUST prioritize and strictly fulfill the following custom guidelines request
 {instructions.strip()}
 """
 
-    # Append structural formatting constraints and schema target metrics
     prompt += f"""
-OUTPUT CONSTRAINTS
+TEXT FORMATTING & CODE BLOCK CONSTRAINTS
 ------------------------------------------
-- Return ONLY a valid JSON object matching the target schema configuration properties.
-- Do NOT warp your full root JSON response inside backtick markdown code block fences (```json ... ```).
-- Output text, equations, and code snippets formatted cleanly for long-term study retention.
-
-TARGET JSON SCHEMA DEFINITION
-------------------------------------------
-{{
-  "content": "Provide a complete comprehensive academic theory essay text string structured using rich Markdown headers, subheaders, bullet structures, and code execution syntax blocks. Weave the image placeholders seamlessly between your explanatory layout text blocks as specified regarding: {topic}."
-}}
+- The output text MUST be structured as semantic Markdown mixed with clean HTML layout syntax blocks.
+- Use Markdown for main titles, headers (`##`, `###`), and list nodes (`*`, `1.`).
+- CRITICAL CODE HANDLING: Any technical code snippet, script, function, or implementation block MUST be wrapped in standard triple backtick markdown code blocks (```) with the language specified (e.g., ```python ... ```). 
+- Inside these code blocks, you MUST preserve multi-line structure, correct indentations, and explicit newlines. Never flatten code blocks horizontally into a single line.
 """
     return prompt.strip()

@@ -7,6 +7,11 @@ from datetime import datetime, timezone
 from beanie import PydanticObjectId
 from google.genai import types
 
+from pydantic import BaseModel, Field
+
+
+# Define the exact structure and formatting rules for Gemini
+
 from app.config import ai_client
 from app.prompts import generate_note_prompt, generate_theory_prompt
 from app.models import Note, Theory
@@ -90,9 +95,12 @@ async def execute_note_generation(message: dict):
     print(f"[Worker Pipeline] DSA Note processed and saved successfully: {note_id}")
 
 
-# ==========================================
-# THEORY NOTES EXECUTION PIPELINE
-# ==========================================
+
+class TheoryContentSchema(BaseModel):
+    content: str = Field(
+        description="Comprehensive study guide structured in Markdown. Any multi-line code examples MUST be wrapped strictly in triple backtick markdown code blocks (```lang ... ```) with pristine indentation, line breaks, and formatting."
+    )
+    
 async def execute_theory_generation(message: dict):
     """
     Generates rigorous academic masterclass study guides over core subjects 
@@ -120,27 +128,32 @@ async def execute_theory_generation(message: dict):
         await handle_theory_generation_failure(theory_id, "User identifier verification mismatch.")
         return
 
-    # Call the clean, separate theory prompt file logic
     prompt = generate_theory_prompt(
         topic=message["topic"],
         instructions=message.get("instructions") 
     )
 
-    response = await ai_client.aio.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(response_mime_type="application/json"),
-    )
+    try:
+        # Enforce structural integrity natively via the Gemini SDK
+        response = await ai_client.aio.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=TheoryContentSchema, # Forces Gemini to adhere to Pydantic rules
+            ),
+        )
 
-    if not response.text:
-        raise ValueError("Gemini engine interface returned an empty text string container.")
+        if not response.text:
+            raise ValueError("Gemini engine interface returned an empty text string container.")
 
-    clean_text = response.text.strip().removeprefix("```json").removesuffix("```").strip()
-    
-    ai_data = json.loads(clean_text)
-    
-    theory.content = ai_data.get("content", "")
-    theory.status = TheoryStatus.draft
-    theory.updatedAt = datetime.now(timezone.utc)
-    await theory.save()
-    print(f"[Worker Pipeline] theory note processed and saved successfully: {theory_id}")
+        ai_data = json.loads(response.text)
+        
+        theory.content = ai_data.get("content", "")
+        theory.status = TheoryStatus.draft
+        theory.updatedAt = datetime.now(timezone.utc)
+        await theory.save()
+        print(f"[Worker Pipeline] theory note processed and saved successfully: {theory_id}")
+        
+    except Exception as e:
+        await handle_theory_generation_failure(theory_id, f"Payload Parsing Fault: {str(e)}")

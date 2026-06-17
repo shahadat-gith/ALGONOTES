@@ -1,4 +1,5 @@
 from typing import List
+from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,9 +12,6 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str
     JWT_EXPIRES_IN: str = "7d"
-
-    FRONTEND_URL: str = "http://localhost:5173"
-    FRONTEND_URL_PROD: str = "https://algonotes.onrender.com"
 
     CLOUDINARY_CLOUD_NAME: str
     CLOUDINARY_API_KEY: str
@@ -33,6 +31,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+    @computed_field
     @property
     def ALLOWED_ORIGINS(self) -> List[str]:
         origins = [
@@ -40,9 +39,9 @@ class Settings(BaseSettings):
             "http://localhost:5173",
             "http://127.0.0.1:3000",
             "http://127.0.0.1:5173",
-            self.FRONTEND_URL,
-            self.FRONTEND_URL_PROD,
             "https://algonotes.onrender.com",
+            "https://www.algonotes.in",
+            "https://algonotes.in",
         ]
 
         return list(
