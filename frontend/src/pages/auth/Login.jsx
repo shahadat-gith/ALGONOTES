@@ -7,7 +7,7 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { loginUser } from "../../api/authApi";
 import { useAuth } from "../../context/AuthContext";
-import MinimalistLogo from "../../components/logo/MinimalistLogo";
+
 
 const Login = () => {
   const navigate = useNavigate();
@@ -75,7 +75,7 @@ const Login = () => {
         {/* Upper Identity Branding Row */}
         <div className="mb-8 text-center space-y-2">
           <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center text-primary group transition-transform duration-300 hover:rotate-6">
-            <MinimalistLogo className="h-8 w-8" />
+            <img src="/logo.png" className="h-10 w-10 rounded-full" />
           </div>
 
           <h1 className="text-xl font-bold text-text-main tracking-wide">

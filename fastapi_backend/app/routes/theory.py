@@ -4,8 +4,9 @@ from math import ceil
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, status
 from beanie.operators import In
+import cloudinary.uploader
 
 from app.models import User, Theory
 from app.models.theory import TheoryStatus
@@ -14,7 +15,7 @@ from app.middlewares import get_current_user
 from app.sqs import enqueue_theory_generation
 
 router = APIRouter(
-    prefix="/theories",
+    prefix="/theory",
     tags=["Theory Notes"]
 )
 
@@ -22,43 +23,51 @@ router = APIRouter(
 # AI GENERATION ACTIONS
 # ==========================================
 
+
 @router.post("/generate", status_code=status.HTTP_202_ACCEPTED, tags=["AI Actions"])
 async def generate_ai_theory(
     payload: GenerateTheoryRequest,
     current_user: User = Depends(get_current_user),
 ):
+    """
+    Initializes a new theory document profile tracking context record,
+    captures instructions, and enqueues a generation job task to the worker queue.
+    """
     new_theory = Theory(
         user_id=current_user.id,
         status=TheoryStatus.processing,
         topic=payload.topic,
-        content="",  # Populated asynchronously by worker
+        content="", 
         createdAt=datetime.now(timezone.utc),
         updatedAt=datetime.now(timezone.utc),
     )
 
     await new_theory.insert()
-    theory_id = str(new_theory.id)
+    
+    theory_id_str = str(new_theory.id)
+    user_id_str = str(current_user.id)
 
     try:
-        # --- UPDATED: Call the clean enqueue dispatcher function with proper await syntax ---
         await enqueue_theory_generation(
-            theory_id=theory_id,
-            user_id=current_user.id,
+            theory_id=theory_id_str,
+            user_id=user_id_str,
             topic=payload.topic,
+            instructions=payload.instructions
         )
-
-    except Exception:
+    except Exception as e:
         await new_theory.delete()
+        print(f"[SQS Queue Error Details]: {str(e)}")
+        
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to queue AI theory generation job.",
+            detail=f"Failed to queue AI theory generation job. Error: {str(e)}",
         )
 
     return {
         "success": True,
         "message": "AI theory note generation queued.",
         "status": TheoryStatus.processing,
-        "id": theory_id,
+        "id": theory_id_str,
     }
 
 
@@ -91,6 +100,53 @@ async def check_theory_generation_status(
 
 
 # ==========================================
+# MEDIA / CLOUDINARY UPLOADS
+# ==========================================
+
+@router.post("/{theory_id}/upload-image", tags=["Theory Media Layer"])
+async def upload_theory_image(
+    theory_id: str,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Accepts multipart file binaries, uploads directly to Cloudinary,
+    and maps the unique asset URL back to the workspace environment.
+    """
+    theory = await Theory.get(theory_id)
+    if not theory or theory.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Target theory workspace scope context missing.",
+        )
+
+    if file.content_type not in ["image/jpeg", "image/png", "image/webp", "image/gif"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid image profile binary structure stream type.",
+        )
+
+    try:
+        # Upload using the global configure parameters established at startup
+        upload_result = cloudinary.uploader.upload(
+            file.file,
+            folder=f"algonotes/theory_{theory_id}",
+            overwrite=True,
+            resource_type="image"
+        )
+        
+        return {
+            "success": True,
+            "imageUrl": upload_result.get("secure_url")
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Cloudinary pipeline media tracking exception: {str(e)}"
+        )
+
+
+# ==========================================
 # STANDARD CRUD OPERATIONS
 # ==========================================
 
@@ -103,13 +159,12 @@ async def get_all_theories_by_user(
 ):
     skip = (page - 1) * size
 
-    # Fetch only stable visible notes (draft or final)
+    # Fetch only stable visible notes (draft or final formats)
     find_query = Theory.find(
         Theory.user_id == current_user.id,
         In(Theory.status, [TheoryStatus.draft, TheoryStatus.final])
     )
 
-    # Clean case-insensitive substring search over the main topic or body text
     if search and search.strip():
         term = search.strip()
         find_query = find_query.find({
@@ -183,7 +238,6 @@ async def update_theory(
             detail="Theory note not found.",
         )
 
-    # Dynamically patch provided fields
     if payload.status is not None:
         theory.status = payload.status
     if payload.topic is not None:

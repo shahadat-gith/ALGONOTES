@@ -48,7 +48,11 @@ const FloatingNavbar = () => {
           {/* LEFT SECTION: Brand Logo */}
           <div className="flex items-center gap-6">
             <Link to="/dashboard" className="flex items-center gap-2.5 group">
-              <MinimalistLogo className="h-5.5 w-5.5 text-primary transition-transform duration-300 group-hover:rotate-6" />
+               <img
+              src="/logo.png"
+              alt="ALGONOTES logo"
+              className="h-8 w-8 rounded-full transition-transform group-hover:scale-105"
+            />
               <span className="hidden sm:inline text-xs font-bold tracking-widest font-mono text-text-main">
                 ALGO<span className="text-primary font-black">NOTES</span>
               </span>

@@ -2,7 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 
 from app.config import settings
-from app.models import User, Note
+from app.models import User, Note, Theory
 
 
 client = None
@@ -22,7 +22,8 @@ async def init_db():
             database=db,
             document_models=[
                 User,
-                Note
+                Note,
+                Theory
             ]
         )
 

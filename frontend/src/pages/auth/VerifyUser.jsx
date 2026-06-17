@@ -112,7 +112,7 @@ const VerifyUser = () => {
         {/* Brand Icon Block */}
         <div className="text-center space-y-3">
           <div className="h-11 w-11 rounded-sm bg-primary-soft text-primary flex items-center justify-center mx-auto border border-primary/10 shadow-xs">
-            <ShieldCheck size={20} className="stroke-[2]" />
+            <img src="/logo.png" className="h-10 w-10 rounded-full" />
           </div>
           <div className="space-y-1">
             <h1 className="text-xl font-bold text-text-main tracking-wide">

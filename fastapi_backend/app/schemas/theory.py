@@ -1,3 +1,5 @@
+# app/schemas/theory.py
+
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field, BeforeValidator
@@ -11,6 +13,7 @@ PyObjectId = Annotated[str, BeforeValidator(lambda v: str(v) if v is not None el
 # ==========================================
 class GenerateTheoryRequest(BaseModel):
     topic: str = Field(..., min_length=1)
+    instructions: Optional[str] = None  # Added missing instructions field
 
 # ==========================================
 # RESPONSE SCHEMA
@@ -19,7 +22,7 @@ class TheoryResponse(BaseModel):
     id: PyObjectId = Field(alias="_id") 
     status: TheoryStatus
     topic: str
-    content: str  # Kept flat and consistent
+    content: str  
     createdAt: datetime
     updatedAt: datetime
     user_id: PyObjectId 

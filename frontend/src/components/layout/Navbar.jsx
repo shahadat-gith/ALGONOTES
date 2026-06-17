@@ -3,10 +3,9 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Dropdown from "./Dropdown";
-import SearchModal from "../modals/SearchModal"; 
+import SearchModal from "../modals/SearchModal";
 import { Search, Loader2 } from "lucide-react";
 import Button from "../common/Button";
-import MinimalistLogo from "../logo/MinimalistLogo";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -22,16 +21,18 @@ const Navbar = () => {
     <>
       <header className="w-full bg-bg-surface border-b border-border-default relative z-40 select-none">
         <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-          
           {/* Brand Logo Group */}
-          <div className="flex items-center gap-6">
-            <Link to="/dashboard" className="flex items-center gap-2.5 group">
-              <MinimalistLogo className="h-6 w-6 text-primary transition-transform duration-300 group-hover:rotate-6" />
-              <span className="text-sm font-bold tracking-widest font-mono text-text-main">
-                ALGO<span className="text-primary font-black">NOTES</span>
-              </span>
-            </Link>
-          </div>
+          <Link to="/dashboard" className="flex items-center gap-3 group">
+            <img
+              src="/logo.png"
+              alt="ALGONOTES logo"
+              className="h-8 w-8 rounded-full transition-transform group-hover:scale-105"
+            />
+
+            <span className="text-base font-semibold tracking-tight text-white">
+              ALGO<span className="text-primary">NOTES</span>
+            </span>
+          </Link>
 
           {/* Action Hub */}
           <div className="flex items-center gap-4 shrink-0">
@@ -50,12 +51,19 @@ const Navbar = () => {
 
             {loading ? (
               <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-bg-soft border border-border-default">
-                <Loader2 size={15} className="animate-spin text-primary stroke-[2]" />
+                <Loader2
+                  size={15}
+                  className="animate-spin text-primary stroke-[2]"
+                />
               </div>
             ) : user ? (
               <Dropdown user={user} onLogout={handleLogout} />
             ) : (
-              <Button onClick={() => navigate("/login")} size="md" variant="primary">
+              <Button
+                onClick={() => navigate("/login")}
+                size="md"
+                variant="primary"
+              >
                 Login
               </Button>
             )}
@@ -63,7 +71,10 @@ const Navbar = () => {
         </div>
       </header>
 
-      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      <SearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
     </>
   );
 };

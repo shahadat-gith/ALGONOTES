@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom"; // Added react-router-dom import
 import { forgotPassword } from "../../api/authApi";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
@@ -80,24 +81,46 @@ const ForgotPassword = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg-base px-4 py-12 relative overflow-hidden selection:bg-primary/20">
-      {/* Visual background gradient circle overlay decoration */}
+      {/* Premium Ambient Background Blur Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none z-0" />
 
-      <div className="w-full max-w-[420px] bg-bg-surface border border-border-default rounded-md shadow-card p-8 relative z-10 select-none transition-all">
+      <div className="w-full max-w-[420px] bg-bg-surface border border-border-default rounded-lg shadow-card p-8 relative z-10 transition-all duration-300 hover:border-border-strong">
         
-       
+        {/* Universal Brand Identity Header Layer */}
+        <div className="flex flex-col items-center mb-8">
+          <img 
+            src="/logo.png" 
+            alt="CodeHelp Logo" 
+            className="h-10 w-auto object-contain mb-2 select-none pointer-events-none rounded-full"
+            onError={(e) => {
+              e.target.style.display = 'none'; 
+            }}
+          />
+          <span className="text-xs uppercase font-semibold tracking-[0.2em] text-primary">ALGONOTES</span>
+        </div>
 
-        {/* Global Alert Notification banners */}
+        {/* Global Alert Notification Banners */}
         {error && (
-          <div className="mb-5 p-3.5 rounded-sm bg-danger-soft border border-danger/10 text-xs font-medium text-danger">
+          <div className="mb-5 p-3.5 rounded-sm bg-danger-soft border border-danger/10 text-xs font-medium text-danger animate-in fade-in slide-in-from-top-2 duration-200">
             {error}
           </div>
         )}
         
         {successMessage && step !== "complete" && (
-          <div className="mb-5 p-3.5 rounded-sm bg-success-soft border border-success/10 text-xs font-medium text-success">
+          <div className="mb-5 p-3.5 rounded-sm bg-success-soft border border-success/10 text-xs font-medium text-success animate-in fade-in slide-in-from-top-2 duration-200">
             {successMessage}
           </div>
+        )}
+
+        {/* Back Arrow Controls for Mid-Flow Resets */}
+        {step !== "send-otp" && step !== "complete" && (
+          <button
+            type="button"
+            onClick={() => setStep(step === "verify-otp" ? "send-otp" : "verify-otp")}
+            className="absolute top-6 left-6 text-text-muted hover:text-text-main transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
+          >
+            <ArrowLeft size={14} /> Back
+          </button>
         )}
 
         {/* ==========================================================
@@ -105,12 +128,9 @@ const ForgotPassword = () => {
            ========================================================== */}
         {step === "send-otp" && (
           <form onSubmit={handleSendOtp} className="space-y-5">
-            <div className="text-center md:text-left space-y-1.5">
-              <div className="h-10 w-10 mx-auto md:mx-0 rounded-sm bg-primary-soft border border-primary/10 flex items-center justify-center text-primary mb-2 shadow-xs">
-                <KeyRound size={18} className="stroke-[1.75]" />
-              </div>
+            <div className="text-center space-y-1.5">
               <h2 className="text-xl font-bold tracking-wide text-text-main">Forgot Password?</h2>
-              <p className="text-xs text-text-muted leading-normal">
+              <p className="text-xs text-text-muted leading-normal max-w-[280px] mx-auto">
                 No worries! Enter your email and we'll send over a secure confirmation code.
               </p>
             </div>
@@ -127,13 +147,23 @@ const ForgotPassword = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
-                className="pl-10 text-sm h-10 bg-bg-base rounded-md"
+                className="pl-10 text-sm h-10 bg-bg-base rounded-md focus:border-primary/50 transition-colors"
               />
             </div>
 
             <Button type="submit" loading={loading} className="w-full mt-2" size="md">
               Send Verification Code
             </Button>
+
+            <div className="text-center pt-2">
+              {/* Replaced <a> with React Router <Link> */}
+              <Link 
+                to="/login" 
+                className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-main transition-colors font-medium"
+              >
+                <ArrowLeft size={12} /> Return to Sign In
+              </Link>
+            </div>
           </form>
         )}
 
@@ -142,12 +172,12 @@ const ForgotPassword = () => {
            ========================================================== */}
         {step === "verify-otp" && (
           <form onSubmit={handleVerifyOtp} className="space-y-5">
-            <div className="text-center md:text-left space-y-1.5">
-              <div className="h-10 w-10 mx-auto md:mx-0 rounded-sm bg-primary-soft border border-primary/10 flex items-center justify-center text-primary mb-2 shadow-xs">
+            <div className="text-center space-y-1.5">
+              <div className="h-10 w-10 mx-auto rounded-sm bg-primary-soft border border-primary/10 flex items-center justify-center text-primary mb-2 shadow-xs">
                 <Mail size={18} className="stroke-[1.75]" />
               </div>
               <h2 className="text-xl font-bold tracking-wide text-text-main">Check Your Inbox</h2>
-              <p className="text-xs text-text-muted leading-normal">
+              <p className="text-xs text-text-muted leading-normal max-w-[300px] mx-auto">
                 We dispatched a secure 6-digit confirmation code to <span className="font-semibold text-text-main font-mono">{email}</span>.
               </p>
             </div>
@@ -162,7 +192,7 @@ const ForgotPassword = () => {
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                 required
                 disabled={loading}
-                className="text-center font-mono text-lg tracking-[0.4em] pl-4 font-bold h-11 bg-bg-base rounded-md focus:placeholder:opacity-0"
+                className="text-center font-mono text-lg tracking-[0.4em] pl-4 font-bold h-11 bg-bg-base rounded-md focus:placeholder:opacity-0 focus:border-primary/50 transition-all"
               />
               {loading && (
                 <div className="absolute top-[34px] right-4 flex items-center text-primary">
@@ -193,12 +223,12 @@ const ForgotPassword = () => {
            ========================================================== */}
         {step === "reset-password" && (
           <form onSubmit={handleResetPassword} className="space-y-5">
-            <div className="text-center md:text-left space-y-1.5">
-              <div className="h-10 w-10 mx-auto md:mx-0 rounded-sm bg-primary-soft border border-primary/10 flex items-center justify-center text-primary mb-2 shadow-xs">
+            <div className="text-center space-y-1.5">
+              <div className="h-10 w-10 mx-auto rounded-sm bg-primary-soft border border-primary/10 flex items-center justify-center text-primary mb-2 shadow-xs">
                 <Lock size={18} className="stroke-[1.75]" />
               </div>
               <h2 className="text-xl font-bold tracking-wide text-text-main">Set New Password</h2>
-              <p className="text-xs text-text-muted leading-normal">
+              <p className="text-xs text-text-muted leading-normal max-w-[280px] mx-auto">
                 Secure your profile. Pick a brand-new alphanumeric string configuration.
               </p>
             </div>
@@ -211,7 +241,7 @@ const ForgotPassword = () => {
               onChange={(e) => setNewPassword(e.target.value)}
               required
               disabled={loading}
-              className="text-sm h-10 bg-bg-base rounded-md"
+              className="text-sm h-10 bg-bg-base rounded-md focus:border-primary/50 transition-colors"
             />
 
             <Input
@@ -222,7 +252,7 @@ const ForgotPassword = () => {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               disabled={loading}
-              className="text-sm h-10 bg-bg-base rounded-md"
+              className="text-sm h-10 bg-bg-base rounded-md focus:border-primary/50 transition-colors"
             />
 
             <Button type="submit" loading={loading} className="w-full mt-2" size="md">
@@ -235,8 +265,8 @@ const ForgotPassword = () => {
             SCREEN 4: TRANSACTION TERMINATION AND COMPLETION CANVAS
            ========================================================== */}
         {step === "complete" && (
-          <div className="text-center py-2 space-y-5 flex flex-col items-center">
-            <div className="h-12 w-12 rounded-full bg-success-soft border border-success/10 flex items-center justify-center text-success animate-pulse shadow-xs">
+          <div className="text-center py-2 space-y-5 flex flex-col items-center animate-in zoom-in-95 duration-300">
+            <div className="h-12 w-12 rounded-full bg-success-soft border border-success/10 flex items-center justify-center text-success shadow-xs">
               <ShieldCheck size={24} className="stroke-[2]" />
             </div>
             
@@ -247,11 +277,12 @@ const ForgotPassword = () => {
               </p>
             </div>
 
-            <a href="/login" className="block w-full">
+            {/* Replaced <a> layout structure with React Router <Link> wrapper */}
+            <Link to="/login" className="block w-full">
               <Button type="button" className="w-full" size="md">
-                Sign In to Workspace
+                Sign In
               </Button>
-            </a>
+            </Link>
           </div>
         )}
 

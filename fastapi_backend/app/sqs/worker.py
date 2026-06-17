@@ -121,7 +121,10 @@ async def execute_theory_generation(message: dict):
         return
 
     # Call the clean, separate theory prompt file logic
-    prompt = generate_theory_prompt(topic=message["topic"])
+    prompt = generate_theory_prompt(
+        topic=message["topic"],
+        instructions=message.get("instructions") 
+    )
 
     response = await ai_client.aio.models.generate_content(
         model="gemini-2.5-flash",
@@ -132,10 +135,12 @@ async def execute_theory_generation(message: dict):
     if not response.text:
         raise ValueError("Gemini engine interface returned an empty text string container.")
 
-    ai_data = json.loads(response.text)
+    clean_text = response.text.strip().removeprefix("```json").removesuffix("```").strip()
+    
+    ai_data = json.loads(clean_text)
     
     theory.content = ai_data.get("content", "")
     theory.status = TheoryStatus.draft
     theory.updatedAt = datetime.now(timezone.utc)
     await theory.save()
-    print(f"[Worker Pipeline] CS Theory Guide processed and saved successfully: {theory_id}")
+    print(f"[Worker Pipeline] theory note processed and saved successfully: {theory_id}")

@@ -6,7 +6,6 @@ import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { registerUser } from "../../api/authApi";
-import MinimalistLogo from "../../components/logo/MinimalistLogo";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -83,7 +82,7 @@ const Register = () => {
         {/* Upper Header Branding Column */}
         <div className="mb-8 text-center space-y-2">
           <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center text-primary group transition-transform duration-300 hover:rotate-6">
-            <MinimalistLogo className="h-8 w-8" />
+            <img src="/logo.png" className="h-10 w-10 rounded-full" />
           </div>
 
           <h1 className="text-xl font-bold text-text-main tracking-wide">
