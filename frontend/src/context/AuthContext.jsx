@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      setLoading(true); // Ensure lock is closed during active hydration requests
+      setLoading(true);
       const data = await getCurrentUser();
 
       if (data?.success && data?.user) {
@@ -27,7 +27,6 @@ export const AuthProvider = ({ children }) => {
         handleSessionClear();
       }
     } catch (error) {
-      console.error("Session profile token validation failed:", error);
       handleSessionClear();
     } finally {
       setLoading(false);
@@ -52,7 +51,6 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
-  // Run validation checks on mount and whenever the active token transitions
   useEffect(() => {
     loadUser();
   }, [token]);

@@ -21,7 +21,6 @@ const Register = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -33,28 +32,23 @@ const Register = () => {
       toast.error("Name is required");
       return false;
     }
-
     if (!formData.email.trim()) {
       toast.error("Email is required");
       return false;
     }
-
     if (!formData.password) {
       toast.error("Password is required");
       return false;
     }
-
     if (formData.password.length < 6) {
       toast.error("Password must be at least 6 characters");
       return false;
     }
-
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     setLoading(true);
@@ -63,11 +57,12 @@ const Register = () => {
       const data = await registerUser(formData);
 
       if (data.success) {
-        toast.success(data.message || "Account created successfully");
-        navigate("/login");
+        toast.success(data.message || "Registration successful! Please verify your account.");
+        // Redirect directly to verification layout to enter the newly generated email OTP
+        navigate(`/verify?email=${encodeURIComponent(formData.email.toLowerCase().trim())}`);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Registration failed. Please try again.");
+      toast.error(error.response?.data?.detail || error.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -82,7 +77,7 @@ const Register = () => {
         {/* Upper Header Branding Column */}
         <div className="mb-8 text-center space-y-2">
           <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center text-primary group transition-transform duration-300 hover:rotate-6">
-            <img src="/logo.png" className="h-10 w-10 rounded-full" />
+            <img src="/logo.png" className="h-10 w-10 rounded-full" alt="ALGONOTES logo" />
           </div>
 
           <h1 className="text-xl font-bold text-text-main tracking-wide">

@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom"; // Added react-router-dom import
+import { Link } from "react-router-dom";
 import { forgotPassword } from "../../api/authApi";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
-import { KeyRound, Mail, Lock, ShieldCheck, ArrowLeft, Loader2 } from "lucide-react";
+import { Mail, Lock, ShieldCheck, ArrowLeft, Loader2 } from "lucide-react";
+import toast from "react-hot-toast";
 
 const ForgotPassword = () => {
   // Navigation & Form State
@@ -21,18 +22,19 @@ const ForgotPassword = () => {
   // Step 1: Dispatch Reset OTP Code
   const handleSendOtp = async (e) => {
     if (e) e.preventDefault();
-    if (!email) return setError("Please enter your email address.");
+    if (!email || !email.trim()) return setError("Please enter your email address.");
 
     setLoading(true);
     setError("");
+    setSuccessMessage("");
     try {
-      const response = await forgotPassword({ email, step: "send-otp" });
+      const response = await forgotPassword({ email: email.toLowerCase().trim(), step: "send-otp" });
       if (response.success) {
-        setSuccessMessage(response.message);
+        setSuccessMessage(response.message || "Verification code dispatched successfully.");
         setStep("verify-otp");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong. Please try again.");
+      setError(err.response?.data?.detail || err.response?.data?.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -45,14 +47,15 @@ const ForgotPassword = () => {
 
     setLoading(true);
     setError("");
+    setSuccessMessage(""); // Clear old message before transition
     try {
-      const response = await forgotPassword({ email, otp, step: "verify-otp" });
+      const response = await forgotPassword({ email: email.toLowerCase().trim(), otp, step: "verify-otp" });
       if (response.success) {
-        setSuccessMessage(response.message);
+        setSuccessMessage(response.message || "Code verified successfully.");
         setStep("reset-password");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid or expired token code.");
+      setError(err.response?.data?.detail || err.response?.data?.message || "Invalid or expired token code.");
     } finally {
       setLoading(false);
     }
@@ -62,18 +65,24 @@ const ForgotPassword = () => {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (!newPassword) return setError("Please enter a new password.");
+    if (newPassword.length < 6) return setError("Password must be at least 6 characters.");
     if (newPassword !== confirmPassword) return setError("Passwords do not match.");
 
     setLoading(true);
     setError("");
+    setSuccessMessage("");
     try {
-      const response = await forgotPassword({ email, newPassword, step: "reset-password" });
+      const response = await forgotPassword({ 
+        email: email.toLowerCase().trim(), 
+        newPassword, 
+        step: "reset-password" 
+      });
       if (response.success) {
-        setSuccessMessage(response.message);
+        setSuccessMessage(response.message || "Password updated successfully.");
         setStep("complete");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to update your password credentials.");
+      setError(err.response?.data?.detail || err.response?.data?.message || "Failed to update your password credentials.");
     } finally {
       setLoading(false);
     }
@@ -90,7 +99,7 @@ const ForgotPassword = () => {
         <div className="flex flex-col items-center mb-8">
           <img 
             src="/logo.png" 
-            alt="CodeHelp Logo" 
+            alt="ALGONOTES Logo" 
             className="h-10 w-auto object-contain mb-2 select-none pointer-events-none rounded-full"
             onError={(e) => {
               e.target.style.display = 'none'; 
@@ -116,16 +125,18 @@ const ForgotPassword = () => {
         {step !== "send-otp" && step !== "complete" && (
           <button
             type="button"
-            onClick={() => setStep(step === "verify-otp" ? "send-otp" : "verify-otp")}
+            onClick={() => {
+              setError("");
+              setSuccessMessage("");
+              setStep(step === "verify-otp" ? "send-otp" : "verify-otp");
+            }}
             className="absolute top-6 left-6 text-text-muted hover:text-text-main transition-colors flex items-center gap-1.5 text-xs font-medium cursor-pointer"
           >
             <ArrowLeft size={14} /> Back
           </button>
         )}
 
-        {/* ==========================================================
-            SCREEN 1: ENTER EMAIL STRING FOR INITIAL OTP CAPTURE
-           ========================================================== */}
+        {/* SCREEN 1: ENTER EMAIL STRING FOR INITIAL OTP CAPTURE */}
         {step === "send-otp" && (
           <form onSubmit={handleSendOtp} className="space-y-5">
             <div className="text-center space-y-1.5">
@@ -156,7 +167,6 @@ const ForgotPassword = () => {
             </Button>
 
             <div className="text-center pt-2">
-              {/* Replaced <a> with React Router <Link> */}
               <Link 
                 to="/login" 
                 className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-main transition-colors font-medium"
@@ -167,9 +177,7 @@ const ForgotPassword = () => {
           </form>
         )}
 
-        {/* ==========================================================
-            SCREEN 2: SUBMIT CODE STRING SENT BY BACKEND INBOX
-           ========================================================== */}
+        {/* SCREEN 2: SUBMIT CODE STRING SENT BY BACKEND INBOX */}
         {step === "verify-otp" && (
           <form onSubmit={handleVerifyOtp} className="space-y-5">
             <div className="text-center space-y-1.5">
@@ -218,15 +226,10 @@ const ForgotPassword = () => {
           </form>
         )}
 
-        {/* ==========================================================
-            SCREEN 3: WRITE AND COMPILE REPLACEMENT PASSWORD MUTATION
-           ========================================================== */}
+        {/* SCREEN 3: WRITE AND COMPILE REPLACEMENT PASSWORD MUTATION */}
         {step === "reset-password" && (
           <form onSubmit={handleResetPassword} className="space-y-5">
             <div className="text-center space-y-1.5">
-              <div className="h-10 w-10 mx-auto rounded-sm bg-primary-soft border border-primary/10 flex items-center justify-center text-primary mb-2 shadow-xs">
-                <Lock size={18} className="stroke-[1.75]" />
-              </div>
               <h2 className="text-xl font-bold tracking-wide text-text-main">Set New Password</h2>
               <p className="text-xs text-text-muted leading-normal max-w-[280px] mx-auto">
                 Secure your profile. Pick a brand-new alphanumeric string configuration.
@@ -261,9 +264,7 @@ const ForgotPassword = () => {
           </form>
         )}
 
-        {/* ==========================================================
-            SCREEN 4: TRANSACTION TERMINATION AND COMPLETION CANVAS
-           ========================================================== */}
+        {/* SCREEN 4: TRANSACTION TERMINATION AND COMPLETION CANVAS */}
         {step === "complete" && (
           <div className="text-center py-2 space-y-5 flex flex-col items-center animate-in zoom-in-95 duration-300">
             <div className="h-12 w-12 rounded-full bg-success-soft border border-success/10 flex items-center justify-center text-success shadow-xs">
@@ -277,7 +278,6 @@ const ForgotPassword = () => {
               </p>
             </div>
 
-            {/* Replaced <a> layout structure with React Router <Link> wrapper */}
             <Link to="/login" className="block w-full">
               <Button type="button" className="w-full" size="md">
                 Sign In

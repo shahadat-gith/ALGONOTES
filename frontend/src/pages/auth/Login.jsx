@@ -8,7 +8,6 @@ import Input from "../../components/common/Input";
 import { loginUser } from "../../api/authApi";
 import { useAuth } from "../../context/AuthContext";
 
-
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -23,7 +22,6 @@ const Login = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -35,18 +33,15 @@ const Login = () => {
       toast.error("Email is required");
       return false;
     }
-
     if (!formData.password) {
       toast.error("Password is required");
       return false;
     }
-
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) return;
 
     setLoading(true);
@@ -55,12 +50,27 @@ const Login = () => {
       const data = await loginUser(formData);
 
       if (data.success) {
+        // Double check instance configuration flags down from authorization responses
+        if (data.user?.verificationOptions?.status === "pending") {
+          toast.error("Please verify your account before accessing the platform.");
+          navigate(`/verify?email=${encodeURIComponent(formData.email.toLowerCase().strip())}`);
+          return;
+        }
+
         login(data.token, data.user);
         toast.success(data.message || "Login successful");
         navigate("/");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Login failed. Please try again.");
+      const serverMessage = error.response?.data?.detail || error.response?.data?.message;
+      
+      // If the backend rejects the login specifically because the email is unverified
+      if (serverMessage?.toLowerCase().includes("verify") || serverMessage?.toLowerCase().includes("verification")) {
+        toast.error(serverMessage || "Account unverified. Redirecting to verification panel...");
+        navigate(`/verify?email=${encodeURIComponent(formData.email.toLowerCase().trim())}`);
+      } else {
+        toast.error(serverMessage || "Login failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -75,7 +85,7 @@ const Login = () => {
         {/* Upper Identity Branding Row */}
         <div className="mb-8 text-center space-y-2">
           <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center text-primary group transition-transform duration-300 hover:rotate-6">
-            <img src="/logo.png" className="h-10 w-10 rounded-full" />
+            <img src="/logo.png" className="h-10 w-10 rounded-full" alt="ALGONOTES logo" />
           </div>
 
           <h1 className="text-xl font-bold text-text-main tracking-wide">
@@ -120,7 +130,7 @@ const Login = () => {
               disabled={loading}
             />
 
-            {/* Micro Position Toggle Utility Box Button */}
+            {/* Position Toggle Utility Box Button */}
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}

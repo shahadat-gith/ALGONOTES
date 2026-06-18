@@ -4,17 +4,17 @@ import { verifyUser } from "../../api/authApi";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
-import { ShieldCheck, Mail, RefreshCw, ArrowRight, Loader2 } from "lucide-react";
+import { Mail, RefreshCw, ArrowRight, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const VerifyUser = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
-  // Extract user session parameters and state sync hooks from context
-  const { user, setUser, isAuthenticated } = useAuth();
+  // Extract user parameters and session triggers from context safely
+  const { user, setUser, isAuthenticated, login } = useAuth();
   
-  // Extract email parameter safely from /verify?email=xyz
+  // Extract email parameter safely from URL queries
   const email = searchParams.get("email") || "";
 
   // UI Processing States
@@ -30,7 +30,7 @@ const VerifyUser = () => {
       navigate("/login");
       return;
     }
-    triggerSendOtp(true); // Run initial silent dispatch
+    triggerSendOtp(true);
   }, [email]);
 
   // Core controller function to manage backend OTP generation
@@ -51,14 +51,14 @@ const VerifyUser = () => {
         );
       }
     } catch (err) {
-      const errorMsg = err.response?.data?.message || "Failed to deliver verification code.";
+      const errorMsg = err.response?.data?.detail || err.response?.data?.message || "Failed to deliver verification code.";
       toast.error(errorMsg);
     } finally {
       setSendingOtp(false);
     }
   };
 
-  // Submission handler
+  // Submission handler mapping verification transitions
   const handleVerifyOtpSubmit = async (e) => {
     e.preventDefault();
     
@@ -77,9 +77,14 @@ const VerifyUser = () => {
       if (response.success) {
         toast.success("Account successfully verified!");
         
-        if (user) {
-          if (setUser && response.user) {
+        // Synchronize state containers globally across components
+        if (response.user) {
+          if (setUser) {
             setUser(response.user);
+          }
+          // If the server passes back an upgraded session authorization token on verification
+          if (response.token) {
+            login(response.token, response.user);
           }
           navigate("/"); 
         } else {
@@ -87,14 +92,15 @@ const VerifyUser = () => {
         }
       }
     } catch (err) {
-      const errorMsg = err.response?.data?.message || "Invalid code entry. Please try again.";
+      const errorMsg = err.response?.data?.detail || err.response?.data?.message || "Invalid code entry. Please try again.";
       toast.error(errorMsg);
     } finally {
       setVerifying(false);
     }
   };
 
-  if (user?.isVerified) {
+  // Fixed: Map parameters cleanly to verify target nested property statuses
+  if (user?.verificationOptions?.status === "verified") {
     return isAuthenticated ? (
       <Navigate to="/dashboard" replace />
     ) : (
@@ -112,7 +118,7 @@ const VerifyUser = () => {
         {/* Brand Icon Block */}
         <div className="text-center space-y-3">
           <div className="h-11 w-11 rounded-sm bg-primary-soft text-primary flex items-center justify-center mx-auto border border-primary/10 shadow-xs">
-            <img src="/logo.png" className="h-10 w-10 rounded-full" />
+            <img src="/logo.png" className="h-10 w-10 rounded-full" alt="ALGONOTES logo" />
           </div>
           <div className="space-y-1">
             <h1 className="text-xl font-bold text-text-main tracking-wide">
