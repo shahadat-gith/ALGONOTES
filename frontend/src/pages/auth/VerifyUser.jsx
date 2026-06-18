@@ -99,10 +99,9 @@ const VerifyUser = () => {
     }
   };
 
-  // Fixed: Map parameters cleanly to verify target nested property statuses
   if (user?.verificationOptions?.status === "verified") {
     return isAuthenticated ? (
-      <Navigate to="/dashboard" replace />
+      <Navigate to="/" replace />
     ) : (
       <Navigate to="/login" replace />
     );

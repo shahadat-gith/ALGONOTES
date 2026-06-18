@@ -57,9 +57,8 @@ const Register = () => {
       const data = await registerUser(formData);
 
       if (data.success) {
-        toast.success(data.message || "Registration successful! Please verify your account.");
-        // Redirect directly to verification layout to enter the newly generated email OTP
-        navigate(`/verify?email=${encodeURIComponent(formData.email.toLowerCase().trim())}`);
+        toast.success(data.message || "Registration done! ");
+        navigate("/login");
       }
     } catch (error) {
       toast.error(error.response?.data?.detail || error.response?.data?.message || "Registration failed. Please try again.");

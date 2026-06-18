@@ -13,7 +13,6 @@ from app.schemas import (
 )
 from app.services import hash_password, verify_password, send_email
 from app.utils import generate_otp, create_access_token
-from app.config import settings
 
 
 from app.constants import welcome_email_template, otp_email_template
@@ -63,7 +62,7 @@ async def register(
     )
     await new_user.insert()
 
-    verification_url = f"{settings.FRONTEND_URL_PROD}/verify?email={new_user.email}"
+    verification_url = f"https://www.algonotes.in/verify?email={new_user.email}"
 
     background_tasks.add_task(
         send_email,
