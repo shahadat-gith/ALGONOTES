@@ -4,7 +4,7 @@ import { Plus, Trash2, Code2, ListOrdered, FileText, Hourglass, HardDrive } from
 const ApproachEditor = ({ title, approach, onChange, defaultLanguage = "C++" }) => {
   const data = approach || { 
     complexity: { time: "", space: "" },
-    description: "", // <-- UPDATED: Now a flat plain string instead of an array
+    description: "", 
     codeBlock: { language: defaultLanguage, code: "" }, 
     algorithmSteps: [] 
   };
@@ -72,7 +72,7 @@ const ApproachEditor = ({ title, approach, onChange, defaultLanguage = "C++" }) 
         <textarea
           value={data.description || ""}
           onChange={(e) => handleFieldChange("description", e.target.value)}
-          rows={3}
+          style={{ fieldSizing: "content" }}
           placeholder="Explain the strategy implementation flow details in plain English..."
           className="w-full resize-y rounded-sm border bg-bg-base px-4 py-3 text-[14px] md:text-[16px] leading-7 text-text-main placeholder-text-light/30 transition-all outline-hidden border-border-default focus:border-primary/40 focus:bg-bg-base/80 custom-scrollbar"
         />
@@ -126,7 +126,7 @@ const ApproachEditor = ({ title, approach, onChange, defaultLanguage = "C++" }) 
           <textarea
             value={data.codeBlock?.code || ""}
             onChange={(e) => handleFieldChange("codeBlock", { language: defaultLanguage, code: e.target.value })}
-            rows={6}
+           style={{ fieldSizing: "content" }}
             className="w-full resize-y bg-bg-base px-4 py-3 font-mono text-[14px] md:text-[16px] text-text-main leading-6 placeholder-text-light/30 outline-hidden focus:bg-bg-base/80 custom-scrollbar"
             placeholder="// Paste optimized algorithm codebase scripts here..."
           />

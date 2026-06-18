@@ -41,7 +41,7 @@ const ListEditor = ({ title, items = [], onChange }) => {
               <textarea
                 value={item}
                 onChange={(e) => handleItemChange(index, e.target.value)}
-                rows={2}
+                style={{ fieldSizing: "content" }}
                 className="w-full resize-none rounded-sm border border-border-default bg-bg-base px-3 py-2 text-[14px] md:text-[16px] text-text-main focus:border-primary/40 outline-hidden custom-scrollbar leading-7 placeholder-text-light/30"
                 placeholder="Type details or boundary criteria rules here..."
               />
