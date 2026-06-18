@@ -6,6 +6,7 @@ import Alert from "../../components/common/Alert";
 import Header from "../../components/theory/editor/Header";
 import Toolbar from "../../components/theory/editor/Toolbar";
 import AssetModal from "../../components/theory/editor/AssetModal";
+import TheoryEditorSkeleton from "../../components/skeletons/TheoryEditorSkeleton"; // Imported here
 
 import "./Theory.css";
 
@@ -24,15 +25,9 @@ const TheoryEditor = () => {
     handleAssetResolved,
   } = useTheoryEditor(id);
 
+  // Swapped the simple spinner out for the comprehensive dashboard layout skeleton
   if (loading) {
-    return (
-      <div className="min-h-screen bg-bg-base flex items-center justify-center font-sans text-sm text-text-muted select-none">
-        <div className="flex items-center gap-3">
-          <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <span className="animate-pulse">Loading note workspace...</span>
-        </div>
-      </div>
-    );
+    return <TheoryEditorSkeleton />;
   }
 
   if (apiError) {
@@ -46,7 +41,7 @@ const TheoryEditor = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-bg-base text-text-main selection:bg-primary/20 flex flex-col font-sans">
+    <div className="w-full min-h-screen bg-bg-base text-text-main selection:bg-primary/20 flex flex-col font-sans relative z-10 animate-fade-in select-none">
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col flex-1 h-screen max-h-screen overflow-hidden">
         
         <label id="algonotes-asset-modal-trigger" htmlFor="asset-modal" className="hidden"></label>

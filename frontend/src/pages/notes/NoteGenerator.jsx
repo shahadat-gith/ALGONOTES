@@ -6,17 +6,10 @@ import Input from "../../components/common/Input";
 import Select from "../../components/common/Select";
 import Steps from "../../components/common/Steps";
 import Alert from "../../components/common/Alert";
-
+import { LANGUAGE_OPTIONS } from "../../constants/languages";
 import { Sparkles, Code2, StickyNote } from "lucide-react";
 
-const LANGUAGE_OPTIONS = [
-  "C++",
-  "Java",
-  "Python",
-  "JavaScript",
-  "TypeScript",
-  "C",
-];
+
 
 const NoteGenerator = () => {
   

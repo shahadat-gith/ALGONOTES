@@ -12,6 +12,7 @@ import VerifyUser from "./pages/auth/VerifyUser";
 
 import Home from "./pages/home/Home";
 
+import Dashboard from "./pages/dashboard/Dashboard";
 // Note pages
 import Notes from "./pages/notes/Notes";
 import NoteGenerator from "./pages/notes/NoteGenerator";
@@ -29,6 +30,7 @@ import Developer from "./pages/developer/Developer";
 import Privacy from "./pages/disclaimers/Privacy";
 import Terms from "./pages/disclaimers/Terms";
 import DataPrivacy from "./pages/disclaimers/DataPrivacy";
+
 
 const App = () => {
   return (
@@ -66,6 +68,9 @@ const App = () => {
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             {/* DSA Coding Notes */}
+
+            <Route path="/dashboard" element={<Dashboard />} />
+
             <Route path="/notes" element={<Notes />} />
             <Route path="/notes/generate" element={<NoteGenerator />} />
             <Route path="/notes/:id" element={<NoteDetails />} />
@@ -75,7 +80,7 @@ const App = () => {
             <Route path="/theory" element={<Theories />} />
             <Route path="/theory/generate" element={<TheoryGenerator />} />
             <Route path="/theory/:id/edit" element={<TheoryEditor />} />
-            <Route path="/theory/:id/details" element={<TheoryDetails />} />
+            <Route path="/theory/:id" element={<TheoryDetails />} />
           </Route>
         </Route>
 

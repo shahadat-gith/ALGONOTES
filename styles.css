@@ -12,12 +12,26 @@
   --ah-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
 }
 
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: var(--ah-bg-base);
+}
+
+
 /* ==========================================================================
    Core Document Article Wrapper
    ========================================================================== */
 .algonotes-article {
   max-width: 1400px;
-  font-size: 17px;
+  font-size: 14px;
   line-height: 1.75;
   color: var(--ah-text-muted);
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;

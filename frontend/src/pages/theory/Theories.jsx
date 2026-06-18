@@ -1,171 +1,149 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getAllTheoriesByUser, deleteTheoryNote } from "../../api/theoryApi";
-import TheoryCard from "../../components/theory/viewer/TheoryCard";
-import {
-  Plus,
-  Loader2,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
 import toast from "react-hot-toast";
+
+import { getAllTheoriesByUser, deleteTheoryNote } from "../../api/theoryApi";
+
+import TheoryCard from "../../components/theory/TheoryCard";
+import Pagination from "../../components/common/Pagination";
+import DeleteConfirm from "../../components/common/DeleteConfirm";
+
+import NoteHeader from "../../components/common/NoteHeader";
+import TheoriesSkeleton from "../../components/skeletons/TheoriesSkeleton";
 
 const Theories = () => {
   const navigate = useNavigate();
 
-  // App state
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // Pagination numbers (handled by backend)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const pageSize = 9;
 
-  // Load specific page partitions from backend
+  // 1. Debounce local search string updates to prevent API flooding
   useEffect(() => {
-    const fetchNotes = async () => {
-      setLoading(true);
-      try {
-        const res = await getAllTheoriesByUser(page, pageSize);
-        if (res?.success) {
-          setNotes(res.theories || []);
-          setTotalPages(
-            res.totalPages || Math.ceil((res.totalCount || 1) / pageSize),
-          );
-        }
-      } catch (err) {
-        toast.error("Could not load your notes.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchNotes();
-  }, [page]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 400);
 
-  // Frontend Search filtering operation logic
-  const filteredNotes = notes.filter((note) =>
-    note.topic.toLowerCase().includes(search.toLowerCase()),
-  );
+    return () => clearTimeout(timer);
+  }, [search]);
 
-  const handleDeleteNote = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this note permanently?")) return;
+  const fetchNotes = async () => {
+    setLoading(true);
     try {
-      const res = await deleteTheoryNote(id);
+      const res = await getAllTheoriesByUser(page, pageSize, debouncedSearch);
       if (res?.success) {
-        setNotes((prev) => prev.filter((note) => note.id !== id));
+        setNotes(res.theories || []);
+        setTotalPages(
+          res.totalPages || Math.ceil((res.totalCount || 1) / pageSize),
+        );
+      }
+    } catch (err) {
+      toast.error("Could not load your notes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotes();
+  }, [page, debouncedSearch]);
+
+  const handleOpenDeleteModal = (id) => {
+    setDeleteTargetId(id);
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetId) return;
+    setIsDeleting(true);
+    try {
+      const res = await deleteTheoryNote(deleteTargetId);
+      if (res?.success) {
+        setNotes((prev) => prev.filter((note) => note.id !== deleteTargetId));
         toast.success("Note deleted successfully.");
-        if (notes.length === 1 && page > 1) setPage((p) => p - 1);
+        if (notes.length === 1 && page > 1) {
+          setPage((p) => p - 1);
+        } else {
+          fetchNotes();
+        }
       }
     } catch (err) {
       toast.error("Failed to delete the note.");
+    } finally {
+      setIsDeleting(false);
+      setIsModalOpen(false);
+      setDeleteTargetId(null);
     }
   };
 
   return (
-    <div className="w-full font-sans text-text-main p-4 sm:p-6 max-w-[1400px] mx-auto flex flex-col gap-6">
-      
-      <Header
+    <div className="w-full font-sans text-text-main p-4 sm:p-6 max-w-[1400px] mx-auto flex flex-col gap-6 relative z-10 animate-fade-in select-none">
+      <NoteHeader
+        title="Theory Notes"
+        description="Read, manage, and update your personal collection of theory notes."
+        btnText="Generate Note"
+        onBtnClick={() => navigate("/theory/generate")}
         search={search}
         setSearch={setSearch}
-        page={page}
-        setPage={setPage}
-        totalPages={totalPages}
-        navigate={navigate}
+        placeholder="Instant search within notes..."
       />
 
       {loading ? (
-        <div className="w-full min-h-[40vh] flex items-center justify-center text-sm text-text-muted">
-          <div className="flex items-center gap-2">
-            <Loader2 size={16} className="animate-spin text-primary" />
-            <span>Loading your notes...</span>
-          </div>
-        </div>
+        <TheoriesSkeleton />
       ) : (
-        /* Single-column full-width list container */
-        <div className="flex flex-col gap-4 w-full">
-          {filteredNotes.map((note,idx) => (
-            <TheoryCard key={idx} theory={note} onDelete={handleDeleteNote} />
-          ))}
-        </div>
+        <>
+          {notes.length > 0 && (
+            <div className="w-full flex justify-end items-center -mb-2 animate-fade-in">
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
+            </div>
+          )}
+
+          {notes.length === 0 ? (
+            <div className="w-full text-center py-12 border border-border-default rounded-md bg-bg-surface/20 text-xs font-mono text-text-light tracking-wide">
+              No matching notes found on this page.
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4 w-full animate-fade-in">
+              {notes.map((note) => (
+                <TheoryCard
+                  key={note.id || note._id}
+                  theory={note}
+                  onDelete={handleOpenDeleteModal}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
-      {/* Empty State Layout */}
-      {!loading && filteredNotes.length === 0 && (
-        <div className="w-full text-center py-12 border border-border-default rounded-md bg-bg-surface/20 text-xs font-mono text-text-light select-none tracking-wide">
-          No matching notes found on this page.
-        </div>
-      )}
+      <DeleteConfirm
+        isOpen={isModalOpen}
+        title="Delete Note"
+        message="Are you sure you want to delete this note permanently? This operation cannot be reversed."
+        confirmText="Yes! Delete"
+        loading={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onClose={() => {
+          setIsModalOpen(false);
+          setDeleteTargetId(null);
+        }}
+      />
     </div>
   );
 };
 
 export default Theories;
-
-const Header = ({ search, setSearch, page, setPage, totalPages, navigate }) => {
-  return (
-    <>
-      {/* Header Layout */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border-default pb-5">
-        
-        {/* Left Side: Title */}
-        <div className="flex flex-col gap-1 md:w-1/4">
-          <h2 className="text-xl font-bold tracking-tight">Study Notes</h2>
-          <p className="text-xs text-text-light">
-            Read, manage, and update your personal collection of notes.
-          </p>
-        </div>
-
-        {/* Center Side: Instant Frontend Search Bar */}
-        <div className="w-full md:max-w-md flex-1 flex items-center border border-border-default rounded-sm bg-bg-surface px-2.5 focus-within:border-primary/40 transition-all mx-auto">
-          <Search size={14} className="text-text-light" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Instant search within this page..."
-            className="bg-transparent w-full p-2 outline-none text-text-main text-xs h-8 font-sans"
-          />
-        </div>
-
-        <div className="flex flex-col items-end gap-2 md:w-1/4 min-w-[200px]">
-          <button
-            type="button"
-            onClick={() => navigate("/theory/generate")}
-            className="px-3 h-8 bg-primary hover:bg-primary-hover text-white text-[11px] font-bold rounded-sm uppercase tracking-wide cursor-pointer flex items-center gap-1.5 transition-colors"
-          >
-            <Plus size={13} />
-            <span>Create New Note</span>
-          </button>
-
-          {/* Pagination controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center gap-2 select-none">
-              <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-text-light mr-1">
-                Page {page} of {totalPages}
-              </span>
-              <button
-                type="button"
-                disabled={page === 1}
-                onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                className="p-1 rounded-sm bg-bg-soft border border-border-default text-text-muted hover:text-text-main disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
-              >
-                <ChevronLeft size={13} />
-              </button>
-              <button
-                type="button"
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
-                className="p-1 rounded-sm bg-bg-soft border border-border-default text-text-muted hover:text-text-main disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
-              >
-                <ChevronRight size={13} />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </>
-  );
-};

@@ -1,6 +1,7 @@
 import React from "react";
 import { Plus, Trash2, Code2, ListOrdered, FileText, Hourglass, HardDrive } from "lucide-react";
 
+
 const ApproachEditor = ({ title, approach, onChange, defaultLanguage = "C++" }) => {
   const data = approach || { 
     complexity: { time: "", space: "" },

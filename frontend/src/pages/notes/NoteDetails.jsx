@@ -19,7 +19,6 @@ import Badge from "../../components/common/Badge";
 import EmptyState from "../../components/common/EmptyState";
 import NoteDetailsSkeleton from "../../components/skeletons/NoteDetailsSkeleton";
 
-
 import Problem from "../../components/notes/details/Problem";
 import UserNotes from "../../components/notes/details/UserNotes";
 import DryRun from "../../components/notes/details/DryRun";
@@ -33,11 +32,12 @@ const NoteDetails = () => {
   const navigate = useNavigate();
 
   const [noteData, setNoteData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("problem");
 
   useEffect(() => {
     const fetchNote = async () => {
+      setLoading(true)
       try {
         const response = await getNoteById(id);
         if (!response?.success || !response?.note) {
@@ -199,15 +199,18 @@ const NoteDetails = () => {
             <Approach
               title="1. Brute Force Approach"
               approach={note.bruteForce}
+              language={noteData.language}
             />
             <Approach 
               title="2. Better Solution" 
               approach={note.better} 
+              language={noteData.language}
             />
             <Approach
               title="3. Optimal Approach"
               approach={note.optimalApproach}
               highlight={true}
+              language={noteData.language}
             />
           </div>
         )}
@@ -215,7 +218,11 @@ const NoteDetails = () => {
         {/* TAB 4: EXECUTION TRACE MATRIX */}
         {activeTab === "dryrun" && (
           <div className="w-full animate-fade-in">
-            <DryRun dryRun={note.dryRun} />
+            <DryRun 
+              dryRun={note.dryRun} 
+              code={note.optimalApproach?.codeBlock?.code || ""} 
+              language={noteData?.language || ""}
+            />
           </div>
         )}
 

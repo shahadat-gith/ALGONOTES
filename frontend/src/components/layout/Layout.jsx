@@ -17,7 +17,7 @@ const Layout = () => {
         <Outlet />
       </main>
 
-      <div className="w-full relative z-10 mt-auto border-t border-border-default/40">
+      <div className="w-full relative z-10 mt-auto">
         <Footer />
       </div>
       

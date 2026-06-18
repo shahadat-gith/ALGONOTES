@@ -1,7 +1,8 @@
 import React from "react";
-import { Activity } from "lucide-react";
+import { Activity, Code } from "lucide-react";
+import CodeContainer from "../../common/CodeContainer";
 
-const DryRun = ({ dryRun = [] }) => {
+const DryRun = ({ dryRun = [], code = "", language }) => {
   if (!dryRun || !dryRun.length) return null;
 
   return (
@@ -12,6 +13,18 @@ const DryRun = ({ dryRun = [] }) => {
         <Activity size={14} className="text-primary stroke-[2]" />
         <span>Execution Dry Run</span>
       </h2>
+
+      <div className="mt-5">
+        {code && (
+          <div className="lg:col-span-5 flex flex-col space-y-2.5">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text-light font-mono">
+              <Code size={12} />
+              <span>Reference Algorithm</span>
+            </div>
+           <CodeContainer code={code} language={language}/>
+          </div>
+        )}
+      </div>
       
       {/* Tabular Matrix Container Block */}
       <div className="overflow-hidden rounded-sm border border-border-default bg-bg-surface mt-4 shadow-inner">
