@@ -10,7 +10,7 @@ import {
   ArrowRight
 } from "lucide-react";
 
-import { dropdownItems } from "../../constants/dropdown";
+import { quicklinks } from "../../constants/quicklinks";
 
 const Dropdown = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -133,7 +133,7 @@ const Dropdown = ({ user, onLogout }) => {
 
         {/* Navigation Action Links list */}
         <div className="space-y-1 px-1">
-          {dropdownItems.map((link) => {
+          {quicklinks.map((link) => {
             const IconComponent = link.icon;
             return (
               <Link

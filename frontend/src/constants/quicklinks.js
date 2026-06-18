@@ -6,16 +6,16 @@ import {
   BookMarked,
 } from "lucide-react";
 
-export const dropdownItems = [
+export const quicklinks = [
   {
     to: "/notes/generate",
-    label: "Generate Notes",
+    label: "Generate DSA Notes",
     icon: Sparkles,
     activeColor: "group-hover:text-[var(--warning)]",
   },
   {
     to: "/notes",
-    label: "My Notes",
+    label: "My DSA Notes",
     icon: StickyNote,
     activeColor: "group-hover:text-[var(--success)]",
   },
@@ -31,10 +31,4 @@ export const dropdownItems = [
     icon: BookMarked,
     activeColor: "group-hover:text-[var(--warning)]",
   },
-  {
-    to: "/settings",
-    label: "Account Settings",
-    icon: Settings,
-    activeColor: "group-hover:text-[var(--text-main)]",
-  }
 ];

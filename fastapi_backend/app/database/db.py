@@ -3,6 +3,7 @@ from beanie import init_beanie
 
 from app.config import settings
 from app.models import User, Note, Theory
+from app.models.theory import TempPromptJob
 
 
 client = None
@@ -23,7 +24,8 @@ async def init_db():
             document_models=[
                 User,
                 Note,
-                Theory
+                Theory,
+                TempPromptJob
             ]
         )
 

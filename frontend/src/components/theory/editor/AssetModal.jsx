@@ -11,7 +11,7 @@ const AssetModal = ({
   const [stagedFile, setStagedFile] = useState(null);
   const [imageUrlInput, setImageUrlInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
-
+  
   useEffect(() => {
     setStagedFile(null);
     setImageUrlInput("");
@@ -22,21 +22,21 @@ const AssetModal = ({
     if (!file) return;
     setStagedFile(file);
     setImageUrlInput(""); 
-    toast.success(`Selected: ${file.name}`);
   };
 
   const handleRemoveStagedFile = () => {
     setStagedFile(null);
     document.getElementById("algonotes-hidden-file-input").value = "";
-    toast.success("Image removed.");
   };
 
   const handleProcessAssetInsertion = async () => {
+    // Check Option 1: URL Input
     if (imageUrlInput.trim() !== "") {
       onAssetResolved(imageUrlInput.trim());
       return;
     }
 
+    // Check Option 2: Binary File Upload
     if (stagedFile) {
       setIsUploading(true);
       const toastId = toast.loading("Saving image...");

@@ -8,13 +8,12 @@ from app.models.theory import TheoryStatus
 
 PyObjectId = Annotated[str, BeforeValidator(lambda v: str(v) if v is not None else v)]
 
-# ==========================================
-# REQUEST DTO SCHEMA
-# ==========================================
+
+
 class GenerateTheoryRequest(BaseModel):
     topic: str = Field(..., min_length=1)
-    instructions: Optional[str] = None  # Added missing instructions field
-
+    code_language: Optional[str] = Field(default="C++")
+    instructions: Optional[str] = None
 # ==========================================
 # RESPONSE SCHEMA
 # ==========================================
@@ -45,3 +44,17 @@ class TheoryUpdate(BaseModel):
         extra="ignore",
         exclude_none=True
     )
+
+
+
+
+class OptimizePromptRequest(BaseModel):
+    topic: str = Field(..., min_length=1)
+    instructions: Optional[str] = ""
+    code_language: Optional[str] = Field(default="C++")
+
+class OptimizePromptStatusResponse(BaseModel):
+    success: bool
+    status: TheoryStatus
+    optimizedInstructions: Optional[str] = None
+    message: Optional[str] = None

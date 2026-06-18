@@ -1,9 +1,7 @@
-# app/sqs/handle_failures.py
-
 from datetime import datetime, timezone
 from app.models import Note, Theory
+from app.models.theory import TheoryStatus, TempPromptJob
 from app.models.note import NoteStatus
-from app.models.theory import TheoryStatus
 
 async def handle_note_generation_failure(note_id: str, reason: str):
     """Updates the database status to failed when a DSA note task encounters a severe problem."""
@@ -25,3 +23,16 @@ async def handle_theory_generation_failure(theory_id: str, reason: str):
     theory.updatedAt = datetime.now(timezone.utc)
     await theory.save()
     print(f"[Worker Exception] Theory job {theory_id} marked as failed. Reason: {reason}")
+
+
+async def handle_prompt_optimization_failure(job_id: str, reason: str):
+    """
+    Handles terminal prompt optimization exceptions.
+    Deletes the temporary tracking record instantly to keep database footprint clean.
+    """
+    job = await TempPromptJob.get(job_id)
+    if not job:
+        return
+        
+    await job.delete()
+    print(f"[Worker Exception] Ephemeral prompt job {job_id} deleted on failure. Reason: {reason}")

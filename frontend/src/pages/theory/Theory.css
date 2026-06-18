@@ -1,6 +1,4 @@
-/* ==========================================================================
-   CodeHelp Design Tokens & Scope
-   ========================================================================== */
+
 :root {
   --ah-bg-base: #0a0a0c;
   --ah-bg-surface: #111115;
@@ -193,7 +191,7 @@
 }
 
 /* ==========================================================================
-   Editor Specific Placeholder Cards (Hidden automatically in Viewer Mode)
+   Editor Specific Placeholder Cards
    ========================================================================== */
 .algonotes-editor-placeholder-card {
   margin: 1.5rem auto;
@@ -203,12 +201,14 @@
   border-radius: 8px;
   padding: 1.5rem;
   text-align: center;
-  user-select: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
   transition: border-color 0.2s ease, background-color 0.2s ease;
+  
+  /* Changed from 'none' to allow mouse selections */
+  user-select: auto; 
 }
 
 .algonotes-editor-placeholder-card:hover {
@@ -222,6 +222,7 @@
   background-color: rgba(139, 92, 246, 0.1);
   color: var(--ah-primary);
   display: inline-flex;
+  user-select: none;
 }
 
 .algonotes-editor-placeholder-card .placeholder-title-row {
@@ -229,6 +230,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.25rem;
+  user-select: none;
 }
 
 .algonotes-editor-placeholder-card .placeholder-title {
@@ -241,31 +243,15 @@
   margin: 0;
 }
 
-.algonotes-editor-placeholder-card .placeholder-copy-btn {
-  background: transparent;
-  border: none;
-  color: var(--ah-text-light);
-  cursor: pointer;
-  padding: 0.25rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: all 0.15s ease;
-}
-
-.algonotes-editor-placeholder-card .placeholder-copy-btn:hover {
-  color: var(--ah-text-main);
-  background-color: var(--ah-bg-soft);
-}
-
 .algonotes-editor-placeholder-card .placeholder-desc {
   font-size: 13px;
   color: var(--ah-text-muted);
-  max-w: 480px;
+  max-width: 480px;
   line-height: 1.5;
   margin: 0 0 0.5rem 0;
   font-weight: 400;
+  user-select: text;
+  cursor: text;
 }
 
 .algonotes-editor-placeholder-card .placeholder-action-btn {
@@ -284,9 +270,56 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  user-select: none;
 }
 
 .algonotes-editor-placeholder-card .placeholder-action-btn:hover {
   background-color: var(--ah-bg-soft);
   border-color: rgba(139, 92, 246, 0.4);
+}
+
+
+
+/* Inline relative image anchor wrapper boundaries */
+.algonotes-image-edit-wrapper {
+  position: relative;
+  display: block;
+  max-width: max-content;
+  margin: 1.5rem auto 0.5rem auto;
+}
+
+/* Clear margins from image node when wrapped */
+.algonotes-image-edit-wrapper .algonotes-img {
+  margin: 0 !important;
+}
+
+/* Floating trash can widget style configuration */
+.algonotes-image-delete-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(239, 68, 68, 0.9);
+  color: #ffffff;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.15s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  z-index: 10;
+}
+
+.algonotes-image-delete-btn:hover {
+  background-color: rgb(220, 38, 38);
+}
+
+/* Reveal delete controls neatly when users drag mouse onto image canvas bounding boxes */
+.algonotes-image-edit-wrapper:hover .algonotes-image-delete-btn {
+  opacity: 1;
+  transform: scale(1);
 }

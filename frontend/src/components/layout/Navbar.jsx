@@ -19,7 +19,8 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="w-full bg-bg-surface border-b border-border-default relative z-40 select-none">
+     
+      <header className="fixed top-0 w-full bg-bg-surface border-b border-border-default z-40 select-none">
         <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
           {/* Brand Logo Group */}
           <Link to="/dashboard" className="flex items-center gap-3 group">

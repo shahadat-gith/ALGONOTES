@@ -9,52 +9,78 @@ export const generateTheoryNote = async (payload) => {
 
 export const checkTheoryStatus = async (theoryId) => {
   const { data } = await api.get(`/theory/status/${theoryId}`, {
-    validateStatus: (status) => (status >= 200 && status < 300) || status === 202
+    validateStatus: (status) =>
+      (status >= 200 && status < 300) || status === 202,
   });
   return data;
 };
-
 
 export const uploadTheoryImage = async (theoryId, fileObject) => {
   const formData = new FormData();
   formData.append("file", fileObject);
 
-  const { data } = await api.post(`/theory/${theoryId}/upload-image`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
+  const { data } = await api.post(
+    `/theory/${theoryId}/upload-image`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
+  return data;
+};
+
+export const deleteTheoryImage = async (theoryId, imageUrl) => {
+  // Fixed: Swapped out undefined 'axiosInstance' to use your standard 'api' instance
+  const { data } = await api.post(`/theory/${theoryId}/delete-image`, {
+    image_url: imageUrl,
+  });
+  return data;
+};
+
+export const getAllTheoriesByUser = async (
+  page = 1,
+  size = 10,
+  search = "",
+) => {
+  const { data } = await api.get("/theory/user", {
+    params: {
+      page,
+      size,
+      search: search.trim() || undefined,
     },
   });
   return data;
 };
 
-
-export const getAllTheoriesByUser = async (page = 1, size = 10, search = "") => {
-  const { data } = await api.get("/theory/user", {
-    params: {
-      page,
-      size,
-      search: search.trim() || undefined
-    }
-  });
-  return data;
-};
-
-
 export const getTheoryNote = async (theoryId) => {
   const { data } = await api.get(`/theory/${theoryId}`, {
-    validateStatus: (status) => (status >= 200 && status < 300) || status === 202
+    validateStatus: (status) =>
+      (status >= 200 && status < 300) || status === 202,
   });
   return data;
 };
-
 
 export const updateTheoryNote = async (theoryId, payload) => {
   const { data } = await api.put(`/theory/${theoryId}`, payload);
   return data;
 };
 
-
 export const deleteTheoryNote = async (theoryId) => {
   const { data } = await api.delete(`/theory/${theoryId}`);
+  return data;
+};
+
+export const optimizeTheoryInstructions = async (payload) => {
+  const { data } = await api.post("/theory/optimize-prompt", payload);
+  return data; 
+};
+
+
+export const checkPromptOptimizationStatus = async (jobId) => {
+  const { data } = await api.get(`/theory/optimize-prompt/status/${jobId}`, {
+    validateStatus: (status) => (status >= 200 && status < 300) || status === 202
+  });
   return data;
 };

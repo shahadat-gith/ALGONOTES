@@ -1,11 +1,27 @@
 from typing import Optional
 
-def generate_theory_prompt(topic: str, instructions: Optional[str] = None) -> str:
+def generate_theory_prompt(
+    topic: str, 
+    code_language: Optional[str] = "C++", 
+    instructions: Optional[str] = None
+) -> str:
     """
-    Assembles the masterclass prompt layout payload, dynamically incorporating
-    custom runtime user instructions if they are present. Forces the AI to output
-    pure semantic HTML using custom 'algonotes-' prefix classes.
+    Assembles the study note prompt layout. Automatically forces the AI to detect 
+    relational transitions, dependency splits, and architectural pathways to insert 
+    visual placeholders natively without relying on manual user inputs.
     """
+    
+    selected_lang = code_language.strip() if (code_language and code_language.strip()) else "C++"
+    data_lang_value = selected_lang.lower().replace('+', 'p')
+    
+    language_rule = f"""
+PREFERRED PROGRAMMING LANGUAGE CONSTRAINT
+------------------------------------------
+- The target programming language for this note is **{selected_lang}**.
+- You MUST write all code examples, technical implementations, data structure structures, and scripts strictly in **{selected_lang}**.
+- You MUST set the element attribute to match this language lowercase tag, exactly like this: `data-lang="{data_lang_value}"` (e.g., c++, java, python, javascript).
+"""
+
     prompt = f"""
 You are an expert Professor and an authoritative technical writer.
 Generate an extensive, masterclass-level study guide and technical breakdown for the topic: "{topic}".
@@ -27,18 +43,21 @@ Decorate every injected HTML node strictly according to this class structure map
 - Tabular Layouts: `<table class="algonotes-table">`, `<tr class="algonotes-tr">`, `<th class="algonotes-th">`, `<td class="algonotes-td">`
 - Inline code words/variables: `<code class="algonotes-inline-code">`
 
-CRITICAL RAW MULTI-LINE CODE WRAPPING CONSTRAINTS
+DYNAMIC MULTI-LINE CODE WRAPPING CONSTRAINTS
 ------------------------------------------
-- For technical source code blocks, implementations, or script snippets, you MUST wrap them inside a combination of an HTML `<pre>` block and a code block like this:
-  <pre class="algonotes-pre"><code class="algonotes-code-block" data-lang="python">... Your code goes here ...</code></pre>
+- For technical source code blocks, implementations, or script snippets, you MUST wrap them inside a combination of an HTML `<pre>` block and a code block.
+- You MUST format it exactly like this, filling in the correct lowercase language name token in the `data-lang` slot:
+  <pre class="algonotes-pre"><code class="algonotes-code-block" data-lang="lowercase_language_name">... Your code goes here ...</code></pre>
 - Inside these multi-line code blocks, you MUST preserve all original indentations, tabs, multi-line structures, and precise line breaks. Never flatten a block of source code horizontally into a single layout line.
-
-IMAGE INJECTION LAYOUT RULES
+{language_rule}
+IMAGE INJECTION & CAPTIONING RULES
 ------------------------------------------
-- Whenever a complex structural diagram, architectural flowchart, data layout flow, or concept illustration would clarify the prose explanation, you MUST explicitly insert an HTML image tag inline exactly where the graphic belongs contextually.
-- Use this exact tag syntax structure for image blocks:
-  <img class="algonotes-img" src="ai-placeholder-1" alt="Detailed descriptive sentence explaining exactly what this diagram or graphic illustrates" />
-- Increment the numeric index for each unique diagram placeholder required throughout the content guide sequence (e.g., ai-placeholder-1, ai-placeholder-2, etc.).
+- STRATEGIC INSERTS: You MUST automatically insert an image placeholder tag inline whenever an architectural dependency mapping diagram, relational layout transition, data structure tree, flow chart, or data pipeline model or any other relevant image needed(if no image is needed then dont need to add image placeholder) would naturally clarify the prose explanation. Do not wait for the user to ask for it.
+- Use this exact tag syntax structure for image blocks (DO NOT use "ai-" in the src naming convention):
+  <img class="algonotes-img" src="image-placeholder-1" alt="Short descriptive title of the image" />
+- CRITICAL: Immediately below the `<img>` tag, you MUST provide an accompanying descriptive paragraph containing a complete, helpful sentence explaining exactly what the diagram or graphic illustrates. Format it exactly like this:
+  <p class="algonotes-image-description">descriptive sentence explaining exactly what this diagram or graphic illustrates.</p>
+- Increment the numeric index for each unique diagram placeholder required throughout the content guide sequence (e.g., image-placeholder-1, image-placeholder-2, etc.).
 """
 
     if instructions and instructions.strip():

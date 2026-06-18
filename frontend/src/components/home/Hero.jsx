@@ -1,10 +1,9 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, Sparkles, Code2, Cpu } from "lucide-react";
-import Button from "../common/Button";
+
+import { Sparkles, } from "lucide-react";
 
 const Hero = () => {
-  const navigate = useNavigate();
+
 
   return (
     <section className="w-full max-w-[1400px] mx-auto pt-20 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8 text-center space-y-8 animate-fade-in relative z-10">
@@ -30,28 +29,6 @@ const Hero = () => {
       <p className="text-sm sm:text-base md:text-lg text-text-muted max-w-3xl mx-auto leading-relaxed font-normal tracking-wide">
         Stop wrestling with confusing algorithm write-ups. Paste any coding problem to instantly trace runtime data flows, document brute-force to optimal approaches, and generate clear step-by-step dry-runs.
       </p>
-
-      {/* Action CTA Button Array completely tailored to Note Generation and Repositories */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 max-w-md mx-auto sm:max-w-none">
-        <Button 
-          variant="primary" 
-          onClick={() => navigate("/notes/generate")}
-          className="text-xs h-11 px-6 font-semibold w-full sm:w-auto shadow-hover transition-all inline-flex items-center justify-center gap-2 group cursor-pointer"
-        >
-          <Cpu size={14} className="group-hover:rotate-12 transition-transform duration-300 stroke-[2]" />
-          <span>Generate DSA Notes</span>
-          <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-200 stroke-[2]" />
-        </Button>
-        
-        <Button 
-          variant="outline" 
-          onClick={() => navigate("/notes")}
-          className="text-xs h-11 px-6 font-semibold w-full sm:w-auto flex items-center justify-center gap-2 border-border-default hover:bg-bg-soft hover:border-border-strong transition-all cursor-pointer text-text-main shadow-xs"
-        >
-          <Code2 size={14} className="text-text-light stroke-[1.75]" /> 
-          <span>View Saved Notes</span>
-        </Button>
-      </div>
 
     </section>
   );

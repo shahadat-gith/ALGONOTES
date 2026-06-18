@@ -6,7 +6,7 @@ const backendUrl = import.meta.env.DEV
   : import.meta.env.VITE_BACKEND_URL;
 
 const api = axios.create({
-  baseURL: backendUrl
+  baseURL: import.meta.env.VITE_BACKEND_URL
 });
 
 api.interceptors.request.use(

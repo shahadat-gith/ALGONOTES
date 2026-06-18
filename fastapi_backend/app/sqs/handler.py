@@ -6,10 +6,7 @@ from app.database import init_db, close_db
 from .router import route_incoming_ai_job  
 
 async def start_async_queue_handler(event, context):
-    """
-    Orchestrates infrastructure initialization, db context lifecycles,
-    and returns partial batch failure item identifiers to AWS SQS.
-    """
+
     await init_db()
     batch_item_failures = []
     
@@ -28,5 +25,4 @@ async def start_async_queue_handler(event, context):
 
 
 def handler(event, context):
-    """Root level AWS Lambda execution interface point entry wrapper."""
     return asyncio.run(start_async_queue_handler(event, context))
