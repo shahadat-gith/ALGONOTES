@@ -1,10 +1,9 @@
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { useAuth } from "./context/AuthContext";
 
 import Layout from "./components/layout/Layout";
 
-// Auth pages
+// Auth guards
 import { ProtectedRoute, PublicOnlyRoute } from "./components/auth/RouteGuards";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
@@ -31,10 +30,7 @@ import Privacy from "./pages/disclaimers/Privacy";
 import Terms from "./pages/disclaimers/Terms";
 import DataPrivacy from "./pages/disclaimers/DataPrivacy";
 
-
 const App = () => {
-  const { isAuthenticated, user, loading } = useAuth();
-
   return (
     <>
       <Toaster
@@ -44,6 +40,7 @@ const App = () => {
       />
 
       <Routes>
+        {/* PUBLIC CHANNELS */}
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/developer" element={<Developer />} />
@@ -52,47 +49,29 @@ const App = () => {
           <Route path="/data-privacy" element={<DataPrivacy />} />
         </Route>
 
-        <Route
-          path="/verify"
-          element={
-            <VerifyUser
-              user={user}
-              isAuthenticated={isAuthenticated}
-              isAuthLoading={loading}
-            />
-          }
-        />
+        {/* VERIFICATION TRACKS */}
+        {/* PublicOnlyRoute drops them inside if unverified, or bounces them to /notes if verified */}
+        <Route element={<PublicOnlyRoute />}>
+          <Route path="/verify" element={<VerifyUser />} />
+        </Route>
 
-        <Route
-          element={
-            <PublicOnlyRoute
-              isAuthenticated={isAuthenticated}
-              isAuthLoading={loading}
-            />
-          }
-        >
+        {/* ANONYMOUS GUEST ONLY CHANNELS */}
+        <Route element={<PublicOnlyRoute />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Route>
 
-        {/* Protected Feature Tracks Layout Context */}
-        <Route
-          element={
-            <ProtectedRoute
-              isAuthenticated={isAuthenticated}
-              isAuthLoading={loading}
-            />
-          }
-        >
+        {/* PROTECTED PLATFORM WORKSPACES */}
+        <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
-            {/* DSA Coding Notes Management Segment */}
+            {/* DSA Coding Notes */}
             <Route path="/notes" element={<Notes />} />
             <Route path="/notes/generate" element={<NoteGenerator />} />
             <Route path="/notes/:id" element={<NoteDetails />} />
             <Route path="/notes/:id/edit" element={<NoteEditor />} />
 
-            {/* CS Theory Masterclass Generation Segment */}
+            {/* CS Theory */}
             <Route path="/theory" element={<Theories />} />
             <Route path="/theory/generate" element={<TheoryGenerator />} />
             <Route path="/theory/:id/edit" element={<TheoryEditor />} />
@@ -100,6 +79,7 @@ const App = () => {
           </Route>
         </Route>
 
+        {/* CATCH-ALL ANONYMOUS FALLBACK */}
         <Route path="/*" element={<NotFound />} />
       </Routes>
     </>
