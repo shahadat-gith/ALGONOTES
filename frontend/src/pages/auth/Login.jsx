@@ -50,27 +50,14 @@ const Login = () => {
       const data = await loginUser(formData);
 
       if (data.success) {
-        // Double check instance configuration flags down from authorization responses
-        if (data.user?.verificationOptions?.status === "pending") {
-          toast.error("Please verify your account before accessing the platform.");
-          navigate(`/verify?email=${encodeURIComponent(formData.email.toLowerCase().strip())}`);
-          return;
-        }
-
         login(data.token, data.user);
         toast.success(data.message || "Login successful");
         navigate("/");
       }
     } catch (error) {
-      const serverMessage = error.response?.data?.detail || error.response?.data?.message;
-      
-      // If the backend rejects the login specifically because the email is unverified
-      if (serverMessage?.toLowerCase().includes("verify") || serverMessage?.toLowerCase().includes("verification")) {
-        toast.error(serverMessage || "Account unverified. Redirecting to verification panel...");
-        navigate(`/verify?email=${encodeURIComponent(formData.email.toLowerCase().trim())}`);
-      } else {
-        toast.error(serverMessage || "Login failed. Please try again.");
-      }
+      const errMsg = error.response?.data?.detail || error.response?.data?.message;
+      toast.error(errMsg)
+  
     } finally {
       setLoading(false);
     }

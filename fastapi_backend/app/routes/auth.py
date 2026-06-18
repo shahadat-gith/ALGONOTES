@@ -1,5 +1,3 @@
-# app/routes/auth.py
-
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 
@@ -13,7 +11,6 @@ from app.schemas import (
 )
 from app.services import hash_password, verify_password, send_email
 from app.utils import generate_otp, create_access_token
-
 
 from app.constants import welcome_email_template, otp_email_template
 
@@ -124,7 +121,7 @@ async def verify_user(
             otp_email_template(
                 otp=otp,
                 title="Verify your email address",
-                purpose="Use this security pass code payload to complete your ALGONOTES profile deployment configuration verification process."
+                purpose="Please use the verification code below to activate your ALGONOTES account and complete your sign-up process."
             )
         )
         return {"success": True, "message": "OTP sent successfully."}
@@ -181,7 +178,7 @@ async def forgot_password(
             otp_email_template(
                 otp=otp,
                 title="Reset your password",
-                purpose="An explicit security override token transaction sequence was initiated to rewrite your ALGONOTES master password structure matrix.",
+                purpose="We received a request to change your password. Use the security code below to securely reset your ALGONOTES account password.",
                 danger=True
             )
         )

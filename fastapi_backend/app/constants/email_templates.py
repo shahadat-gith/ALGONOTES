@@ -13,19 +13,19 @@ def base_email_template(title: str, body: str) -> str:
         <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #090d16; padding: 40px 16px;">
           <tr>
             <td align="center">
-              <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 540px; background-color: #0d1527; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);">
+              <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 540px; background-color: #0d1527; border-radius: 8px; overflow: hidden; border: 1px solid #1e293b; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);">
                 
                 <tr>
-                  <td height="4" style="background: linear-gradient(90deg, #0f766e, #14b8a6, #2dd4bf);"></td>
+                  <td height="3" style="background-color: #14b8a6;"></td>
                 </tr>
 
                 <tr>
-                  <td style="padding: 32px 32px 20px 32px; background-color: #0d1527;">
+                  <td style="padding: 32px 32px 16px 32px; background-color: #0d1527;">
                     <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
                         <td>
-                          <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px; font-family: 'Courier New', Courier, monospace;">ALGONOTES</h1>
-                          <p style="margin: 4px 0 0 0; font-size: 11px; color: #64748b; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;">AI-Powered DSA Note Space & Engine</p>
+                          <h1 style="margin: 0; font-size: 18px; font-weight: 800; color: #ffffff; letter-spacing: 1px; font-family: monospace;">ALGONOTES</h1>
+                          <p style="margin: 4px 0 0 0; font-size: 11px; color: #64748b; tracking-wide: 0.5px; text-transform: uppercase;">Your AI-Powered Notes Workspace</p>
                         </td>
                       </tr>
                     </table>
@@ -33,16 +33,16 @@ def base_email_template(title: str, body: str) -> str:
                 </tr>
 
                 <tr>
-                  <td style="padding: 24px 32px 40px 32px;">
-                    <h2 style="margin: 0 0 16px 0; color: #f8fafc; font-size: 18px; font-weight: 700; letter-spacing: -0.3px;">{title}</h2>
+                  <td style="padding: 16px 32px 32px 32px;">
+                    <h2 style="margin: 0 0 16px 0; color: #f8fafc; font-size: 16px; font-weight: 700;">{title}</h2>
                     {body}
                   </td>
                 </tr>
 
                 <tr>
-                  <td style="padding: 24px 32px; background-color: #070a12; border-top: 1px solid #141b2d; text-align: left;">
-                    <p style="margin: 0; color: #475569; font-size: 11px; line-height: 1.6; font-family: sans-serif;">
-                      This system message was dispatched automatically by ALGONOTES workspace engines. If you did not trigger this action sequence workflow, you can disregard this email safely.
+                  <td style="padding: 24px 32px; background-color: #070a12; border-top: 1px solid #1e293b; text-align: left;">
+                    <p style="margin: 0; color: #475569; font-size: 11px; line-height: 1.5;">
+                      This email was automatically sent by ALGONOTES. If you didn't request this action, you can safely ignore this message.
                     </p>
                   </td>
                 </tr>
@@ -58,59 +58,59 @@ def base_email_template(title: str, body: str) -> str:
 
 def welcome_email_template(verification_url: str) -> str:
     body = f"""
-    <p style="color: #94a3b8; font-size: 14px; line-height: 1.7; margin: 0 0 28px 0;">
-      Welcome to your new developer deployment environment. Verify your email address property matrix below to fully activate your ALGONOTES instance account and start compiling clean, optimized DSA data structures.
+    <p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin: 0 0 24px 0;">
+      Welcome to ALGONOTES!. Please click the button below to verify your email address and get started.
     </p>
 
     <table cellpadding="0" cellspacing="0" style="margin: 20px 0;">
       <tr>
-        <td style="border-radius: 6px; background-color: #14b8a6; text-align: center;">
+        <td style="border-radius: 4px; background-color: #14b8a6; text-align: center;">
           <a href="{verification_url}" target="_blank"
-             style="display: inline-block; background-color: #14b8a6; color: #022c22; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; border: 1px solid #2dd4bf;">
-            Verify Instance Account
+             style="display: inline-block; background-color: #14b8a6; color: #0d1527; text-decoration: none; padding: 11px 20px; border-radius: 4px; font-weight: 700; font-size: 13px; letter-spacing: 0.5px;">
+            Verify Account
           </a>
         </td>
       </tr>
     </table>
 
-    <p style="color: #475569; font-size: 12px; line-height: 1.6; margin: 32px 0 0 0; border-top: 1px dashed #1e293b; padding-top: 20px;">
-      If the action execution button above fails to execute, pass the target source URL tracking link directly into your browser window:
+    <p style="color: #475569; font-size: 11px; line-height: 1.5; margin: 28px 0 0 0; border-top: 1px dashed #1e293b; padding-top: 16px;">
+      If the button doesn't work, copy and paste this link into your browser:
     </p>
 
-    <p style="margin: 8px 0 0 0;">
-      <a href="{verification_url}" style="color: #14b8a6; font-size: 12px; word-break: break-all; font-family: monospace; text-decoration: none;">
+    <p style="margin: 6px 0 0 0;">
+      <a href="{verification_url}" style="color: #14b8a6; font-size: 11px; word-break: break-all; font-family: monospace; text-decoration: none;">
         {verification_url}
       </a>
     </p>
     """
 
     return base_email_template(
-        title="Initialize Your ALGONOTES Profile Space",
+        title="Confirm Your Registration",
         body=body
     )
 
 
 def otp_email_template(otp: str, title: str, purpose: str, danger: bool = False) -> str:
     brand_color = "#f43f5e" if danger else "#14b8a6"
-    background_surface = "#1c1417" if danger else "#0b1919"
-    border_surface = "#4c1d24" if danger else "#115e59"
+    background_surface = "#1a1215" if danger else "#0a1616"
+    border_surface = "#3b181e" if danger else "#0f4c47"
 
     body = f"""
-    <p style="color: #94a3b8; font-size: 14px; line-height: 1.7; margin: 0 0 24px 0;">
+    <p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin: 0 0 20px 0;">
       {purpose}
     </p>
 
-    <div style="background-color: {background_surface}; border: 1px solid {border_surface}; border-radius: 8px; padding: 24px; text-align: center; margin: 24px 0;">
-      <p style="margin: 0 0 10px 0; color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px;">
-        Authentication Token Verification OTP
+    <div style="background-color: {background_surface}; border: 1px solid {border_surface}; border-radius: 6px; padding: 20px; text-align: center; margin: 20px 0;">
+      <p style="margin: 0 0 8px 0; color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+        Your Verification Code
       </p>
-      <div style="font-family: 'Courier New', Courier, monospace; font-size: 36px; font-weight: 800; letter-spacing: 10px; color: {brand_color}; padding-left: 10px;">
+      <div style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 6px; color: {brand_color}; padding-left: 6px;">
         {otp}
       </div>
     </div>
 
-    <p style="color: #64748b; font-size: 12px; line-height: 1.6; margin: 0;">
-      This operational safety payload key token sequence will automatically expire from database buffers within <strong>10 minutes</strong>. Do not distribute across open channels.
+    <p style="color: #64748b; font-size: 11px; line-height: 1.5; margin: 0;">
+      This verification code is valid for **10 minutes**. For security reasons, please do not share this code with anyone else.
     </p>
     """
 
