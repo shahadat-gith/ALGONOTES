@@ -1,33 +1,26 @@
 import api from "./axios";
 
-
 export const generateAiNote = async (payload) => {
   const { data } = await api.post("/notes/generate", payload);
   return data;
 };
 
-
 export const checkNoteStatus = async (noteId) => {
-  const { data } = await api.get(`/notes/status/${noteId}`, {
-    validateStatus: (status) => (status >= 200 && status < 300) || status === 202
-  });
+
+  const { data } = await api.get(`/notes/status/${noteId}`);
+
   return data;
 };
-
 
 export const getNoteById = async (noteId) => {
-  const { data } = await api.get(`/notes/${noteId}`, {
-    validateStatus: (status) => (status >= 200 && status < 300) || status === 202
-  });
+  const { data } = await api.get(`/notes/${noteId}`);
   return data;
 };
-
 
 export const updateNote = async (noteId, payload) => {
   const { data } = await api.put(`/notes/${noteId}`, payload);
   return data;
 };
-
 
 export const getAllNotesByUser = async (page = 1, size = 10, search = "") => {
   const { data } = await api.get("/notes/user", {
@@ -39,7 +32,6 @@ export const getAllNotesByUser = async (page = 1, size = 10, search = "") => {
   });
   return data;
 };
-
 
 export const deleteNote = async (noteId) => {
   const { data } = await api.delete(`/notes/${noteId}`);

@@ -25,7 +25,15 @@ export const useBackoffPolling = () => {
 
       try {
         const check = await checkStatusFn(resourceId);
-        if (!check?.success) return;
+        
+        // If API responds cleanly but success flag is false, treat it as an explicit termination failure
+        if (check && check.success === false) {
+          stopPolling();
+          onFailure(check.message || "Request validation failed.");
+          return;
+        }
+
+        if (!check) return;
 
         // 1. Check for Complete / Valid states
         if (check.status === "draft" || check.status === "final" || check.status === "completed") {
@@ -46,15 +54,15 @@ export const useBackoffPolling = () => {
           onStepTick();
         }
 
-        // 4. Calculate Backoff intervals dynamically based on call range brackets
-        let nextInterval = 2000; // Default: 1st to 5th call = 2 seconds (2000ms)
+        // 4. Calculate Backoff intervals dynamically
+        let nextInterval = 2000; 
 
         if (callCount > 15) {
-          nextInterval = 15000;  // 16th call and onwards = 15 seconds (15000ms)
+          nextInterval = 15000;  
         } else if (callCount > 10) {
-          nextInterval = 10000;  // 11th to 15th call = 10 seconds (10000ms)
+          nextInterval = 10000;  
         } else if (callCount > 5) {
-          nextInterval = 5000;   // 6th to 10th call = 5 seconds (5000ms)
+          nextInterval = 5000;   
         }
 
         console.log(`[Polling Log] Request #${callCount} completed. Next lookup frame scheduled in ${nextInterval / 1000}s`);
@@ -62,12 +70,29 @@ export const useBackoffPolling = () => {
 
       } catch (error) {
         console.error("Polled transaction channel error:", error);
-        // Fallback retry buffer window to preserve engine responsiveness during connectivity drops
+        
+        // Check if the error is a 404 (indicating the backend purged a failed note)
+        const is404 = error?.response?.status === 404 || error?.status === 404;
+        
+        if (is404) {
+          stopPolling();
+          onFailure("The processing workspace could not be found or was removed.");
+          return;
+        }
+
+        // For structural network timeouts/intermittent drops, retry after 5s up to a maximum threshold
+        if (callCount > 25) {
+          stopPolling();
+          onFailure("Connection lost. Please refresh your browser or try again.");
+          return;
+        }
+
         pollTimeoutRef.current = setTimeout(executePoll, 5000);
       }
     };
 
-    pollTimeoutRef.current = setTimeout(executePoll, 2000);
+  
+    pollTimeoutRef.current = setTimeout(executePoll, 3000);
   }, [stopPolling]);
 
   return { startPolling, stopPolling };

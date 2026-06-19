@@ -1,0 +1,63 @@
+from datetime import datetime
+from typing import Optional
+from pydantic import BaseModel, ConfigDict, Field, BeforeValidator
+from typing_extensions import Annotated
+from app.models.theory import TheoryStatus
+
+# Safely turns BSON/PyMongo ObjectIds directly into serializable strings
+PyObjectId = Annotated[str, BeforeValidator(lambda v: str(v) if v is not None else v)]
+
+
+class GenerateTheoryRequest(BaseModel):
+    topic: str = Field(..., min_length=1)
+    code_language: Optional[str] = Field(default="C++")
+    instructions: Optional[str] = None
+
+
+# ==========================================
+# RESPONSE SCHEMA
+# ==========================================
+class TheoryResponse(BaseModel):
+    # Enforces explicit conversion tracking using the database identifier name
+    id: PyObjectId = Field(alias="_id") 
+    status: TheoryStatus
+    topic: str
+    content: str  
+    createdAt: datetime
+    updatedAt: datetime
+    user_id: PyObjectId 
+
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True, 
+        exclude_none=True,
+        # CRITICAL FIX: Forces FastAPI to return raw '_id' keys in response JSON payloads instead of 'id'
+        by_alias=True
+    )
+
+
+# ==========================================
+# UPDATE SCHEMA
+# ==========================================
+class TheoryUpdate(BaseModel):
+    status: Optional[TheoryStatus] = None
+    topic: Optional[str] = None
+    content: Optional[str] = None
+
+    model_config = ConfigDict(
+        extra="ignore",
+        exclude_none=True
+    )
+
+
+class OptimizePromptRequest(BaseModel):
+    topic: str = Field(..., min_length=1)
+    instructions: Optional[str] = ""
+    code_language: Optional[str] = Field(default="C++")
+
+
+class OptimizePromptStatusResponse(BaseModel):
+    success: bool
+    status: TheoryStatus
+    optimizedInstructions: Optional[str] = None
+    message: Optional[str] = None
