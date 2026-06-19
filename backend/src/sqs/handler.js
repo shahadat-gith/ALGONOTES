@@ -1,27 +1,36 @@
 import { connectDB } from '../database/db.js';
 import { routeIncomingAiJob } from './router.js';
 
-
+/**
+ * AWS Lambda SQS Event Poller Handler Function
+ */
 export const handler = async (event, context) => {
-  // Ensure connection instance is running
-  await connectDB();
+  // Turn off background event loop holding behaviors to finish execution frames fast
+  context.callbackWaitsForEmptyEventLoop = false;
   
-  const batchItemFailures = [];
+  // Connect to database pool instance before consuming execution buffers
+  await connectDB();
 
-  if (event && Array.isArray(event.Records)) {
-    for (const record of event.Records) {
-      try {
-        const message = JSON.parse(record.body);
-        await routeIncomingAiJob(message);
-      } catch (error) {
-        console.error(
-          `[SQS Handler Critical] Failed to completely digest message ID ${record.messageId}: ${error.message}`
-        );
-        // Track the specific failed item ID so SQS can retry it individually
-        batchItemFailures.push({ itemIdentifier: record.messageId });
-      }
+  const failedMessageIds = [];
+
+  // Iterate over batch processing sizes (usually configured as batchSize: 1 in serverless.yml)
+  for (const record of event.Records) {
+    try {
+      console.log(`[SQS Poller] Processing message ID: ${record.messageId}`);
+      
+      const parsedBody = JSON.parse(record.body);
+      
+      // Process payload through the router pipeline
+      await routeIncomingAiJob(parsedBody);
+      
+    } catch (error) {
+      console.error(`[SQS Processing Error] Failed execution frame on item ${record.messageId}: ${error.message}`);
+      
+      // Track item failure IDs if your framework is configured to handle partial batch tracking
+      failedMessageIds.push({ itemIdentifier: record.messageId });
     }
   }
 
-  return { batchItemFailures };
+  // Return specific keys so AWS handles failed background instances gracefully
+  return { batchItemFailures: failedMessageIds };
 };

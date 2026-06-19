@@ -4,16 +4,19 @@ import {
   executePromptOptimization 
 } from './worker.js';
 
-
 import { 
   handleNoteGenerationFailure, 
-  handleTheoryGenerationFailure 
+  handleTheoryGenerationFailure,
 } from './failures.js';
 
-
+// Using your exact explicit model import path
 import TempPromptJob from '../models/temp.model.js';
 
-
+/**
+ * Parses and routes incoming background SQS messages to their 
+ * respective heavy AI processing execution pathways.
+ * * @param {Object} message - Raw message payload unmarshalled from the SQS event string
+ */
 export const routeIncomingAiJob = async (message) => {
   const jobType = message.type || 'dsa';
 
@@ -28,13 +31,18 @@ export const routeIncomingAiJob = async (message) => {
   } catch (error) {
     console.error(`[SQS Router Catch] Handling job crash for type ${jobType}: ${error.message}`);
 
-    // Gracefully pipe failures based on specific transaction groups
+    // Gracefully handle catastrophic pipeline exceptions based on specific transaction domains
     if (jobType === 'optimize_prompt') {
-      const job = await TempPromptJob.findById(message.job_id);
-      if (job) {
-        job.status = 'failed';
-        job.error_message = error.message;
-        await job.save();
+      try {
+        const job = await TempPromptJob.findById(message.job_id);
+        if (job) {
+          job.status = 'failed';
+          // Save error string context into instructions tracking space
+          job.optimized_instructions = `Prompt Optimization Stream Fault: ${error.message}`;
+          await job.save();
+        }
+      } catch (dbError) {
+        console.error(`[SQS Router Fatal] Failed to flag prompt tracker fallback state: ${dbError.message}`);
       }
     } else if (jobType === 'theory') {
       await handleTheoryGenerationFailure(message.theory_id, error.message);
@@ -42,6 +50,7 @@ export const routeIncomingAiJob = async (message) => {
       await handleNoteGenerationFailure(message.note_id, error.message);
     }
 
+    // Rethrow error so SQS message acknowledges the transaction failed and increments retry backoffs
     throw error;
   }
 };
