@@ -6,7 +6,6 @@ import HomeHero from "../../components/home/HomeHero";
 import HomeHighlights from "../../components/home/HomeHighlights";
 import HomeWorkflow from "../../components/home/HomeWorkflow";
 
-
 const Home = () => {
   return (
     <div className="w-full min-h-screen text-text-main relative overflow-hidden pb-16 sm:pb-20">
@@ -16,14 +15,13 @@ const Home = () => {
 
       <main className="w-full relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-14 sm:space-y-18">
         <HomeHero />
-        <HomeAnalyticsPanel />
         <HomeWorkflow />
         <HomeHighlights />
+        <HomeAnalyticsPanel />
         <HomeCta />
       </main>
     </div>
   );
 };
-
 
 export default Home;
