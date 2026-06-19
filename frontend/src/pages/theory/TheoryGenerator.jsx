@@ -12,6 +12,7 @@ import Alert from "../../components/common/Alert";
 import toast from "react-hot-toast";
 
 import { Sparkles, FileText, Wand2, Lightbulb, Code2, Loader2 } from "lucide-react";
+import { checkTheoryStatus } from "../../api/theoryApi";
 
 const TheoryGenerator = () => {
   const navigate = useNavigate();

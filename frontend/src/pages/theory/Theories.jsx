@@ -14,7 +14,8 @@ import TheoriesSkeleton from "../../components/skeletons/TheoriesSkeleton";
 const Theories = () => {
   const navigate = useNavigate();
 
-  const [notes, setNotes] = useState([]);
+  // Refactored state from notes -> theories
+  const [theories, setTheories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -37,12 +38,12 @@ const Theories = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const fetchNotes = async () => {
+  const fetchTheories = async () => {
     setLoading(true);
     try {
       const res = await getAllTheoriesByUser(page, pageSize, debouncedSearch);
       if (res?.success) {
-        setNotes(res.theories || []);
+        setTheories(res.theories || []);
         setTotalPages(
           res.totalPages || Math.ceil((res.totalCount || 1) / pageSize),
         );
@@ -55,7 +56,7 @@ const Theories = () => {
   };
 
   useEffect(() => {
-    fetchNotes();
+    fetchTheories();
   }, [page, debouncedSearch]);
 
   const handleOpenDeleteModal = (id) => {
@@ -69,12 +70,14 @@ const Theories = () => {
     try {
       const res = await deleteTheoryNote(deleteTargetId);
       if (res?.success) {
-        setNotes((prev) => prev.filter((note) => note.id !== deleteTargetId));
+        // Correctly filter out using MongoDB's raw _id parameter
+        setTheories((prev) => prev.filter((theory) => theory._id !== deleteTargetId));
         toast.success("Note deleted successfully.");
-        if (notes.length === 1 && page > 1) {
+        
+        if (theories.length === 1 && page > 1) {
           setPage((p) => p - 1);
         } else {
-          fetchNotes();
+          fetchTheories();
         }
       }
     } catch (err) {
@@ -102,7 +105,7 @@ const Theories = () => {
         <TheoriesSkeleton />
       ) : (
         <>
-          {notes.length > 0 && (
+          {theories.length > 0 && (
             <div className="w-full flex justify-end items-center -mb-2 animate-fade-in">
               <Pagination
                 page={page}
@@ -112,16 +115,16 @@ const Theories = () => {
             </div>
           )}
 
-          {notes.length === 0 ? (
+          {theories.length === 0 ? (
             <div className="w-full text-center py-12 border border-border-default rounded-md bg-bg-surface/20 text-xs font-mono text-text-light tracking-wide">
               No matching notes found on this page.
             </div>
           ) : (
             <div className="flex flex-col gap-4 w-full animate-fade-in">
-              {notes.map((note) => (
+              {theories.map((theory) => (
                 <TheoryCard
-                  key={note.id}
-                  theory={note}
+                  key={theory._id} // Mapped to raw MongoDB object _id schema property
+                  theory={theory}
                   onDelete={handleOpenDeleteModal}
                 />
               ))}

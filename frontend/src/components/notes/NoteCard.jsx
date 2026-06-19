@@ -23,13 +23,14 @@ const formatDate = (date) => {
 
 const NoteCard = ({ note, onDelete }) => {
   const {
-    id,
+    _id: id, // Corrected: Map raw MongoDB _id to the local id alias variable cleanly
     problem = {},
     language = "C++",
     status = "draft",
     createdAt,
     updatedAt,
   } = note;
+  
   const title = problem.title || "Untitled Problem";
   const description = problem.description || "";
   const platform = problem.platform || "Other";

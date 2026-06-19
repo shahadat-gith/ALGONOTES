@@ -97,7 +97,6 @@ export const useTheoryGeneration = () => {
     })));
 
     try {
-      // Dispatches the compiled payload containing instructions down to your FastAPI router
       const initResponse = await generateTheoryNote({ 
         topic: formData.topic.trim(),
         instructions: formData.instructions.trim() || undefined
@@ -105,22 +104,24 @@ export const useTheoryGeneration = () => {
 
       console.log(initResponse)
 
-      if (!initResponse?.success || !initResponse?.id) {
+      // Corrected from initResponse.id -> initResponse.theoryId to match Node.js API Response contract
+      if (!initResponse?.success || !initResponse?.theoryId) {
         throw new Error("Queue rejected.");
       }
 
       startPolling({
-        resourceId: initResponse.id,
+        resourceId: initResponse.theoryId, // Sync with theoryId
         checkStatusFn: checkTheoryStatus,
         onStepTick: updateCurrentStep,
         onSuccess: () => {
           setSteps((prev) => prev.map((s) => ({ ...s, status: "completed" })));
           toast.success("Theory Guide compiled successfully!");
           setTimeout(() => {
-            navigate(`/theory/${initResponse.id}/edit`, { replace: true });
+            // Redirect using the valid parameter
+            navigate(`/theory/${initResponse.theoryId}/edit`, { replace: true });
           }, 800);
         },
-        onFailure: (errMsg) => handleGenerationFailure(initResponse.id, errMsg),
+        onFailure: (errMsg) => handleGenerationFailure(initResponse.theoryId, errMsg),
       });
     } catch (err) {
       stopPolling();

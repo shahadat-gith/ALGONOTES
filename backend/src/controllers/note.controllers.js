@@ -1,7 +1,7 @@
 import Note from '../models/note.model.js';
 import { enqueueNoteGeneration } from '../sqs/dispatchers.js';
 import { AppException } from '../utils/appException.js';
-import { serializeNote } from '../utils/serializeNote.js';
+
 
 
 
@@ -115,7 +115,7 @@ export const getAllNotesByUser = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      notes: notes.map(serializeNote),
+      notes,
       pagination: {
         totalItems,
         totalPages,
@@ -148,7 +148,7 @@ export const getNoteByNoteId = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      note: serializeNote(note)
+      note
     });
   } catch (error) {
     next(error);
@@ -182,7 +182,7 @@ export const updateNote = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: `Note updated successfully as ${note.status}.`,
-      note: serializeNote(note)
+      note
     });
   } catch (error) {
     next(error);

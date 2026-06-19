@@ -3,7 +3,6 @@ import { uploadToCloudinary, deleteFromCloudinary } from '../services/cloudinary
 import { cloudinary } from '../config/cloudinary.js';
 import { enqueueTheoryGeneration } from '../sqs/dispatchers.js';
 import { AppException } from '../utils/appException.js';
-import { serializeTheory } from '../utils/serializeTheory.js';
 
 
 
@@ -179,7 +178,7 @@ export const getAllTheoriesByUser = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      theories: theories.map(serializeTheory),
+      theories,
       pagination: {
         totalItems,
         totalPages,
@@ -212,7 +211,7 @@ export const getTheoryById = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      theory: serializeTheory(theory)
+      theory
     });
   } catch (error) {
     next(error);
@@ -239,7 +238,7 @@ export const updateTheory = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Study note updated successfully.',
-      theory: serializeTheory(theory)
+      theory
     });
   } catch (error) {
     next(error);

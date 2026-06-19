@@ -68,6 +68,7 @@ export const useNoteGeneration = () => {
     setLoading(false);
     setApiErrorMessage(message);
     try {
+      // Corrected to pass the raw database target id securely down for rollbacks
       await deleteNote(noteId);
     } catch (cleanError) {
       console.error("Clean error during deletion rollback:", cleanError);
@@ -118,6 +119,7 @@ export const useNoteGeneration = () => {
           setSteps((prev) => prev.map((s) => ({ ...s, status: "completed" })));
           toast.success("Note generated successfully!");
           setTimeout(() => {
+            // Keep initResponse.id here since the handshake mapping layer uses the uniform key syntax
             navigate(`/notes/${initResponse.id}/edit`, { replace: true });
           }, 800);
         },

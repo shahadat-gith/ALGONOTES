@@ -1,5 +1,3 @@
-// src/hooks/useBackoffPolling.js
-
 import { useRef, useCallback } from "react";
 
 export const useBackoffPolling = () => {
@@ -30,7 +28,7 @@ export const useBackoffPolling = () => {
         if (!check?.success) return;
 
         // 1. Check for Complete / Valid states
-        if (check.status === "draft" || check.status === "final") {
+        if (check.status === "draft" || check.status === "final" || check.status === "completed") {
           stopPolling();
           onSuccess(check);
           return;
@@ -43,25 +41,29 @@ export const useBackoffPolling = () => {
           return;
         }
 
-        // 3. Trigger visual step step index incrementer cycles
+        // 3. Trigger visual step index incrementer cycles
         if (callCount % 2 === 0 && onStepTick) {
           onStepTick();
         }
 
-        // 4. Calculate Backoff intervals dynamically
-        let nextInterval = 2000; // First 5 calls: 2 seconds
+        // 4. Calculate Backoff intervals dynamically based on call range brackets
+        let nextInterval = 2000; // Default: 1st to 5th call = 2 seconds (2000ms)
+
         if (callCount > 15) {
-          nextInterval = 7000;   // Over 15 calls: 7 seconds
+          nextInterval = 15000;  // 16th call and onwards = 15 seconds (15000ms)
+        } else if (callCount > 10) {
+          nextInterval = 10000;  // 11th to 15th call = 10 seconds (10000ms)
         } else if (callCount > 5) {
-          nextInterval = 4000;   // 6 to 15 calls: 4 seconds
+          nextInterval = 5000;   // 6th to 10th call = 5 seconds (5000ms)
         }
 
+        console.log(`[Polling Log] Request #${callCount} completed. Next lookup frame scheduled in ${nextInterval / 1000}s`);
         pollTimeoutRef.current = setTimeout(executePoll, nextInterval);
 
       } catch (error) {
         console.error("Polled transaction channel error:", error);
-        // Fallback retry block window to preserve engine responsiveness
-        pollTimeoutRef.current = setTimeout(executePoll, 4000);
+        // Fallback retry buffer window to preserve engine responsiveness during connectivity drops
+        pollTimeoutRef.current = setTimeout(executePoll, 5000);
       }
     };
 
