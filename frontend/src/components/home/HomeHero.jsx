@@ -56,29 +56,7 @@ const HomeHero = () => {
           </Button>
         </div>
 
-        <div className="mx-auto mt-4 w-full max-w-4xl rounded-2xl border border-white/10 bg-bg-surface/72 p-4 shadow-[0_8px_45px_rgba(0,0,0,0.42)] backdrop-blur">
-          <div className="flex items-center justify-between border-b border-white/8 pb-3">
-            <p className="text-left text-sm font-semibold text-text-main">ALGONOTES</p>
-            <div className="inline-flex gap-2">
-              <span className="h-2 w-2 rounded-full bg-primary/90" />
-              <span className="h-2 w-2 rounded-full bg-white/35" />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 gap-3 pt-3 sm:grid-cols-3">
-            {["DSA Revision", "System Design", "DBMS Theory"].map((card) => (
-              <div
-                key={card}
-                className="rounded-xl border border-white/10 bg-bg-base/70 p-3 text-left"
-              >
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-text-light">Continue</p>
-                <p className="mt-2 text-sm font-medium text-text-main">{card}</p>
-                <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-primary to-[#a899ff]" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+       
       </div>
     </section>
   );
