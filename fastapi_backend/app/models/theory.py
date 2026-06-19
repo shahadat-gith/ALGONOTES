@@ -28,20 +28,3 @@ class Theory(Document):
         exclude_none=True
     )
 
-
-
-
-class TempPromptJob(Document):
-    """
-    Transient collection used solely to cycle async polling statuses for prompt optimization.
-    Documents are automatically purged immediately after the client polls the completed state.
-    """
-    status: TheoryStatus = Indexed(default=TheoryStatus.processing)
-    topic: str
-    optimized_instructions: Optional[str] = None
-    error_message: Optional[str] = None
-    user_id: PydanticObjectId = Indexed()
-    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-    class Settings:
-        name = "temp_prompt_jobs"

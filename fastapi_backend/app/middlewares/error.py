@@ -7,10 +7,7 @@ from beanie.exceptions import DocumentNotFound
 
 
 class AppException(Exception):
-    """
-    Custom application exception wrapper.
-    Allows throwing manual errors inside handlers with explicit status codes.
-    """
+   
     def __init__(self, message: str, status_code: int = 400):
         self.message = message
         self.status_code = status_code
@@ -18,11 +15,7 @@ class AppException(Exception):
 
 
 def register_error_handlers(app):
-    """
-    Attaches global event listeners to the FastAPI instance to map
-    exceptions into standard JSON error responses.
-    """
-
+ 
     # 1. Handle Custom Manual Application Errors (Thrown explicitly in controllers)
     @app.exception_handler(AppException)
     async def app_exception_handler(request: Request, exc: AppException):

@@ -79,9 +79,14 @@ async def login(payload: LoginRequest):
     user_email = payload.email.lower().strip()
 
     user = await User.find_one(User.email == user_email)
-    if not user or not verify_password(payload.password, user.password):
-        raise HTTPException(status_code=401, detail="Invalid credentials.")
+    if not user:
+        raise HTTPException(status_code=401, detail="Incorrect Email address.")
 
+    is_password_verified = verify_password(payload.password, user.password)
+    if not is_password_verified:
+        raise HTTPException(status_code=401, detail="Incorrect Password.")
+    
+    
     token = create_access_token(str(user.id))
 
     return {

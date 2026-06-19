@@ -95,7 +95,7 @@ const Theories = () => {
         onBtnClick={() => navigate("/theory/generate")}
         search={search}
         setSearch={setSearch}
-        placeholder="Instant search within notes..."
+        placeholder="Search your notes..."
       />
 
       {loading ? (

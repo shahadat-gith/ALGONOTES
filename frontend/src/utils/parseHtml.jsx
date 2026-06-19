@@ -10,8 +10,7 @@ export const parseRawHtml = (rawHtml) => {
   const doc = parser.parseFromString(rawHtml, "text/html");
 
   // 1. Target any live editor placeholder widgets left behind
-  doc.querySelectorAll(".algonotes-editor-placeholder-card")
-  .forEach((widget) => {
+  doc.querySelectorAll(".algonotes-editor-placeholder-card").forEach((widget) => {
     widget.remove();
   });
 

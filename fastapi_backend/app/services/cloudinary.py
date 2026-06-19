@@ -13,10 +13,6 @@ cloudinary.config(
 )
 
 async def upload_to_cloudinary(file: UploadFile, folder: str = "algonotes/users") -> dict:
-    """
-    Reads the asynchronous FastAPI UploadFile stream and uploads the raw
-    binary payload directly to Cloudinary.
-    """
     try:
         # Read the file stream contents directly into memory bytes
         file_bytes = await file.read()
@@ -37,9 +33,6 @@ async def upload_to_cloudinary(file: UploadFile, folder: str = "algonotes/users"
         raise e
 
 async def delete_from_cloudinary(public_id: str) -> dict:
-    """
-    Removes historical media records out of Cloudinary cloud nodes.
-    """
     try:
         return cloudinary.uploader.destroy(public_id)
     except Exception as e:

@@ -27,13 +27,3 @@ export const deleteAccount = async () => {
   const { data } = await api.delete("/users/account");
   return data;
 };
-
-/**
- * Executes a global search query matching terms against all DSA notes, topics, or theories across the workspace.
- * @param {string} query - The search keyword or phrase entered by the user.
- * @returns {Promise<Object>} Unified structured list of matched note properties and workspace assets.
- */
-export const searchWorkspace = async (query) => {
-  const { data } = await api.get(`/users/search?q=${encodeURIComponent(query)}`);
-  return data;
-};

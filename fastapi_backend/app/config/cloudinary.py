@@ -2,9 +2,6 @@ import cloudinary
 from app.config.settings import settings
 
 def configure_cloudinary():
-    """
-    Initializes Cloudinary with global environment variables.
-    """
     cloudinary.config(
         cloud_name=settings.CLOUDINARY_CLOUD_NAME,
         api_key=settings.CLOUDINARY_API_KEY,

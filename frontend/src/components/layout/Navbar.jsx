@@ -1,16 +1,14 @@
 // components/layout/Navbar.jsx
-import React, { useState } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Dropdown from "./Dropdown";
-import SearchModal from "../modals/SearchModal";
-import { Search, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Button from "../common/Button";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const { logout, user, loading } = useAuth();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -35,21 +33,7 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Action Hub */}
           <div className="flex items-center gap-4 shrink-0">
-            <button
-              type="button"
-              onClick={() => setIsSearchOpen(true)}
-              className="group flex h-9 items-center gap-2.5 rounded-sm px-3.5 text-text-light hover:text-primary bg-bg-soft/50 hover:bg-bg-soft border border-border-default transition-all duration-150 cursor-pointer"
-            >
-              <Search size={14} className="stroke-[2]" />
-              <span className="hidden sm:inline text-xs font-semibold text-text-light/80">
-                Search Workspace...
-              </span>
-            </button>
-
-            <div className="h-4 w-[1px] bg-border-default" />
-
             {loading ? (
               <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-bg-soft border border-border-default">
                 <Loader2
@@ -71,11 +55,6 @@ const Navbar = () => {
           </div>
         </div>
       </header>
-
-      <SearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-      />
     </>
   );
 };

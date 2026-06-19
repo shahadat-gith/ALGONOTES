@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     AI_GENERATION_QUEUE_URL: str
 
     JWT_SECRET: str
-    JWT_EXPIRES_IN: str = "7d"
+    JWT_EXPIRES_IN: str = "365d"
 
     CLOUDINARY_CLOUD_NAME: str
     CLOUDINARY_API_KEY: str

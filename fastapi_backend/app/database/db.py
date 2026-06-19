@@ -3,7 +3,7 @@ from beanie import init_beanie
 
 from app.config import settings
 from app.models import User, Note, Theory
-from app.models.theory import TempPromptJob
+from app.models import TempPromptJob
 
 
 client = None

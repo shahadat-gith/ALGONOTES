@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTheoryGeneration } from "../../hooks/useTheoryGeneration";
-import { optimizeTheoryInstructions, checkPromptOptimizationStatus } from "../../api/theoryApi";
+import { optimizeTheoryInstructions, checkPromptOptimizationStatus } from "../../api/promptApi";
+
 import { useBackoffPolling } from "../../hooks/useBackoffPolling";
 import { useNavigate } from "react-router-dom";
 

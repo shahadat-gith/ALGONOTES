@@ -8,7 +8,7 @@ from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 from beanie import PydanticObjectId
 
 from app.config import settings
-from app.models.user import User
+from app.models import User
 
 
 security_scheme = HTTPBearer(auto_error=False)

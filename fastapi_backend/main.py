@@ -14,6 +14,7 @@ from app.routes import (
     user_router,
     note_router,
     theory_router,
+    prompt_router,
 )
 
 
@@ -56,6 +57,7 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
 app.include_router(note_router, prefix="/api/v1")
 app.include_router(theory_router, prefix="/api/v1")
+app.include_router(prompt_router, prefix="/api/v1")
 
 
 @app.get("/", tags=["System"])
