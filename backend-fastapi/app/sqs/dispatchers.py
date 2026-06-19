@@ -39,7 +39,7 @@ async def enqueue_theory_generation(
     theory_id: str, 
     user_id: PydanticObjectId, 
     topic: str, 
-    code_language: Optional[str] = "C++", 
+    code_language: Optional[str] = None, 
     instructions: Optional[str] = None 
 ):
     payload = {
@@ -47,7 +47,7 @@ async def enqueue_theory_generation(
         "theory_id": str(theory_id),
         "user_id": str(user_id),
         "topic": topic,
-        "code_language": code_language.strip() if (code_language and code_language.strip()) else "C++",
+        "code_language": code_language.strip() if (code_language and code_language.strip()) else None,
         "instructions": instructions  
     }
     
@@ -57,7 +57,7 @@ async def enqueue_theory_generation(
         QueueUrl=QUEUE_URL, 
         MessageBody=json.dumps(payload)
     )
-    print(f"[SQS] Enqueued theory generation for Theory ID: {theory_id} (Language: {payload['code_language']})")
+    print(f"[SQS] Enqueued theory generation for Theory ID: {theory_id} (Language: {payload['code_language'] or 'none'})")
 
 
 async def enqueue_prompt_optimization(
@@ -72,7 +72,7 @@ async def enqueue_prompt_optimization(
         "job_id": job_id,
         "user_id": user_id,
         "topic": topic,
-        "code_language": code_language,
+        "code_language": code_language.strip() if (code_language and code_language.strip()) else None,
         "instructions": instructions
     }
     

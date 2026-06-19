@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, Field, BeforeValidator
+from pydantic import BaseModel, ConfigDict, Field, BeforeValidator, AliasChoices
 from typing_extensions import Annotated
 from app.models.theory import TheoryStatus
 
@@ -10,7 +10,10 @@ PyObjectId = Annotated[str, BeforeValidator(lambda v: str(v) if v is not None el
 
 class GenerateTheoryRequest(BaseModel):
     topic: str = Field(..., min_length=1)
-    code_language: Optional[str] = Field(default="C++")
+    code_language: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("code_language", "language"),
+    )
     instructions: Optional[str] = None
 
 
@@ -53,7 +56,10 @@ class TheoryUpdate(BaseModel):
 class OptimizePromptRequest(BaseModel):
     topic: str = Field(..., min_length=1)
     instructions: Optional[str] = ""
-    code_language: Optional[str] = Field(default="C++")
+    code_language: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices("code_language", "language"),
+    )
 
 
 class OptimizePromptStatusResponse(BaseModel):

@@ -11,7 +11,7 @@ import {
 import toast from "react-hot-toast";
 import CodeContainer from "../../common/CodeContainer";
 
-const Approach = ({ title, approach, highlight = false }) => {
+const Approach = ({ title, approach, highlight = false, language = "cpp" }) => {
   const [copied, setCopied] = useState(false);
 
   if (!approach || Object.keys(approach).length === 0) return null;

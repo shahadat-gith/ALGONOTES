@@ -29,11 +29,13 @@ async def handle_theory_generation_failure(theory_id: str, reason: str):
 async def handle_prompt_optimization_failure(job_id: str, reason: str):
     """
     Handles terminal prompt optimization exceptions.
-    Deletes the temporary tracking record instantly to keep database footprint clean.
+    Marks the job as failed so polling endpoint can return a proper failure response.
     """
     job = await TempPromptJob.get(job_id)
     if not job:
         return
-        
-    await job.delete()
-    print(f"[Worker Exception] Ephemeral prompt job {job_id} deleted on failure. Reason: {reason}")
+
+    job.status = TheoryStatus.failed
+    job.error_message = reason
+    await job.save()
+    print(f"[Worker Exception] Ephemeral prompt job {job_id} marked as failed. Reason: {reason}")

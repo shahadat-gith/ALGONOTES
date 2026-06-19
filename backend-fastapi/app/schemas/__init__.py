@@ -9,6 +9,10 @@ from .auth import (
 
 from .user import (
     UserResponse,
+    DashboardSummaryStats,
+    DashboardRecentActivityItem,
+    DashboardResponse,
+    DashboardEnvelope,
 )
 
 from .note import (
@@ -24,6 +28,12 @@ from .theory import (
     TheoryUpdate,           
 )
 
+from .analytics import (
+    AnalyticsStatsResponse,
+    AnalyticsStatsEnvelope,
+    AnalyticsVisitTrackingResponse,
+)
+
 from app.models.note import (
     ProblemDetailSchema,
     NoteContentSchema,
@@ -36,6 +46,10 @@ __all__ = [
     "ForgotPasswordRequest",
 
     "UserResponse",
+    "DashboardSummaryStats",
+    "DashboardRecentActivityItem",
+    "DashboardResponse",
+    "DashboardEnvelope",
 
     "GenerateNoteRequest",
     "SaveNoteRequest",
@@ -48,4 +62,8 @@ __all__ = [
     "GenerateTheoryRequest",  
     "TheoryResponse",         
     "TheoryUpdate",           
+
+    "AnalyticsStatsResponse",
+    "AnalyticsStatsEnvelope",
+    "AnalyticsVisitTrackingResponse",
 ]

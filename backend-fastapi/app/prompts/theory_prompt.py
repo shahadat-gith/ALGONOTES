@@ -2,7 +2,7 @@ from typing import Optional
 
 def generate_theory_prompt(
     topic: str, 
-    code_language: Optional[str] = "C++", 
+  code_language: Optional[str] = None, 
     instructions: Optional[str] = None
 ) -> str:
     """
@@ -11,16 +11,33 @@ def generate_theory_prompt(
     visual placeholders natively without relying on manual user inputs.
     """
     
-    selected_lang = code_language.strip() if (code_language and code_language.strip()) else "C++"
-    data_lang_value = selected_lang.lower().replace('+', 'p')
-    
-    language_rule = f"""
+    selected_lang = code_language.strip() if (code_language and code_language.strip()) else None
+
+    language_rule = """
+  CODE USAGE DECISION RULES
+  ------------------------------------------
+  - Include code blocks ONLY when code materially improves understanding of the topic.
+  - If the topic is conceptual, theoretical, definitional, comparative, or non-implementation-focused, do NOT add code just to fill space.
+  - If code is unnecessary, prefer examples, analogies, tables, diagrams, or step-by-step explanations instead.
+  """
+
+    if selected_lang:
+      data_lang_value = selected_lang.lower().replace('+', 'p')
+      language_rule += f"""
 PREFERRED PROGRAMMING LANGUAGE CONSTRAINT
 ------------------------------------------
 - The target programming language for this note is **{selected_lang}**.
-- You MUST write all code examples, technical implementations, data structure structures, and scripts strictly in **{selected_lang}**.
-- You MUST set the element attribute to match this language lowercase tag, exactly like this: `data-lang="{data_lang_value}"` (e.g., c++, java, python, javascript).
-"""
+  - If you include any code examples, technical implementations, data structure structures, or scripts, you MUST write them strictly in **{selected_lang}**.
+  - For any included code block, you MUST set the element attribute exactly like this: `data-lang="{data_lang_value}"`.
+  """
+    else:
+      language_rule += """
+  NO FIXED LANGUAGE SELECTED
+  ------------------------------------------
+  - No programming language was selected by the user.
+  - If code is genuinely needed, choose the single most natural and beginner-friendly language for the topic and use it consistently.
+  - If code is not necessary, do not include any code blocks.
+  """
 
     prompt = f"""
 You are an expert Professor and an authoritative technical writer.
@@ -45,8 +62,8 @@ Decorate every injected HTML node strictly according to this class structure map
 
 DYNAMIC MULTI-LINE CODE WRAPPING CONSTRAINTS
 ------------------------------------------
-- For technical source code blocks, implementations, or script snippets, you MUST wrap them inside a combination of an HTML `<pre>` block and a code block.
-- You MUST format it exactly like this, filling in the correct lowercase language name token in the `data-lang` slot:
+- If you include technical source code blocks, implementations, or script snippets, you MUST wrap them inside a combination of an HTML `<pre>` block and a code block.
+- You MUST format any included code exactly like this, filling in the correct lowercase language name token in the `data-lang` slot:
   <pre class="algonotes-pre"><code class="algonotes-code-block" data-lang="lowercase_language_name">... Your code goes here ...</code></pre>
 - Inside these multi-line code blocks, you MUST preserve all original indentations, tabs, multi-line structures, and precise line breaks. Never flatten a block of source code horizontally into a single layout line.
 {language_rule}

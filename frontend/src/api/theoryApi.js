@@ -1,7 +1,14 @@
 import api from "./axios";
 
 export const generateTheoryNote = async (payload) => {
-  const { data } = await api.post("/theory/generate", payload);
+  const requestBody = {
+    ...payload,
+    language: payload.language ?? payload.code_language ?? null,
+  };
+
+  delete requestBody.code_language;
+
+  const { data } = await api.post("/theory/generate", requestBody);
   return data;
 };
 

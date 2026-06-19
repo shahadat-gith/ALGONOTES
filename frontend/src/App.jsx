@@ -30,6 +30,8 @@ import Developer from "./pages/developer/Developer";
 import Privacy from "./pages/disclaimers/Privacy";
 import Terms from "./pages/disclaimers/Terms";
 import DataPrivacy from "./pages/disclaimers/DataPrivacy";
+import HowNoteGenerationWorks from "./pages/general/HowNoteGenerationWorks";
+import HowTheoryGenerationWorks from "./pages/general/HowTheoryGenerationWorks";
 
 
 const App = () => {
@@ -49,6 +51,8 @@ const App = () => {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/data-privacy" element={<DataPrivacy />} />
+          <Route path="/how-it-works/notes" element={<HowNoteGenerationWorks />} />
+          <Route path="/how-it-works/theory" element={<HowTheoryGenerationWorks />} />
         </Route>
 
         {/* VERIFICATION TRACKS */}

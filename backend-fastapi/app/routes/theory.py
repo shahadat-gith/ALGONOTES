@@ -50,7 +50,7 @@ async def generate_ai_theory(
             theory_id=theory_id_str,
             user_id=user_id_str,
             topic=payload.topic,
-            code_language=getattr(payload, "code_language", "C++"),
+            code_language=payload.code_language,
             instructions=payload.instructions
         )
     except Exception as e:

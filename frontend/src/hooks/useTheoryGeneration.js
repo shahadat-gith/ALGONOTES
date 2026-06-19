@@ -10,16 +10,18 @@ export const useTheoryGeneration = () => {
   const navigate = useNavigate();
   const { startPolling, stopPolling } = useBackoffPolling();
 
+  const defaultFormData = { topic: "", instructions: "", language: "" };
+
   const [formData, setFormData] = useState(() => {
     const saved = sessionStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        return { ...defaultFormData, ...JSON.parse(saved) };
       } catch (e) {
         console.error("Failed to parse cached Theory session data:", e);
       }
     }
-    return { topic: "", instructions: "" };
+    return defaultFormData;
   });
 
   const [errors, setErrors] = useState({ topic: "", instructions: "" });
@@ -64,7 +66,8 @@ export const useTheoryGeneration = () => {
     try {
       const initResponse = await generateTheoryNote({ 
         topic: formData.topic.trim(),
-        instructions: formData.instructions.trim() || undefined
+        instructions: formData.instructions.trim() || undefined,
+        language: formData.language || null,
       });
 
       const targetId = initResponse?.id || initResponse?.theoryId;

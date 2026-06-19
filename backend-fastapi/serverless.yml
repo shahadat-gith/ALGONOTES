@@ -2,6 +2,7 @@ service: algonotes-backend-fastapi
 
 frameworkVersion: "4"
 
+
 # ==========================================
 # PROVIDER CONFIGURATION
 # ==========================================
@@ -97,6 +98,8 @@ resources:
 # ==========================================
 custom:
   pythonRequirements:
+    dockerizePip: false
+    pythonBin: C:/Python312/python.exe
     useDownloadCache: false
     useStaticCache: false
     pipCmdExtraArgs:
@@ -112,6 +115,8 @@ package:
   patterns:
     - "app/**"              
     - "main.py"
+    - "requirements.txt"
+    - ".requirements/**"
     - "!env/**"
     - "!venv/**"
     - "!node_modules/**"

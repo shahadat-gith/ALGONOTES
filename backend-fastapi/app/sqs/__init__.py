@@ -5,4 +5,5 @@ from .dispatchers import enqueue_note_generation, enqueue_theory_generation, enq
 __all__ = [
     "enqueue_note_generation",
     "enqueue_theory_generation",
+    "enqueue_prompt_optimization",
 ]

@@ -3,6 +3,7 @@
 from pydantic import ValidationError
 
 from .worker import (
+    NonRetryableJobError,
     execute_note_generation, 
     execute_theory_generation, 
     execute_prompt_optimization
@@ -14,7 +15,11 @@ from .handle_failures import (
 )
 
 async def route_incoming_ai_job(message: dict):
-    job_type = message.get("type", "dsa") 
+    job_type = message.get("type", "dsa")
+    valid_job_types = {"dsa", "theory", "optimize_prompt"}
+
+    if job_type not in valid_job_types:
+        raise ValueError(f"Unsupported job type: {job_type}")
     
     try:
         if job_type == "theory":
@@ -24,7 +29,7 @@ async def route_incoming_ai_job(message: dict):
         else:
             await execute_note_generation(message)
             
-    except (ValidationError, ValueError, KeyError) as e:
+    except (ValidationError, KeyError, NonRetryableJobError) as e:
         # 1. Granular catch for invalid payload structural formats
         reason = f"Payload Validation Fault: {str(e)}"
         if job_type == "optimize_prompt":
@@ -33,7 +38,7 @@ async def route_incoming_ai_job(message: dict):
             await handle_theory_generation_failure(message.get("theory_id"), reason)
         else:
             await handle_note_generation_failure(message.get("note_id"), reason)
-        raise
+        return
 
     except Exception as e:
         # 2. Global catch for upstream operational infrastructure failures

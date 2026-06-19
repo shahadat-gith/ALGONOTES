@@ -180,7 +180,7 @@ const Notes = () => {
         isOpen={isModalOpen}
         title="Delete Note"
         message="Are you sure you want to delete this study note permanently? This action cannot be undone."
-        confirmText="Permanently Delete"
+        confirmText="Yes Delete!"
         loading={isDeleting}
         onConfirm={handleConfirmDelete}
         onClose={() => {

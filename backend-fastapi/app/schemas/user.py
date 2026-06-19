@@ -1,12 +1,15 @@
 # app/schemas/user.py
 
-from typing import Optional, Any
+from datetime import datetime
+from typing import Optional, Any, List, Literal
 from pydantic import (
     BaseModel,
     EmailStr,
     ConfigDict,
     field_validator,
 )
+
+from app.schemas.analytics import AnalyticsStatsResponse
 
 
 class AvatarResponse(BaseModel):
@@ -39,3 +42,32 @@ class UserResponse(BaseModel):
     @classmethod
     def convert_object_id(cls, value: Any) -> str:
         return str(value)
+
+
+class DashboardSummaryStats(BaseModel):
+    totalCodingNotes: int
+    totalTheoryNotes: int
+    pendingDrafts: int
+
+
+class DashboardRecentActivityItem(BaseModel):
+    id: str
+    type: Literal["DSA", "Theory"]
+    title: str
+    info: str
+    status: str
+    href: str
+    createdAt: datetime
+    updatedAt: datetime
+
+
+class DashboardResponse(BaseModel):
+    greetingName: str
+    stats: DashboardSummaryStats
+    recentActivity: List[DashboardRecentActivityItem]
+    platformStats: AnalyticsStatsResponse
+
+
+class DashboardEnvelope(BaseModel):
+    success: bool
+    dashboard: DashboardResponse

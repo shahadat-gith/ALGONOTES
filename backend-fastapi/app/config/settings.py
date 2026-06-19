@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     DATABASE_URL: str
+    DATABASE_NAME: str | None = None
+    AWS_REGION: str = "ap-south-1"
     AI_GENERATION_QUEUE_URL: str
 
     JWT_SECRET: str

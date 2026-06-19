@@ -7,6 +7,12 @@ export const getCurrentUser = async () => {
 };
 
 
+export const getUserDashboard = async () => {
+  const { data } = await api.get("/users/dashboard");
+  return data;
+};
+
+
 export const updateProfile = async (payload) => {
   const { data } = await api.put("/users/profile", payload);
   return data;

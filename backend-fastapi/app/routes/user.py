@@ -3,11 +3,20 @@
 from datetime import datetime, timezone
 from typing import Optional
 
+from beanie.operators import In
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 
-from app.models import User, Note
-from app.schemas.user import UserResponse
-from app.services import upload_to_cloudinary, delete_from_cloudinary
+from app.models import User, Note, Theory
+from app.models.note import NoteStatus
+from app.models.theory import TheoryStatus
+from app.schemas.user import (
+    DashboardEnvelope,
+    DashboardRecentActivityItem,
+    DashboardResponse,
+    DashboardSummaryStats,
+    UserResponse,
+)
+from app.services import build_analytics_stats, upload_to_cloudinary, delete_from_cloudinary
 from app.middlewares import get_current_user
 
 router = APIRouter(
@@ -40,6 +49,96 @@ async def get_current_user_details(
         "success": True,
         "user": serialize_user(current_user)
     }
+
+
+@router.get("/dashboard", response_model=DashboardEnvelope)
+async def get_dashboard_data(
+    current_user: User = Depends(get_current_user),
+):
+    published_note_statuses = [NoteStatus.draft, NoteStatus.final]
+    published_theory_statuses = [TheoryStatus.draft, TheoryStatus.final]
+
+    total_coding_notes = await Note.find(
+        Note.user_id == current_user.id,
+        In(Note.status, published_note_statuses),
+    ).count()
+    total_theory_notes = await Theory.find(
+        Theory.user_id == current_user.id,
+        In(Theory.status, published_theory_statuses),
+    ).count()
+
+    pending_note_drafts = await Note.find(
+        Note.user_id == current_user.id,
+        Note.status == NoteStatus.draft,
+    ).count()
+    pending_theory_drafts = await Theory.find(
+        Theory.user_id == current_user.id,
+        Theory.status == TheoryStatus.draft,
+    ).count()
+
+    recent_notes = await (
+        Note.find(
+            Note.user_id == current_user.id,
+            In(Note.status, published_note_statuses),
+        )
+        .sort(-Note.updatedAt)
+        .limit(5)
+        .to_list()
+    )
+    recent_theories = await (
+        Theory.find(
+            Theory.user_id == current_user.id,
+            In(Theory.status, published_theory_statuses),
+        )
+        .sort(-Theory.updatedAt)
+        .limit(5)
+        .to_list()
+    )
+
+    recent_activity = [
+        DashboardRecentActivityItem(
+            id=str(note.id),
+            type="DSA",
+            title=note.problem.title or "Untitled coding note",
+            info=" • ".join(
+                part for part in [note.problem.platform, note.language] if part
+            ) or "Coding note",
+            status=note.status.value,
+            href=f"/notes/{note.id}",
+            createdAt=note.createdAt,
+            updatedAt=note.updatedAt,
+        )
+        for note in recent_notes
+    ] + [
+        DashboardRecentActivityItem(
+            id=str(theory.id),
+            type="Theory",
+            title=theory.topic or "Untitled theory note",
+            info="Theory note",
+            status=theory.status.value,
+            href=f"/theory/{theory.id}",
+            createdAt=theory.createdAt,
+            updatedAt=theory.updatedAt,
+        )
+        for theory in recent_theories
+    ]
+
+    recent_activity.sort(key=lambda item: item.updatedAt, reverse=True)
+    platform_stats = await build_analytics_stats()
+
+    return DashboardEnvelope(
+        success=True,
+        dashboard=DashboardResponse(
+            greetingName=current_user.name,
+            stats=DashboardSummaryStats(
+                totalCodingNotes=total_coding_notes,
+                totalTheoryNotes=total_theory_notes,
+                pendingDrafts=pending_note_drafts + pending_theory_drafts,
+            ),
+            recentActivity=recent_activity[:6],
+            platformStats=platform_stats,
+        ),
+    )
 
 
 @router.put("/profile")

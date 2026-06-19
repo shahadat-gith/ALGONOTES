@@ -16,8 +16,10 @@ async def start_async_queue_handler(event, context):
                 message = json.loads(record["body"])
                 await route_incoming_ai_job(message)
             except Exception as e:
-                print(f"[SQS Handler Critical] Failed to completely digest message ID {record.get('messageId')}: {str(e)}")
-                batch_item_failures.append({"itemIdentifier": record["messageId"]})
+                message_id = record.get("messageId")
+                print(f"[SQS Handler Critical] Failed to completely digest message ID {message_id}: {str(e)}")
+                if message_id:
+                    batch_item_failures.append({"itemIdentifier": message_id})
                 
         return {"batchItemFailures": batch_item_failures}
     finally:

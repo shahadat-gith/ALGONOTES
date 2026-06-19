@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useTheoryGeneration } from "../../hooks/useTheoryGeneration";
 import { optimizeTheoryInstructions, checkPromptOptimizationStatus } from "../../api/promptApi";
 import { useBackoffPolling } from "../../hooks/useBackoffPolling";
@@ -9,7 +10,7 @@ import Alert from "../../components/common/Alert";
 import NoteGeneratingModal from "../../components/common/NoteGeneratingModal";
 import toast from "react-hot-toast";
 
-import { Sparkles, FileText, Lightbulb, Code2, Wand2, Loader2 } from "lucide-react";
+import { BookOpenText, CircleHelp, Code2, FileText, Lightbulb, Loader2, Sparkles, Wand2 } from "lucide-react";
 
 const TheoryGenerator = () => {
   const { startPolling, stopPolling } = useBackoffPolling();
@@ -83,7 +84,7 @@ const TheoryGenerator = () => {
       const res = await optimizeTheoryInstructions({
         topic: formData.topic,
         instructions: formData.instructions || "",
-        language: formData.language || "C++",
+        language: formData.language || null,
       });
 
       if (res?.success && res?.jobId) {
@@ -120,25 +121,67 @@ const TheoryGenerator = () => {
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar select-none animate-fade-in relative z-10 flex flex-col gap-6">
       
-      {/* Sticky Header Navbar Action Row */}
-      <div className="sticky top-0 z-30 w-full flex items-center justify-between border-b border-border-default pb-4 bg-bg-base/95 backdrop-blur-md">
-        <div className="space-y-0.5">
-          <h1 className="text-lg font-bold tracking-tight text-text-main font-mono uppercase">Theory Guide Workspace</h1>
-          <p className="text-xs text-text-light">Enter custom rules and topics to generate comprehensive revision blueprints.</p>
+      <div className="sticky top-0 z-30 w-full border-b border-border-default pb-4 bg-bg-base/95 backdrop-blur-md">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="space-y-1.5">
+            <h1 className="text-2xl font-semibold tracking-tight text-text-main">Theory Notes Builder</h1>
+            <p className="max-w-2xl text-sm leading-6 text-text-light">
+              Build clear topic summaries with your own requirements, preferred language examples, and AI-assisted prompt polishing.
+            </p>
+            <Link
+              to="/how-it-works/theory"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide text-primary hover:text-primary-hover transition-colors"
+            >
+              <CircleHelp size={13} className="stroke-[2]" />
+              <span>How it works?</span>
+            </Link>
+          </div>
+
+          <Button
+            variant="primary"
+            size="sm"
+            loading={loading}
+            disabled={isPromptLoading || !formData.topic}
+            onClick={startTheoryGeneration}
+            className="h-11 shrink-0 px-5 text-sm font-semibold shadow-xs cursor-pointer"
+          >
+            <Sparkles size={15} className="stroke-[2.2]" />
+            <span>Create Theory Notes</span>
+          </Button>
         </div>
-        
-        <Button
-          variant="primary"
-          size="sm"
-          loading={loading}
-          disabled={isPromptLoading || !formData.topic}
-          onClick={startTheoryGeneration}
-          className="font-semibold text-xs tracking-widest uppercase h-10 px-5 shadow-xs cursor-pointer border border-primary/20 hover:shadow-primary/10 transition-all duration-200 shrink-0"
-        >
-          <Sparkles size={13} className="stroke-[2.5]" />
-          <span>Generate Guide</span>
-        </Button>
       </div>
+
+      <section className="grid gap-4 lg:grid-cols-[1.35fr_0.9fr]">
+        <div className="rounded-2xl border border-border-default bg-gradient-to-br from-bg-surface via-bg-surface to-primary/5 p-6 shadow-card">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+            <BookOpenText size={12} className="stroke-[2.2]" />
+            <span>Concept-first workflow</span>
+          </div>
+          <div className="mt-4 space-y-3">
+            <h2 className="text-xl font-semibold tracking-tight text-text-main">
+              Start with a topic, then shape the result with your own instructions.
+            </h2>
+            <p className="max-w-2xl text-sm leading-6 text-text-light">
+              Use this page to create clean theory notes, revision blueprints, or topic explainers that follow your preferred structure.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+          <div className="rounded-2xl border border-border-default bg-bg-surface p-5 shadow-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">Suggested use</p>
+            <p className="mt-2 text-sm leading-6 text-text-light">
+              Add the concept name, choose a language if code examples matter, and describe the exact depth or sections you want covered.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border-default bg-bg-surface p-5 shadow-card">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">Prompt polish</p>
+            <p className="mt-2 text-sm leading-6 text-text-light">
+              If your requirements are rough, use the AI polish action to rewrite them into a clearer instruction set before generating.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Process Interrupt Error Render Box */}
       {apiErrorMessage && (
@@ -151,72 +194,85 @@ const TheoryGenerator = () => {
         />
       )}
 
-      {/* Core Full Width Data Input Panel */}
-      <div className="w-full bg-bg-surface border border-border-default rounded-md p-5 sm:p-6 space-y-5 shadow-xs mb-6">
+      <div className="w-full bg-bg-surface border border-border-default rounded-2xl p-5 sm:p-6 space-y-6 shadow-xs mb-6">
         
         <div className="flex flex-col gap-1 border-b border-border-default pb-4">
-          <h2 className="text-sm font-bold tracking-tight text-text-main flex items-center gap-2 font-mono uppercase">
-            <Lightbulb size={15} className="text-primary stroke-[2]" />
-            <span>Configure Material Rules</span>
+          <h2 className="text-base font-semibold tracking-tight text-text-main flex items-center gap-2">
+            <Lightbulb size={16} className="text-primary stroke-[2]" />
+            <span>Topic setup</span>
           </h2>
+          <p className="text-sm leading-6 text-text-light">
+            Define the concept and any optional rules that should shape the final theory notes.
+          </p>
         </div>
 
-        {/* Topic Input Field */}
-        <Input
-          label="Topic / Concept Title"
-          type="text"
-          name="topic"
-          value={formData.topic || ""}
-          onChange={handleTopicChange}
-          disabled={loading || isPromptLoading}
-          error={errors.topic}
-          placeholder="E.G., LINKEDLIST BASICS OR MATRIX MULTIPLICATION"
-          className="text-xs h-10 bg-bg-base border-border-default rounded-sm pl-3 font-semibold tracking-wide uppercase placeholder:normal-case w-full"
-        />
+        <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-2xl border border-border-default bg-bg-base/35 p-4">
+            <Input
+              label="Topic or Concept"
+              type="text"
+              name="topic"
+              value={formData.topic || ""}
+              onChange={handleTopicChange}
+              disabled={loading || isPromptLoading}
+              error={errors.topic}
+              placeholder="Example: Binary Search Trees"
+              className="text-sm h-11 bg-bg-base border-border-default rounded-md pl-3.5 font-semibold tracking-wide uppercase placeholder:normal-case w-full"
+            />
+          </div>
 
-        {/* Language Selection Config */}
-        <div className="flex flex-col gap-1.5 w-full bg-bg-base/30 p-3 rounded-sm border border-border-default/60">
-          <label className="text-xs font-bold text-text-light uppercase tracking-wider flex items-center gap-1.5">
-            <Code2 size={14} className="text-text-light stroke-[2]" />
-            <span>Language Selection (For Code Component Blocks):</span>
-          </label>
-          <select
-            name="language"
-            value={formData.language || "C++"}
-            onChange={handleLanguageChange}
-            disabled={loading || isPromptLoading}
-            className="w-full md:max-w-xs h-9 px-3 border border-border-default rounded-sm bg-bg-surface text-xs font-medium text-text-main outline-hidden focus:border-primary/40 transition-all cursor-pointer"
-          >
-            <option value="C++">C++</option>
-            <option value="Java">Java</option>
-            <option value="Python">Python</option>
-            <option value="C">C</option>
-            <option value="JavaScript">JavaScript</option>
-          </select>
+          <div className="flex flex-col gap-1.5 w-full bg-bg-base/35 p-4 rounded-2xl border border-border-default/60">
+            <label className="text-xs font-semibold text-text-muted uppercase tracking-[0.18em] flex items-center gap-2">
+              <Code2 size={14} className="text-text-light stroke-[2]" />
+              <span>Code example language</span>
+            </label>
+            <select
+              name="language"
+              value={formData.language || ""}
+              onChange={handleLanguageChange}
+              disabled={loading || isPromptLoading}
+              className="w-full h-11 px-3.5 border border-border-default rounded-xl bg-bg-surface text-sm font-medium text-text-main outline-hidden focus:border-primary/40 transition-all cursor-pointer"
+            >
+              <option value="">Choose a language</option>
+              <option value="C++">C++</option>
+              <option value="Java">Java</option>
+              <option value="Python">Python</option>
+              <option value="C">C</option>
+              <option value="JavaScript">JavaScript</option>
+              <option value="TypeScript">TypeScript</option>
+              <option value="SQL">SQL</option>
+              <option value="Go">Go</option>
+            </select>
+            <p className="text-xs leading-5 text-text-muted">
+              Optional. Use this when the output should include code samples or syntax-specific explanations.
+            </p>
+          </div>
         </div>
 
-        {/* Instruction Requirements Box with Floating Optimizer Trigger */}
-        <div className="flex flex-col gap-2 relative">
-          <label className="text-[11px] font-bold uppercase tracking-wider text-text-light flex items-center gap-2 font-mono h-5">
-            <FileText size={13} className="text-text-light stroke-[2.5]" />
-            <span>Your Requirements or Rough Notes (Optional)</span>
-          </label>
+        <div className="flex flex-col gap-3 relative rounded-2xl border border-border-default bg-bg-base/35 p-4">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted flex items-center gap-2 h-5">
+                <FileText size={13} className="text-text-light stroke-[2.5]" />
+                <span>Requirements or rough notes</span>
+              </label>
+              <p className="mt-1 text-sm leading-6 text-text-light">
+                Share bullet points, sections to include, or the level of detail you expect.
+              </p>
+            </div>
 
-          {/* Prompt Optimizer Floating Action Button */}
-          <div className="absolute right-0 top-0 z-20">
             <Button
               variant="outline"
               size="sm"
               disabled={loading || isPromptLoading || !formData.topic?.trim() || !formData.instructions?.trim()}
               onClick={handleOptimizeUserPrompt}
-              className="text-[10px] font-bold tracking-wide h-6 px-2.5 border-dashed border-border-strong bg-bg-soft/50 hover:bg-primary/5 hover:text-primary hover:border-primary/30 rounded-sm transition-all duration-200"
+              className="mt-3 sm:mt-0 text-xs font-semibold h-9 px-3.5 border-dashed border-border-strong bg-bg-soft/50 hover:bg-primary/5 hover:text-primary hover:border-primary/30 rounded-xl transition-all duration-200"
             >
-              <Wand2 size={10} className="stroke-[2.5]" />
+              <Wand2 size={13} className="stroke-[2.3]" />
               <span>Polish with AI</span>
             </Button>
           </div>
 
-          {/* Main Content Resizing Input Container */}
           <div className="relative w-full rounded-sm overflow-hidden">
             {isPromptLoading && (
               <div className="absolute inset-0 bg-bg-surface/70 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center gap-2 animate-fade-in">
@@ -235,9 +291,9 @@ const TheoryGenerator = () => {
                 if (errors.instructions) setErrors((p) => ({ ...p, instructions: "" }));
               }}
               disabled={loading || isPromptLoading}
-              placeholder={`Type your rough points, copy-pasted concepts, or specific features here. \n\nExample:\n- explain singly vs doubly\n- show how deletion works\n\nThen click "Polish with AI" to let the backend optimize it into a system blueprint.`}
+              placeholder={`Add raw notes, a rough outline, or the rules you want followed.\n\nExample:\n- compare singly and doubly linked lists\n- include insertion and deletion steps\n- end with common interview mistakes`}
               style={{ fieldSizing: "content" }}
-              className={`w-full min-h-[180px] resize-none block border bg-bg-base px-3.5 py-3 font-mono text-[13px] md:text-[14px] leading-6 text-text-main transition-all outline-hidden focus:border-primary/40 focus:bg-bg-base/80 ${
+              className={`w-full min-h-[220px] resize-none block rounded-2xl border bg-bg-base px-4 py-4 font-mono text-[13px] md:text-[14px] leading-6 text-text-main transition-all outline-hidden focus:border-primary/40 focus:bg-bg-base/80 ${
                 errors.instructions ? "border-danger focus:border-danger" : "border-border-default"
               }`}
             />
@@ -259,8 +315,9 @@ const TheoryGenerator = () => {
       {/* Shared Global Processing Modal component overlay */}
       <NoteGeneratingModal 
         isOpen={loading} 
-        title="AI is Compiling Theory Guide"
-        subtitle="Structuring concept definitions, outlining layout chapters, and formatting working code blocks..."
+        title="Creating your theory notes"
+        subtitle="We are organizing the topic, refining the sections, and preparing a clear study version based on your instructions."
+        footerNote="Theory requests can take a little longer when the topic is broad or highly detailed."
       />
       
     </div>

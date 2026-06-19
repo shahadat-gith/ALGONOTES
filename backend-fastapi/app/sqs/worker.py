@@ -1,13 +1,12 @@
-# app/sqs/worker.py
-
 import asyncio
 import json
 from datetime import datetime, timezone
 
 from beanie import PydanticObjectId
+from google import genai
 from google.genai import types
-from google.genai import Client 
 
+from app.config.settings import settings 
 from app.prompts import generate_note_prompt, generate_theory_prompt
 from app.models import Note, Theory
 from app.models.theory import TheoryStatus
@@ -22,16 +21,49 @@ from .handle_failures import (
 )
 
 
+class NonRetryableJobError(Exception):
+    """Represents terminal job failures that should be acknowledged, not retried."""
+
+
+def _parse_object_id(raw_id: str, field_name: str) -> PydanticObjectId:
+    try:
+        return PydanticObjectId(raw_id)
+    except Exception as exc:
+        raise NonRetryableJobError(f"Invalid {field_name}: {raw_id}") from exc
+
+
+async def _fetch_with_retries(fetch_fn, entity_name: str, entity_id: str, attempts: int = 8, delay_seconds: float = 1.5):
+    entity = None
+    for attempt in range(1, attempts + 1):
+        entity = await fetch_fn()
+        if entity is not None:
+            return entity
+
+        print(
+            f"[Worker Sync] {entity_name} {entity_id} not found yet. "
+            f"Retrying attempt {attempt}/{attempts}..."
+        )
+
+        if attempt < attempts:
+            await asyncio.sleep(delay_seconds)
+
+    return None
+
+
 # ==========================================
 # DSA NOTES GENERATOR EXECUTOR
 # ==========================================
 async def execute_note_generation(message: dict):
     note_id = message["note_id"]
-    user_id = PydanticObjectId(message["user_id"])
+    user_id = _parse_object_id(message["user_id"], "user_id")
 
-    note = await Note.get(note_id)
+    note = await _fetch_with_retries(
+        lambda: Note.get(note_id),
+        "DSA Note",
+        note_id,
+    )
     if not note:
-        raise ValueError(f"Note {note_id} missing completely from MongoDB.")
+        raise NonRetryableJobError(f"Note {note_id} missing completely from MongoDB after retries.")
 
     if note.user_id != user_id:
         await handle_note_generation_failure(note_id, "User identifier verification mismatch.")
@@ -45,8 +77,8 @@ async def execute_note_generation(message: dict):
     )
 
     try:
-        # Local instantiation guarantees capturing the live event loop in Lambda contexts
-        ai_client = Client()
+        # FIX: Instantiate cleanly using your verified config path credentials
+        ai_client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
         response = await ai_client.aio.models.generate_content(
             model="gemini-2.5-flash",
@@ -79,7 +111,6 @@ async def execute_note_generation(message: dict):
         print(f"[Worker Pipeline] DSA Note processed and saved successfully: {note_id}")
 
     except Exception as e:
-        # Corrected: Catch errors cleanly so the DB status drops out of 'processing'
         await handle_note_generation_failure(note_id, f"Generation Engine Fail: {str(e)}")
         raise
 
@@ -89,11 +120,15 @@ async def execute_note_generation(message: dict):
 # ==========================================
 async def execute_theory_generation(message: dict):
     theory_id = message["theory_id"]
-    user_id = PydanticObjectId(message["user_id"])
+    user_id = _parse_object_id(message["user_id"], "user_id")
 
-    theory = await Theory.get(theory_id)
+    theory = await _fetch_with_retries(
+        lambda: Theory.get(theory_id),
+        "Theory note",
+        theory_id,
+    )
     if not theory:
-        raise ValueError(f"Theory record {theory_id} missing completely from MongoDB.")
+        raise NonRetryableJobError(f"Theory record {theory_id} missing completely from MongoDB after retries.")
 
     if theory.user_id != user_id:
         await handle_theory_generation_failure(theory_id, "User identifier verification mismatch.")
@@ -101,12 +136,13 @@ async def execute_theory_generation(message: dict):
 
     prompt = generate_theory_prompt(
         topic=message["topic"],
-        code_language=message.get("code_language", "C++"),
+        code_language=message.get("code_language"),
         instructions=message.get("instructions") 
     )
 
     try:
-        ai_client = Client()
+        # FIX: Instantiate cleanly using your verified config path credentials
+        ai_client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
         response = await ai_client.aio.models.generate_content(
             model="gemini-2.5-flash",
@@ -124,7 +160,7 @@ async def execute_theory_generation(message: dict):
         
     except Exception as e:
         await handle_theory_generation_failure(theory_id, f"Generation Stream Fault: {str(e)}")
-        raise # Corrected: Bubble exception back up to let SQS batch router handle failures natively
+        raise 
 
 
 # ==========================================
@@ -133,9 +169,13 @@ async def execute_theory_generation(message: dict):
 async def execute_prompt_optimization(message: dict):
     job_id = message["job_id"]
     
-    job = await TempPromptJob.get(job_id)
+    job = await _fetch_with_retries(
+        lambda: TempPromptJob.get(job_id),
+        "Transient prompt tracker",
+        job_id,
+    )
     if not job:
-        raise ValueError(f"Transient prompt tracker {job_id} missing or expired.")
+        raise NonRetryableJobError(f"Transient prompt tracker {job_id} missing or expired after retries.")
 
     system_instruction = (
         "You are an expert prompt engineer. Take the user's unorganized notes, "
@@ -147,12 +187,13 @@ async def execute_prompt_optimization(message: dict):
 
     user_content = (
         f"Topic: {message['topic']}\n"
-        f"Programming Code Language: {message['code_language']}\n"
+        f"Programming Code Language: {message.get('code_language') or 'Not specified'}\n"
         f"Rough Notes/Requirements:\n\"\"\"\n{message['instructions']}\n\"\"\""
     )
 
     try:
-        ai_client = Client()
+        # FIX: Instantiate cleanly using your verified config path credentials
+        ai_client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
         response = await ai_client.aio.models.generate_content(
             model="gemini-2.5-flash",
@@ -170,4 +211,4 @@ async def execute_prompt_optimization(message: dict):
 
     except Exception as e:
         await handle_prompt_optimization_failure(job_id, f"Prompt Optimization Stream Fault: {str(e)}")
-        raise # Corrected: Bubble exception back up to let SQS batch router handle failures natively
+        raise

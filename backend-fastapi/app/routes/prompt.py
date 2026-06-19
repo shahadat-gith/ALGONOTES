@@ -50,7 +50,7 @@ async def start_prompt_optimization(
             job_id=job_id_str,
             user_id=str(current_user.id),
             topic=payload.topic,
-            code_language=payload.code_language or "C++",
+            code_language=payload.code_language,
             instructions=payload.instructions or ""
         )
     except Exception as e:
