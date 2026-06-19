@@ -28,7 +28,7 @@ const HomeWorkflow = () => {
         <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-text-main">
           How ALGONOTES works
         </h2>
-        <p className="text-sm text-text-light leading-6 max-w-2xl">
+        <p className="text-sm text-text-muted leading-6 max-w-2xl">
           A simple flow designed to save time while still giving you structured, editable study material.
         </p>
       </div>
@@ -39,14 +39,14 @@ const HomeWorkflow = () => {
           return (
             <article
               key={step.title}
-              className="rounded-2xl border border-border-default bg-bg-surface p-5 shadow-card"
+              className="rounded-2xl border border-white/10 bg-gradient-to-b from-bg-surface/85 to-bg-base/85 p-5 shadow-[0_10px_35px_rgba(0,0,0,0.35)] backdrop-blur-sm hover:border-primary/35 hover:-translate-y-0.5 transition-all duration-300"
             >
               <div className="flex items-center gap-2 mb-3">
-                <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-primary text-xs font-semibold">
+                <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/20 text-[#c8bbff] text-xs font-semibold">
                   {idx + 1}
                 </div>
                 <ArrowRight size={14} className="text-text-light" />
-                <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+                <div className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-primary/25 bg-primary/12 text-[#c8bbff]">
                   <Icon size={15} className="stroke-[2]" />
                 </div>
               </div>
@@ -54,7 +54,7 @@ const HomeWorkflow = () => {
               <h3 className="text-base font-semibold tracking-tight text-text-main">
                 {step.title}
               </h3>
-              <p className="mt-2 text-sm leading-6 text-text-light">
+              <p className="mt-2 text-sm leading-6 text-text-muted">
                 {step.description}
               </p>
             </article>

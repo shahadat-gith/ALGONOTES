@@ -6,6 +6,7 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { Mail, RefreshCw, ArrowRight, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { getSafeNextPath, toLoginWithNext } from "../../utils/authRedirect";
 
 const VerifyUser = () => {
   const navigate = useNavigate();
@@ -15,7 +16,8 @@ const VerifyUser = () => {
   const { user, setUser, isAuthenticated, login } = useAuth();
   
   // Extract email parameter safely from URL queries
-  const email = searchParams.get("email") || "";
+  const nextPath = getSafeNextPath(searchParams.get("next"), "/");
+  const email = searchParams.get("email") || user?.email || "";
 
   // UI Processing States
   const [otp, setOtp] = useState("");
@@ -27,11 +29,11 @@ const VerifyUser = () => {
   useEffect(() => {
     if (!email) {
       toast.error("Missing email parameter. Redirecting to login...");
-      navigate("/login");
+      navigate(toLoginWithNext(nextPath), { replace: true });
       return;
     }
     triggerSendOtp(true);
-  }, [email]);
+  }, [email, navigate, nextPath]);
 
   // Core controller function to manage backend OTP generation
   const triggerSendOtp = async (isInitialLoad = false) => {
@@ -86,9 +88,9 @@ const VerifyUser = () => {
           if (response.token) {
             login(response.token, response.user);
           }
-          navigate("/"); 
+          navigate(nextPath, { replace: true });
         } else {
-          navigate("/login"); 
+          navigate(toLoginWithNext(nextPath), { replace: true });
         }
       }
     } catch (err) {
@@ -101,9 +103,9 @@ const VerifyUser = () => {
 
   if (user?.verificationOptions?.status === "verified") {
     return isAuthenticated ? (
-      <Navigate to="/" replace />
+      <Navigate to={nextPath} replace />
     ) : (
-      <Navigate to="/login" replace />
+      <Navigate to={toLoginWithNext(nextPath)} replace />
     );
   }
 

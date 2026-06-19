@@ -15,13 +15,13 @@ const Button = ({
 
   const variants = {
     primary:
-      "bg-primary border-primary text-white hover:bg-primary-hover hover:border-primary-hover shadow-xs",
+      "bg-primary border-primary text-white hover:bg-primary-hover hover:border-primary-hover shadow-[0_0_18px_rgba(138,121,255,0.35)]",
     secondary:
       "bg-bg-soft border-bg-soft text-text-main hover:bg-border-default hover:border-border-default",
     danger:
       "bg-danger border-danger text-white hover:bg-opacity-90 hover:border-opacity-90 shadow-xs",
     outline:
-      "bg-bg-surface border-border-default text-text-main hover:bg-bg-soft hover:border-border-strong",
+      "bg-bg-surface/90 border-border-default text-text-main hover:bg-bg-soft hover:border-primary/30",
   };
 
   const sizes = {

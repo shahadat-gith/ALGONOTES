@@ -9,13 +9,13 @@ const HomeCta = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="rounded-3xl border border-border-default bg-gradient-to-r from-bg-surface via-bg-surface to-primary/10 px-6 py-8 sm:px-8 sm:py-10 shadow-card">
+    <section className="rounded-3xl border border-white/10 bg-gradient-to-r from-bg-surface/95 via-bg-surface/90 to-primary/12 px-6 py-8 sm:px-8 sm:py-10 shadow-[0_10px_42px_rgba(0,0,0,0.38)]">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
         <div className="space-y-2 max-w-2xl">
           <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-text-main">
             Ready to build your next revision note?
           </h2>
-          <p className="text-sm leading-6 text-text-light">
+          <p className="text-sm leading-6 text-text-muted">
             Start with one coding problem or theory topic and let ALGONOTES generate a structured draft you can improve in minutes.
           </p>
         </div>

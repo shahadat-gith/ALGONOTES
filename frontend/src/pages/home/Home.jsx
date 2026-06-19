@@ -9,11 +9,15 @@ import HomeWorkflow from "../../components/home/HomeWorkflow";
 const Home = () => {
   return (
     <div className="w-full min-h-screen text-text-main relative overflow-hidden pb-16 sm:pb-20">
-      <div className="absolute top-[-15%] left-[-18%] w-[70vw] h-[70vw] max-w-[900px] bg-success-soft rounded-full blur-[160px] pointer-events-none z-0" />
-      <div className="absolute top-[20%] right-[-20%] w-[60vw] h-[60vw] max-w-[820px] bg-primary/10 rounded-full blur-[170px] pointer-events-none z-0" />
-      <div className="absolute bottom-[-20%] left-[12%] w-[55vw] h-[55vw] max-w-[780px] bg-warning-soft rounded-full blur-[170px] pointer-events-none z-0" />
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 h-[50rem] w-[50rem] rounded-full bg-primary/18 blur-[180px]" />
+        <div className="absolute top-[28%] left-[6%] h-[24rem] w-[24rem] rounded-full bg-primary/12 blur-[130px]" />
+        <div className="absolute top-[35%] right-[4%] h-[22rem] w-[22rem] rounded-full bg-[#6f7cff]/14 blur-[120px]" />
+        <div className="absolute bottom-[-12%] left-1/2 -translate-x-1/2 h-[30rem] w-[56rem] max-w-[94vw] rounded-full border border-white/8" />
+        <div className="absolute bottom-[-16%] left-1/2 -translate-x-1/2 h-[36rem] w-[74rem] max-w-[98vw] rounded-full border border-white/6" />
+      </div>
 
-      <main className="w-full relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-14 sm:space-y-18">
+      <main className="w-full relative z-10 max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-12 space-y-14 sm:space-y-18">
         <HomeHero />
         <HomeWorkflow />
         <HomeHighlights />

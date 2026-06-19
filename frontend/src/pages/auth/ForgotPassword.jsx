@@ -1,12 +1,16 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { forgotPassword } from "../../api/authApi";
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { Mail, Lock, ShieldCheck, ArrowLeft, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { getSafeNextPath } from "../../utils/authRedirect";
 
 const ForgotPassword = () => {
+  const [searchParams] = useSearchParams();
+  const nextPath = getSafeNextPath(searchParams.get("next"), "/");
+
   // Navigation & Form State
   const [step, setStep] = useState("send-otp"); // 'send-otp' | 'verify-otp' | 'reset-password' | 'complete'
   const [email, setEmail] = useState("");
@@ -168,7 +172,7 @@ const ForgotPassword = () => {
 
             <div className="text-center pt-2">
               <Link 
-                to="/login" 
+                to={`/login?next=${encodeURIComponent(nextPath)}`} 
                 className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-text-main transition-colors font-medium"
               >
                 <ArrowLeft size={12} /> Return to Sign In
@@ -278,7 +282,7 @@ const ForgotPassword = () => {
               </p>
             </div>
 
-            <Link to="/login" className="block w-full">
+            <Link to={`/login?next=${encodeURIComponent(nextPath)}`} className="block w-full">
               <Button type="button" className="w-full" size="md">
                 Sign In
               </Button>

@@ -2,23 +2,23 @@
 
 @theme {
   /* CodeHelp Specific Deep Dark Palette */
-  --color-bg-base: #0a0a0c;      /* Infinite obsidian black background */
-  --color-bg-surface: #111115;   /* Slightly elevated container jet black */
-  --color-bg-soft: #181820;      /* Clear tag/button backgrounds */
+  --color-bg-base: #07080d;      /* Infinite obsidian black background */
+  --color-bg-surface: #10121a;   /* Slightly elevated container jet black */
+  --color-bg-soft: #171b27;      /* Clear tag/button backgrounds */
 
   /* CodeHelp High Contrast Typography Scale */
   --color-text-main: #ffffff;    /* Pure blinding white for main headlines */
-  --color-text-muted: #94a3b8;   /* Cool slate-gray for descriptions */
-  --color-text-light: #4b5563;   /* Muted gray for boundaries / search hotkeys */
+  --color-text-muted: #a7b1c5;   /* Cool slate-gray for descriptions */
+  --color-text-light: #727a90;   /* Muted gray for boundaries / search hotkeys */
 
   /* CodeHelp Ultra-Thin Premium Borders */
-  --color-border-default: rgba(255, 255, 255, 0.06); /* Invisible grid layout rules */
-  --color-border-strong: rgba(255, 255, 255, 0.15);  /* Interactive border highlights */
+  --color-border-default: rgba(255, 255, 255, 0.09); /* Invisible grid layout rules */
+  --color-border-strong: rgba(255, 255, 255, 0.2);  /* Interactive border highlights */
 
   /* The Signature Brand Accent (Vibrant Blur Purple & Indigo) */
-  --color-primary: #8b5cf6;        /* Bright purple key accent */
-  --color-primary-hover: #7c3aed;  /* Saturated interactive violet */
-  --color-primary-soft: rgba(139, 92, 246, 0.12); /* Ambient glow background text */
+  --color-primary: #8a79ff;        /* Bright purple key accent */
+  --color-primary-hover: #7867f2;  /* Saturated interactive violet */
+  --color-primary-soft: rgba(138, 121, 255, 0.15); /* Ambient glow background text */
 
   /* Status Tokens modified for deep contrast profiles */
   --color-success: #10b981;
@@ -34,8 +34,8 @@
   --radius-sm: 8px;
 
   /* Ambient Blur Gradients */
-  --shadow-card: 0 4px 30px rgba(0, 0, 0, 0.5);
-  --shadow-hover: 0 0 25px rgba(139, 92, 246, 0.2);
+  --shadow-card: 0 14px 42px rgba(0, 0, 0, 0.46);
+  --shadow-hover: 0 0 35px rgba(138, 121, 255, 0.24);
 }
 
 /* Base resets & global background canvas setup */
@@ -49,11 +49,12 @@
     background-color: var(--color-bg-base);
     color: var(--color-text-main);
     background-image: 
-      radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.07) 0%, transparent 60%),
-      radial-gradient(circle at 50% -10%, rgba(99, 102, 241, 0.05) 0%, transparent 50%);
+      radial-gradient(circle at 50% 0%, rgba(138, 121, 255, 0.12) 0%, transparent 52%),
+      radial-gradient(circle at 10% 45%, rgba(138, 121, 255, 0.08) 0%, transparent 35%),
+      radial-gradient(circle at 90% 40%, rgba(108, 119, 255, 0.08) 0%, transparent 35%);
     background-attachment: fixed;
     font-family:
-      "Plus Jakarta Sans",
+      "Manrope",
       Inter,
       system-ui,
       sans-serif;

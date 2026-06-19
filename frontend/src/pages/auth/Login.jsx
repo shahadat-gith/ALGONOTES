@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 
@@ -7,13 +7,17 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { loginUser } from "../../api/authApi";
 import { useAuth } from "../../context/AuthContext";
+import { getSafeNextPath, toVerifyWithNext } from "../../utils/authRedirect";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { login, isAuthenticated, user } = useAuth();
+  const nextPath = getSafeNextPath(searchParams.get("next"), "/");
+  const verifiedUser = user?.verificationOptions?.status === "verified";
 
   const [formData, setFormData] = useState({
-    email: "",
+    email: searchParams.get("email") || "",
     password: "",
   });
 
@@ -52,7 +56,13 @@ const Login = () => {
       if (data.success) {
         login(data.token, data.user);
         toast.success(data.message || "Login successful");
-        navigate("/");
+
+        const isVerified = data.user?.verificationOptions?.status === "verified";
+        if (isVerified) {
+          navigate(nextPath, { replace: true });
+        } else {
+          navigate(toVerifyWithNext(data.user?.email || formData.email, nextPath), { replace: true });
+        }
       }
     } catch (error) {
       const errMsg = error.response?.data?.detail || error.response?.data?.message;
@@ -62,6 +72,14 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  if (isAuthenticated && verifiedUser) {
+    return <Navigate to={nextPath} replace />;
+  }
+
+  if (isAuthenticated && !verifiedUser) {
+    return <Navigate to={toVerifyWithNext(user?.email || formData.email, nextPath)} replace />;
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg-base px-4 py-12 relative overflow-hidden">
@@ -131,7 +149,7 @@ const Login = () => {
           {/* Core Operations Deck Options Link */}
           <div className="flex justify-end pt-0.5">
             <Link
-              to="/forgot-password"
+              to={`/forgot-password?next=${encodeURIComponent(nextPath)}`}
               className="text-xs font-medium text-primary hover:text-primary-hover transition-colors tracking-wide"
             >
               Forgot password?
@@ -153,7 +171,7 @@ const Login = () => {
         <p className="mt-6 text-center text-xs text-text-muted tracking-wide">
           Don&apos;t have an account?{" "}
           <Link
-            to="/register"
+            to={`/register?next=${encodeURIComponent(nextPath)}`}
             className="font-semibold text-primary hover:text-primary-hover transition-colors ml-1"
           >
             Create Account

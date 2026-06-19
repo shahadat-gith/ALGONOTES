@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { registerUser } from "../../api/authApi";
+import { getSafeNextPath } from "../../utils/authRedirect";
 
 const Register = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const nextPath = getSafeNextPath(searchParams.get("next"), "/");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -58,7 +61,8 @@ const Register = () => {
 
       if (data.success) {
         toast.success(data.message || "Registration done! ");
-        navigate("/login");
+        const redirectLogin = `/login?email=${encodeURIComponent(formData.email)}&next=${encodeURIComponent(nextPath)}`;
+        navigate(redirectLogin, { replace: true });
       }
     } catch (error) {
       toast.error(error.response?.data?.detail || error.response?.data?.message || "Registration failed. Please try again.");
@@ -163,7 +167,7 @@ const Register = () => {
         <p className="mt-6 text-center text-xs text-text-muted tracking-wide">
           Already have an account?{" "}
           <Link
-            to="/login"
+            to={`/login?next=${encodeURIComponent(nextPath)}`}
             className="font-semibold text-primary hover:text-primary-hover transition-colors ml-1"
           >
             Login
