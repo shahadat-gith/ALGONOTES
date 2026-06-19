@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from app.models import Note, Theory
-from app.models.theory import TheoryStatus, TempPromptJob
+from app.models.theory import TheoryStatus
+from app.models import TempPromptJob
 from app.models.note import NoteStatus
 
 async def handle_note_generation_failure(note_id: str, reason: str):

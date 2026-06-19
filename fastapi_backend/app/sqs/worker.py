@@ -9,7 +9,8 @@ from google.genai import Client  # Import the Client class to safely instantiate
 from app.prompts import generate_note_prompt, generate_theory_prompt
 from app.models import Note, Theory
 from app.models.note import NoteStatus
-from app.models.theory import TheoryStatus, TempPromptJob
+from app.models.theory import TheoryStatus
+from app.models import TempPromptJob
 from app.schemas.note import ProblemDetailSchema, NoteContentSchema
 
 from .handle_failures import (
