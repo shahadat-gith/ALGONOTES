@@ -37,7 +37,7 @@ const getTextSnippet = (htmlString) => {
 };
 
 const TheoryCard = ({ theory, onDelete }) => {
-  const { _id: id, topic, status, content, createdAt } = theory;
+  const { id, topic, status, content, createdAt } = theory;
   const navigate = useNavigate();
 
   return (

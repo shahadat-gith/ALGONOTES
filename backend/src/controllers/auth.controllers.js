@@ -1,10 +1,12 @@
 import User from '../models/user.model.js';
 import { hashPassword, verifyPassword } from '../services/bcrypt.js';
 import { sendEmail } from '../services/nodemailer.js';
-import { generateOtp, createAccessToken } from '../services/jwt.js';
+import { generateOtp } from '../utils/generateOtp.js';
 import { welcomeEmailTemplate, otpEmailTemplate } from '../constants/emailTemplates.js';
 import { serializeUser } from '../utils/serializeUser.js';
 import { AppException } from '../utils/appException.js';
+
+import jwt from "jsonwebtoken"
 
 
 
@@ -76,7 +78,7 @@ export const login = async (req, res, next) => {
       throw new AppException('Incorrect Password.', 401);
     }
 
-    const token = createAccessToken(user._id);
+    const token = await jwt.sign({userId: user._id}, process.env.JWT_SECRET)
 
     res.status(200).json({
       success: true,

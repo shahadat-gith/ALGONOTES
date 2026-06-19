@@ -12,7 +12,7 @@ const startLocalServer = async () => {
     await connectDB();
     
     app.listen(PORT, () => {
-      console.log(`[Express] Application startup completed. Server listening on http://localhost:${PORT}`);
+      console.log(` Server listening on http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error(`Fatal system crash during development server startup: ${error.message}`);

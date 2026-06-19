@@ -120,7 +120,7 @@ const Theories = () => {
             <div className="flex flex-col gap-4 w-full animate-fade-in">
               {notes.map((note) => (
                 <TheoryCard
-                  key={note.id || note._id}
+                  key={note.id}
                   theory={note}
                   onDelete={handleOpenDeleteModal}
                 />

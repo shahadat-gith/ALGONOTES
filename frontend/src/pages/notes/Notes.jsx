@@ -88,7 +88,7 @@ const Notes = () => {
     try {
       const res = await deleteNote(deleteTargetId);
       if (res?.success) {
-        setNotes((prev) => prev.filter((note) => note._id !== deleteTargetId));
+        setNotes((prev) => prev.filter((note) => note.id !== deleteTargetId));
         toast.success("Note deleted successfully.");
         if (notes.length === 1 && currentPage > 1) setCurrentPage((p) => p - 1);
         else fetchNotes(currentPage, submittedSearch);
@@ -166,7 +166,7 @@ const Notes = () => {
           <div className="flex flex-col gap-4 w-full">
             {notes.map((note) => (
               <NoteCard
-                key={note._id}
+                key={note.id}
                 note={note}
                 onDelete={handleOpenDeleteModal}
               />

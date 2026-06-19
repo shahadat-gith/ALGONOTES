@@ -23,7 +23,7 @@ const formatDate = (date) => {
 
 const NoteCard = ({ note, onDelete }) => {
   const {
-    _id: id,
+    id,
     problem = {},
     language = "C++",
     status = "draft",

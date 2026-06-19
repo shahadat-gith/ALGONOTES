@@ -13,9 +13,6 @@ dotenv.config();
 
 const app = express();
 
-// ==========================================
-// CORS CONFIGURATION
-// ==========================================
 const allowedOrigins = [
   "http://localhost:3000",
   "https://algonotes.onrender.com",
@@ -37,9 +34,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ==========================================
-// MOUNT ROUTERS
-// ==========================================
+
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/notes', noteRouter);
