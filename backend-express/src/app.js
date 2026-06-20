@@ -10,6 +10,7 @@ import userRouter from './routes/user.routes.js';
 import noteRouter from './routes/note.routes.js';
 import theoryRouter from './routes/theory.routes.js';
 import promptRouter from './routes/prompt.routes.js';
+import searchRouter from './routes/search.routes.js';
 import Analytics from './models/analytics.model.js';
 import { GLOBAL_ANALYTICS_KEY } from './services/analytics.js';
 import { errorHandler } from './middlewares/error.js';
@@ -59,6 +60,7 @@ app.use('/api/v1/users', userRouter);
 app.use('/api/v1/notes', noteRouter);
 app.use('/api/v1/theory', theoryRouter);
 app.use('/api/v1/prompt', promptRouter);
+app.use('/api/v1/search', searchRouter);
 
 app.get('/', (req, res) => {
   res.status(200).json({

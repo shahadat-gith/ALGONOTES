@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 
 import { getNoteById, updateNote } from "../../api/noteApi";
 import EditNoteSkeleton from "../../components/skeletons/EditNoteSkeleton";
+import Glow from "../../components/common/Glow";
 
 import TextEditor from "../../components/notes/editor/TextEditor";
 import ApproachEditor from "../../components/notes/editor/ApproachEditor";
@@ -104,7 +105,8 @@ const NoteEditor = () => {
   }
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen space-y-6 select-none animate-fade-in relative z-10">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen space-y-6 select-none animate-fade-in relative overflow-hidden">
+      <Glow preset="subtle" />
       {/* Top Banner Context Wrapper Row */}
       <div className="bg-bg-surface border border-border-default rounded-md p-5 sm:p-6 shadow-card space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">

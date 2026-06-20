@@ -18,6 +18,7 @@ import Button from "../../components/common/Button";
 import Badge from "../../components/common/Badge";
 import EmptyState from "../../components/common/EmptyState";
 import NoteDetailsSkeleton from "../../components/skeletons/NoteDetailsSkeleton";
+import Glow from "../../components/common/Glow";
 
 import Problem from "../../components/notes/details/Problem";
 import UserNotes from "../../components/notes/details/UserNotes";
@@ -92,7 +93,10 @@ const NoteDetails = () => {
   ];
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen space-y-6 select-none animate-fade-in relative z-10">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen space-y-6 select-none animate-fade-in relative overflow-hidden">
+      
+      <Glow preset="subtle" />
+      <Glow preset="topRight" />
       
       {/* Upper Navigation Header Row */}
       <div className="flex items-center justify-between border-b border-border-default pb-5">

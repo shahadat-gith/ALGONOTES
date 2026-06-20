@@ -9,6 +9,7 @@ import Alert from "../../components/common/Alert";
 import NoteGeneratingModal from "../../components/common/NoteGeneratingModal";
 import { LANGUAGE_OPTIONS } from "../../constants/languages";
 import { ArrowRight, CircleHelp, Code2, Link2, Sparkles, StickyNote } from "lucide-react";
+import Glow from "../../components/common/Glow";
 
 const NoteGenerator = () => {
   const {
@@ -22,7 +23,10 @@ const NoteGenerator = () => {
   } = useNoteGeneration();
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar select-none animate-fade-in relative z-10 flex flex-col gap-6">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar select-none animate-fade-in relative overflow-hidden flex flex-col gap-6">
+      
+      <Glow preset="subtle" />
+      <Glow preset="topRight" />
       
       <div className="sticky top-0 z-30 w-full border-b border-border-default pb-4 bg-bg-base/95 backdrop-blur-md">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

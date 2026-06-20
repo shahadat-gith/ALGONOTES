@@ -12,6 +12,7 @@ import NoteCard from "../../components/notes/NoteCard";
 import DeleteConfirm from "../../components/common/DeleteConfirm";
 import Pagination from "../../components/common/Pagination";
 import NoteHeader from "../../components/common/NoteHeader";
+import Glow from "../../components/common/Glow";
 
 const PAGE_SIZE = 10;
 
@@ -111,7 +112,9 @@ const Notes = () => {
   }
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen space-y-6 select-none animate-fade-in relative z-10">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen space-y-6 select-none animate-fade-in relative overflow-hidden">
+      <Glow preset="subtle" />
+      <Glow preset="topRight" />
       <NoteHeader
         title="DSA Notes"
         description="All your generated DSA notes."

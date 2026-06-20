@@ -9,6 +9,7 @@ import AssetModal from "../../components/theory/editor/AssetModal";
 import TheoryEditorSkeleton from "../../components/skeletons/TheoryEditorSkeleton"; // Imported here
 
 import "./Theory.css";
+import Glow from "../../components/common/Glow";
 
 const TheoryEditor = () => {
   const { id } = useParams();
@@ -41,7 +42,9 @@ const TheoryEditor = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-bg-base text-text-main selection:bg-primary/20 flex flex-col font-sans relative z-10 animate-fade-in select-none">
+    <div className="w-full min-h-screen bg-bg-base text-text-main selection:bg-primary/20 flex flex-col font-sans relative overflow-hidden animate-fade-in select-none">
+      <Glow preset="subtle" />
+      <Glow preset="topRight" />
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col flex-1 h-screen max-h-screen overflow-hidden">
         
         <label id="algonotes-asset-modal-trigger" htmlFor="asset-modal" className="hidden"></label>

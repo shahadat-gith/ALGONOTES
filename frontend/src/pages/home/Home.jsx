@@ -1,7 +1,9 @@
 import React from "react";
 
 import HomeAnalyticsPanel from "../../components/home/HomeAnalyticsPanel";
+import HomeAbout from "../../components/home/HomeAbout";
 import HomeCta from "../../components/home/HomeCta";
+import HomeFaq from "../../components/home/HomeFaq";
 import HomeHero from "../../components/home/HomeHero";
 import HomeHighlights from "../../components/home/HomeHighlights";
 import HomeWorkflow from "../../components/home/HomeWorkflow";
@@ -22,6 +24,8 @@ const Home = () => {
         <HomeWorkflow />
         <HomeHighlights />
         <HomeAnalyticsPanel />
+        <HomeAbout />
+        <HomeFaq />
         <HomeCta />
       </main>
     </div>

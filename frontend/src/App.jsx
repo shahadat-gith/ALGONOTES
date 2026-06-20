@@ -32,6 +32,9 @@ import Terms from "./pages/disclaimers/Terms";
 import DataPrivacy from "./pages/disclaimers/DataPrivacy";
 import HowNoteGenerationWorks from "./pages/general/HowNoteGenerationWorks";
 import HowTheoryGenerationWorks from "./pages/general/HowTheoryGenerationWorks";
+import About from "./pages/general/About";
+import Faq from "./pages/general/Faq";
+import Contact from "./pages/general/Contact";
 
 
 const App = () => {
@@ -53,10 +56,12 @@ const App = () => {
           <Route path="/data-privacy" element={<DataPrivacy />} />
           <Route path="/how-it-works/notes" element={<HowNoteGenerationWorks />} />
           <Route path="/how-it-works/theory" element={<HowTheoryGenerationWorks />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/faq" element={<Faq />} />
+          <Route path="/contact" element={<Contact />} />
         </Route>
 
-        {/* VERIFICATION TRACKS */}
-        {/* PublicOnlyRoute drops them inside if unverified, or bounces them to /notes if verified */}
+ 
         <Route element={<PublicOnlyRoute />}>
           <Route path="/verify" element={<VerifyUser />} />
         </Route>

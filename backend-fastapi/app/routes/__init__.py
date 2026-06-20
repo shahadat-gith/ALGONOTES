@@ -6,6 +6,7 @@ from .user import router as user_router
 from .note import router as note_router
 from .theory import router as theory_router 
 from .prompt import router as prompt_router
+from .search import router as search_router
 
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "note_router",
     "theory_router",
     "prompt_router",
+    "search_router",
 ]

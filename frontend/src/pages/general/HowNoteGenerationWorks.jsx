@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, FileCode2, Link2, Sparkles, Workflow } from "lucide-react";
+import Glow from "../../components/common/Glow";
 
 
 const steps = [
@@ -33,7 +34,9 @@ const steps = [
 
 const HowNoteGenerationWorks = () => {
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen space-y-8 animate-fade-in relative z-10">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen space-y-8 animate-fade-in relative overflow-hidden">
+      <Glow preset="subtle" />
+      <Glow preset="topRight" />
       <section className="rounded-2xl border border-border-default bg-gradient-to-br from-bg-surface via-bg-surface to-primary/5 p-6 sm:p-8 shadow-card space-y-4">
         <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
           <Sparkles size={12} className="stroke-[2.2]" />

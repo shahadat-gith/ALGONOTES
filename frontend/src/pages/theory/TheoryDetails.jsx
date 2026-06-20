@@ -6,7 +6,8 @@ import Alert from "../../components/common/Alert";
 import ViewerHeader from "../../components/theory/viewer/ViewerHeader";
 import ViewerContent from "../../components/theory/viewer/ViewerContent";
 
-import "./Theory.css"; 
+import "./Theory.css";
+import Glow from "../../components/common/Glow";
 
 
 const TheoryDetails = () => {
@@ -66,7 +67,8 @@ const TheoryDetails = () => {
   }
 
   return (
-    <div className="w-full min-h-screen bg-bg-base text-text-main selection:bg-primary/20 flex flex-col">
+    <div className="w-full min-h-screen bg-bg-base text-text-main selection:bg-primary/20 flex flex-col relative overflow-hidden">
+      <Glow preset="subtle" />
       <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 py-6 flex flex-col flex-1">
         
         <ViewerHeader 

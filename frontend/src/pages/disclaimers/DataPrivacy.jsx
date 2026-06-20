@@ -1,9 +1,11 @@
 import React from "react";
 import { Database, Binary, Server, HardDrive, RefreshCw } from "lucide-react";
+import Glow from "../../components/common/Glow";
 
 const DataPrivacy = () => {
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in select-none">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in select-none relative overflow-hidden">
+      <Glow preset="subtle" />
       
       {/* Header Block */}
       <div className="border-b border-border-default pb-5 space-y-2.5">

@@ -10,6 +10,7 @@ import DeleteConfirm from "../../components/common/DeleteConfirm";
 
 import NoteHeader from "../../components/common/NoteHeader";
 import TheoriesSkeleton from "../../components/skeletons/TheoriesSkeleton";
+import Glow from "../../components/common/Glow";
 
 const Theories = () => {
   const navigate = useNavigate();
@@ -90,7 +91,9 @@ const Theories = () => {
   };
 
   return (
-    <div className="w-full font-sans text-text-main p-4 sm:p-6 max-w-[1400px] mx-auto flex flex-col gap-6 relative z-10 animate-fade-in select-none">
+    <div className="w-full font-sans text-text-main p-4 sm:p-6 max-w-[1400px] mx-auto flex flex-col gap-6 relative overflow-hidden animate-fade-in select-none">
+      <Glow preset="subtle" />
+      <Glow preset="topRight" />
       <NoteHeader
         title="Theory Notes"
         description="Read, manage, and update your personal collection of theory notes."
