@@ -5,7 +5,6 @@ import { useAuth } from "../../context/AuthContext";
 import Dropdown from "./Dropdown";
 import { Loader2 } from "lucide-react";
 import Button from "../common/Button";
-import GlobalSearch from "../common/GlobalSearch";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -36,11 +35,6 @@ const Navbar = () => {
               </span>
             </div>
           </Link>
-
-          {/* Global Search */}
-          <div className="flex-1 max-w-md">
-            <GlobalSearch />
-          </div>
         </div>
 
         <div className="flex items-center gap-4 shrink-0">

@@ -1,0 +1,27 @@
+# --- STAGE 1: Build the React Application ---
+FROM node:20-alpine AS build-stage
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+# Pass your AWS Production URL so Vite bakes it into the build
+ARG VITE_PROD_BACKEND_URL=https://27pxopzac7.execute-api.ap-south-1.amazonaws.com/api/v1
+ENV VITE_PROD_BACKEND_URL=$VITE_PROD_BACKEND_URL
+
+# Build the app (generates the 'dist' folder)
+RUN npm run build
+
+# --- STAGE 2: Serve with Nginx ---
+FROM nginx:alpine
+
+# Copy the static assets from stage 1 to Nginx's default public folder
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+
+# Expose port 80 for production traffic
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

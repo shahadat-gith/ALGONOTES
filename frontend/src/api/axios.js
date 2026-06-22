@@ -1,15 +1,9 @@
 import axios from "axios";
 
-const backendType = "fastapi";
-
-const productionUrls = {
-  fastapi: import.meta.env.VITE_FASTAPI_URL,
-  express: import.meta.env.VITE_EXPRESS_URL,
-};
 
 const backendUrl = import.meta.env.DEV 
   ? import.meta.env.VITE_DEV_BACKEND_URL 
-  : productionUrls[backendType];
+  : import.meta.env.VITE_PROD_BACKEND_URL ;
 
 const api = axios.create({
   baseURL: backendUrl,

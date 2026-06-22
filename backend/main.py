@@ -16,14 +16,13 @@ from app.routes import (
     note_router,
     theory_router,
     prompt_router,
-    search_router,
 )
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print(f"Starting application in {settings.ENVIRONMENT} mode...")
 
+    print(f"Starting application...")
     await init_db()
 
     print("Application startup completed.")
@@ -88,7 +87,6 @@ app.include_router(user_router, prefix="/api/v1")
 app.include_router(note_router, prefix="/api/v1")
 app.include_router(theory_router, prefix="/api/v1")
 app.include_router(prompt_router, prefix="/api/v1")
-app.include_router(search_router, prefix="/api/v1")
 
 
 @app.get("/", tags=["System"])

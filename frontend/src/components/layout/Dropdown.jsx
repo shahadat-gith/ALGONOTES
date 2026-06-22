@@ -56,15 +56,6 @@ const Dropdown = ({ user, onLogout }) => {
           )}
         </div>
 
-        <div className="hidden sm:flex flex-col items-start text-left max-w-[170px] min-w-0">
-          <span className="text-sm font-semibold text-text-main truncate w-full group-hover:text-primary transition-colors leading-none">
-            {user?.name || "Your account"}
-          </span>
-          <span className="mt-1 text-[11px] text-text-light truncate w-full">
-            {isVerified ? "Account ready" : "Verification pending"}
-          </span>
-        </div>
-
         <ChevronDown
           size={13}
           className={`text-text-light transition-transform duration-200 group-hover:text-text-muted shrink-0 ${

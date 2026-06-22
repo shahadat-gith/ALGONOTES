@@ -16,16 +16,8 @@ def generate_otp() -> str:
 
 
 def create_access_token(user_id: str) -> str:
-    """
-    Encodes a JWT string carrying the user's document identity.
-    """
-    # Parse expiration string ('7d') to delta object fallback
-    days = int(settings.JWT_EXPIRES_IN.replace("d", "")) if "d" in settings.JWT_EXPIRES_IN else 365
-    expire = datetime.utcnow() + timedelta(days=days)
-    
     payload = {
         "userId": user_id,
-        "exp": expire
     }
     
     return jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")

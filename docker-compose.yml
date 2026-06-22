@@ -1,0 +1,32 @@
+
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+      - /app/.serverless
+    env_file:
+      - ./backend/.env
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_DEV_BACKEND_URL=http://localhost:8000/api/v1
+      - VITE_PROD_BACKEND_URL=https://27pxopzac7.execute-api.ap-south-1.amazonaws.com/api/v1
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
