@@ -1,84 +1,85 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { useTheoryGeneration } from "../../hooks/useTheoryGeneration";
-import { optimizeTheoryInstructions, checkPromptOptimizationStatus } from "../../api/promptApi";
+import React, { useState, useEffect, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useBackoffPolling } from "../../hooks/useBackoffPolling";
+import { generateTheoryNote, checkTheoryStatus, deleteTheoryNote } from "../../api/theoryApi"; 
+import { optimizeTheoryInstructions, checkPromptOptimizationStatus } from "../../api/promptApi";
 
 import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
-import Alert from "../../components/common/Alert";
-import NoteGeneratingModal from "../../components/common/NoteGeneratingModal";
+import ErrorModal from "../../components/modals/ErrorModal";
+import NoteGeneratingModal from "../../components/modals/NoteGeneratingModal";
 import toast from "react-hot-toast";
 
-import { BookOpenText, CircleHelp, Code2, FileText, Lightbulb, Loader2, Sparkles, Wand2 } from "lucide-react";
+import {
+  BookOpenText,
+  CircleHelp,
+  Code2,
+  FileText,
+  Lightbulb,
+  Loader2,
+  Sparkles,
+  Wand2,
+} from "lucide-react";
 import Glow from "../../components/common/Glow";
 
+const STORAGE_KEY = "theory_note_generation";
+const DEFAULT_FORM_DATA = { topic: "", instructions: "", language: "" };
+
 const TheoryGenerator = () => {
+  const navigate = useNavigate();
   const { startPolling, stopPolling } = useBackoffPolling();
 
-  const {
-    formData,
-    setFormData,
-    errors,
-    setErrors,
-    loading,
-    apiErrorMessage, 
-    startTheoryGeneration,
-  } = useTheoryGeneration();
+  // --- Unified Self-Contained States ---
+  const [formData, setFormData] = useState(() => {
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        return { ...DEFAULT_FORM_DATA, ...JSON.parse(saved) };
+      } catch (e) {
+        console.error("Failed to parse cached Theory session data:", e);
+      }
+    }
+    return DEFAULT_FORM_DATA;
+  });
 
+  const [loading, setLoading] = useState(false);
   const [isPromptLoading, setIsPromptLoading] = useState(false);
-  const [promptErrorMessage, setPromptErrorMessage] = useState("");
+  const [error, setError] = useState("");
 
   // Clean up polling loops on unmount
   useEffect(() => {
     return () => stopPolling();
   }, [stopPolling]);
 
-  // Client-Side Rate Limiter: Max 3 requests per minute
-  const checkRateLimit = () => {
-    const NOW = Date.now();
-    const ONE_MINUTE = 60000;
-    const storageKey = "theory_generator_req_timestamps";
-    const MAX_ALLOWED_REQ_PER_MIN = 3;
-    
-    let timestamps = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    timestamps = timestamps.filter((time) => NOW - time < ONE_MINUTE);
-    
-    if (timestamps.length >= MAX_ALLOWED_REQ_PER_MIN) {
-      const oldestRemaining = timestamps[0];
-      const secondsLeft = Math.ceil((ONE_MINUTE - (NOW - oldestRemaining)) / 1000);
-      return { allowed: false, secondsLeft };
-    }
-    
-    timestamps.push(NOW);
-    localStorage.setItem(storageKey, JSON.stringify(timestamps));
-    return { allowed: true };
-  };
-
+  // --- Handlers ---
   const handleTopicChange = (e) => {
     const uppercaseValue = e.target.value.toUpperCase();
     setFormData((prev) => ({ ...prev, topic: uppercaseValue }));
-    if (errors.topic) setErrors((p) => ({ ...p, topic: "" }));
   };
 
   const handleLanguageChange = (e) => {
     setFormData((prev) => ({ ...prev, language: e.target.value }));
   };
 
-  // Submits raw instructions to the backend for optimization
+  // --- Rollback Handler on Generation Failure ---
+  const handleGenerationFailure = useCallback(async (theoryId, message) => {
+    setLoading(false);
+    setError(message);
+    try {
+      await deleteTheoryNote(theoryId);
+    } catch (cleanError) {
+      console.error("Rollback failed:", cleanError);
+    }
+  }, []);
+
+  // --- Action: Optimize / Polish Prompt ---
   const handleOptimizeUserPrompt = async () => {
     if (!formData.topic || formData.topic.trim() === "") {
-      setErrors((p) => ({ ...p, topic: "Please enter a topic name first to give the AI some context." }));
+      toast.error("Please enter a topic name first to give the AI some context.");
       return;
     }
 
-    setPromptErrorMessage("");
-    const rateLimit = checkRateLimit();
-    if (!rateLimit.allowed) {
-      setPromptErrorMessage(`Rate limit reached. Please wait ${rateLimit.secondsLeft}s before polishing again.`);
-      return;
-    }
-
+    setError("");
     setIsPromptLoading(true);
 
     try {
@@ -92,30 +93,68 @@ const TheoryGenerator = () => {
         startPolling({
           resourceId: res.jobId,
           checkStatusFn: checkPromptOptimizationStatus,
-          onSuccess: (finalData) => {
+          onSuccess: (data) => {
             setIsPromptLoading(false);
-            if (finalData?.optimizedInstructions) {
+            if (data?.optimizedInstructions) {
               setFormData((prev) => ({
                 ...prev,
-                instructions: finalData.optimizedInstructions,
+                instructions: data.optimizedInstructions,
               }));
-              if (errors.instructions) setErrors((p) => ({ ...p, instructions: "" }));
               toast.success("Instructions polished!");
             } else {
-              setPromptErrorMessage("Polished data was empty. Please try re-typing your points.");
+              setError("Polished data was empty. Please try re-typing your points.");
             }
           },
-          onFailure: (errorMsg) => {
+          onFailure: (err) => {
             setIsPromptLoading(false);
-            setPromptErrorMessage(errorMsg || "Could not polish instructions. Please try again.");
+            setError(err || "Could not polish instructions. Please try again.");
           },
         });
       } else {
-        throw new Error("Failed to initialize background optimization job.");
+        throw new Error("Queue rejected optimization.");
       }
     } catch (err) {
       setIsPromptLoading(false);
-      setPromptErrorMessage("Could not connect to the prompt optimization pipeline.");
+      setError("Could not connect to the prompt optimization pipeline.");
+    }
+  };
+
+  // --- Action: Start Theory Generation ---
+  const handleStartTheoryGeneration = async () => {
+    if (loading) return;
+    setError("");
+    setLoading(true);
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+
+    try {
+      const initResponse = await generateTheoryNote({
+        topic: formData.topic.trim(),
+        instructions: formData.instructions.trim() || undefined,
+        language: formData.language || null,
+      });
+
+      const targetId = initResponse?.id || initResponse?.theoryId;
+
+      if (!initResponse?.success || !targetId) {
+        throw new Error("Queue rejected.");
+      }
+
+      startPolling({
+        resourceId: targetId,
+        checkStatusFn: checkTheoryStatus,
+        onSuccess: () => {
+          toast.success("Theory generated!");
+          sessionStorage.removeItem(STORAGE_KEY);
+          setTimeout(() => {
+            navigate(`/theory/${targetId}/edit`, { replace: true });
+          }, 800);
+        },
+        onFailure: (errMsg) => handleGenerationFailure(targetId, errMsg),
+      });
+    } catch (err) {
+      stopPolling();
+      setLoading(false);
+      setError(err.message || "AI agent is currently unavailable! Please try after sometime.");
     }
   };
 
@@ -123,13 +162,16 @@ const TheoryGenerator = () => {
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar select-none animate-fade-in relative overflow-hidden flex flex-col gap-6">
       <Glow preset="subtle" />
       <Glow preset="topRight" />
-      
+
       <div className="sticky top-0 z-30 w-full border-b border-border-default pb-4 bg-bg-base/95 backdrop-blur-md">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1.5">
-            <h1 className="text-2xl font-semibold tracking-tight text-text-main">Theory Notes Builder</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-text-main">
+              Theory Notes Builder
+            </h1>
             <p className="max-w-2xl text-sm leading-6 text-text-light">
-              Build clear topic summaries with your own requirements, preferred language examples, and AI-assisted prompt polishing.
+              Build clear topic summaries with your own requirements, preferred
+              language examples, and AI-assisted prompt polishing.
             </p>
             <Link
               to="/how-it-works/theory"
@@ -145,11 +187,11 @@ const TheoryGenerator = () => {
             size="sm"
             loading={loading}
             disabled={isPromptLoading || !formData.topic}
-            onClick={startTheoryGeneration}
+            onClick={handleStartTheoryGeneration}
             className="h-11 shrink-0 px-5 text-sm font-semibold shadow-xs cursor-pointer"
           >
             <Sparkles size={15} className="stroke-[2.2]" />
-            <span>Create Theory Notes</span>
+            <span>Generate</span>
           </Button>
         </div>
       </div>
@@ -165,47 +207,43 @@ const TheoryGenerator = () => {
               Start with a topic, then shape the result with your own instructions.
             </h2>
             <p className="max-w-2xl text-sm leading-6 text-text-light">
-              Use this page to create clean theory notes, revision blueprints, or topic explainers that follow your preferred structure.
+              Use this page to create clean theory notes, revision blueprints,
+              or topic explainers that follow your preferred structure.
             </p>
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
           <div className="rounded-2xl border border-border-default bg-bg-surface p-5 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">Suggested use</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+              Suggested use
+            </p>
             <p className="mt-2 text-sm leading-6 text-text-light">
-              Add the concept name, choose a language if code examples matter, and describe the exact depth or sections you want covered.
+              Add the concept name, choose a language if code examples matter,
+              and describe the exact depth or sections you want covered.
             </p>
           </div>
           <div className="rounded-2xl border border-border-default bg-bg-surface p-5 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">Prompt polish</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+              Prompt polish
+            </p>
             <p className="mt-2 text-sm leading-6 text-text-light">
-              If your requirements are rough, use the AI polish action to rewrite them into a clearer instruction set before generating.
+              If your requirements are rough, use the AI polish action to
+              rewrite them into a clearer instruction set before generating.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Process Interrupt Error Render Box */}
-      {apiErrorMessage && (
-        <Alert
-          title="Process Interrupted"
-          message={apiErrorMessage}
-          variant="danger"
-          actionLabel="Try Again"
-          onAction={startTheoryGeneration}
-        />
-      )}
-
       <div className="w-full bg-bg-surface border border-border-default rounded-2xl p-5 sm:p-6 space-y-6 shadow-xs mb-6">
-        
         <div className="flex flex-col gap-1 border-b border-border-default pb-4">
           <h2 className="text-base font-semibold tracking-tight text-text-main flex items-center gap-2">
             <Lightbulb size={16} className="text-primary stroke-[2]" />
             <span>Topic setup</span>
           </h2>
           <p className="text-sm leading-6 text-text-light">
-            Define the concept and any optional rules that should shape the final theory notes.
+            Define the concept and any optional rules that should shape the
+            final theory notes.
           </p>
         </div>
 
@@ -215,10 +253,10 @@ const TheoryGenerator = () => {
               label="Topic or Concept"
               type="text"
               name="topic"
+              required
               value={formData.topic || ""}
               onChange={handleTopicChange}
               disabled={loading || isPromptLoading}
-              error={errors.topic}
               placeholder="Example: Binary Search Trees"
               className="text-sm h-11 bg-bg-base border-border-default rounded-md pl-3.5 font-semibold tracking-wide uppercase placeholder:normal-case w-full"
             />
@@ -247,7 +285,8 @@ const TheoryGenerator = () => {
               <option value="Go">Go</option>
             </select>
             <p className="text-xs leading-5 text-text-muted">
-              Optional. Use this when the output should include code samples or syntax-specific explanations.
+              Optional. Use this when the output should include code samples or
+              syntax-specific explanations.
             </p>
           </div>
         </div>
@@ -260,14 +299,20 @@ const TheoryGenerator = () => {
                 <span>Requirements or rough notes</span>
               </label>
               <p className="mt-1 text-sm leading-6 text-text-light">
-                Share bullet points, sections to include, or the level of detail you expect.
+                Share bullet points, sections to include, or the level of detail
+                you expect.
               </p>
             </div>
 
             <Button
               variant="outline"
               size="sm"
-              disabled={loading || isPromptLoading || !formData.topic?.trim() || !formData.instructions?.trim()}
+              disabled={
+                loading ||
+                isPromptLoading ||
+                !formData.topic?.trim() ||
+                !formData.instructions?.trim()
+              }
               onClick={handleOptimizeUserPrompt}
               className="mt-3 sm:mt-0 text-xs font-semibold h-9 px-3.5 border-dashed border-border-strong bg-bg-soft/50 hover:bg-primary/5 hover:text-primary hover:border-primary/30 rounded-xl transition-all duration-200"
             >
@@ -279,7 +324,10 @@ const TheoryGenerator = () => {
           <div className="relative w-full rounded-sm overflow-hidden">
             {isPromptLoading && (
               <div className="absolute inset-0 bg-bg-surface/70 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center gap-2 animate-fade-in">
-                <Loader2 size={20} className="animate-spin text-primary stroke-[2.5]" />
+                <Loader2
+                  size={20}
+                  className="animate-spin text-primary stroke-[2.5]"
+                />
                 <span className="text-[11px] font-mono font-bold tracking-wider text-text-muted uppercase">
                   Polishing your points...
                 </span>
@@ -290,39 +338,34 @@ const TheoryGenerator = () => {
               name="instructions"
               value={formData.instructions || ""}
               onChange={(e) => {
-                setFormData((prev) => ({ ...prev, instructions: e.target.value }));
-                if (errors.instructions) setErrors((p) => ({ ...p, instructions: "" }));
+                setFormData((prev) => ({
+                  ...prev,
+                  instructions: e.target.value,
+                }));
               }}
               disabled={loading || isPromptLoading}
               placeholder={`Add raw notes, a rough outline, or the rules you want followed.\n\nExample:\n- compare singly and doubly linked lists\n- include insertion and deletion steps\n- end with common interview mistakes`}
               style={{ fieldSizing: "content" }}
-              className={`w-full min-h-[220px] resize-none block rounded-2xl border bg-bg-base px-4 py-4 font-mono text-[13px] md:text-[14px] leading-6 text-text-main transition-all outline-hidden focus:border-primary/40 focus:bg-bg-base/80 ${
-                errors.instructions ? "border-danger focus:border-danger" : "border-border-default"
-              }`}
+              className="w-full min-h-[220px] resize-none block rounded-2xl border border-border-default bg-bg-base px-4 py-4 font-mono text-[13px] md:text-[14px] leading-6 text-text-main transition-all outline-hidden focus:border-primary/40 focus:bg-bg-base/80"
             />
           </div>
-
-          {errors.instructions && (
-            <p className="text-xs font-medium text-danger tracking-wide">{errors.instructions}</p>
-          )}
-
-          {promptErrorMessage && (
-            <div className="mt-2 animate-fade-in">
-              <Alert title="Optimization Failed" message={promptErrorMessage} variant="danger" />
-            </div>
-          )}
         </div>
-
       </div>
 
-      {/* Shared Global Processing Modal component overlay */}
-      <NoteGeneratingModal 
-        isOpen={loading} 
+      <NoteGeneratingModal
+        isOpen={loading}
         title="Creating your theory notes"
-        subtitle="We are organizing the topic, refining the sections, and preparing a clear study version based on your instructions."
         footerNote="Theory requests can take a little longer when the topic is broad or highly detailed."
       />
-      
+
+      <ErrorModal
+        isOpen={!!error}
+        title="Error generating note"
+        message={error}
+        onClose={() => setError("")}
+        actionLabel={loading ? "Try Again" : null}
+        onAction={loading ? handleStartTheoryGeneration : null}
+      />
     </div>
   );
 };

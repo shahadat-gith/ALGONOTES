@@ -1,14 +1,15 @@
+import asyncio
+import json
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 
 from app.config import settings
 from app.database import init_db, close_db
 from app.middlewares import register_error_handlers
-from app.models import Analytics
+from app.middlewares import capture_api_request_metrics
 from app.routes import (
     analytics_router,
     auth_router,
@@ -18,19 +19,17 @@ from app.routes import (
     prompt_router,
 )
 
+# Import your standalone async queue logic
+from app.sqs.handler import start_async_queue_handler
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-
     print(f"Starting application...")
     await init_db()
-
     print("Application startup completed.")
-
     yield
-
     await close_db()
-
     print("Application shutdown completed.")
 
 
@@ -41,36 +40,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-
 register_error_handlers(app)
-
-
-@app.middleware("http")
-async def capture_api_request_metrics(request: Request, call_next):
-    response = await call_next(request)
-
-    if request.method != "OPTIONS" and request.url.path.startswith("/api/v1"):
-        now = datetime.now(timezone.utc)
-
-        try:
-            await Analytics.get_motor_collection().update_one(
-                {"key": "global"},
-                {
-                    "$inc": {"totalApiRequests": 1},
-                    "$set": {"updatedAt": now},
-                    "$setOnInsert": {
-                        "key": "global",
-                        "totalPageVisits": 0,
-                        "createdAt": now,
-                    },
-                },
-                upsert=True,
-            )
-        except Exception as exc:
-            print(f"Failed to update API request metrics: {exc}")
-
-    return response
-
+app.middleware("http")(capture_api_request_metrics)
 
 app.add_middleware(
     CORSMiddleware,
@@ -79,7 +50,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
@@ -97,7 +67,30 @@ async def health_check():
     }
 
 
-handler = Mangum(app, lifespan="on")
+# Standard Web HTTP traffic adapter
+mangum_handler = Mangum(app, lifespan="on")
+
+
+def handler(event, context):
+    """
+    Unified Master Handler: Checks if incoming payload is from SQS.
+    If yes, runs your standalone queue pipeline safely. If no, routes to FastAPI.
+    """
+    # Intercept SQS Queue messages
+    if "Records" in event and event["Records"][0].get("eventSource") == "aws:sqs":
+        print(f"[Master Interceptor] SQS Event detected. Routing to queue loop.")
+        
+        # Get or create a safe event loop that won't destroy Mangum's context
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+        return loop.run_until_complete(start_async_queue_handler(event, context))
+
+    # Otherwise, pass normal API calls down to Mangum cleanly
+    return mangum_handler(event, context)
 
 
 if __name__ == "__main__":
