@@ -1,49 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset
-      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
-    <loc>https://www.algonotes.in/</loc>
-    <lastmod>2026-06-17T10:06:50+00:00</lastmod>
-    <priority>1.00</priority>
-  </url>
-
-  <url>
-    <loc>https://www.algonotes.in/developer</loc>
-    <lastmod>2026-06-17T10:06:50+00:00</lastmod>
-    <priority>0.80</priority>
-  </url>
-
-  <url>
-    <loc>https://www.algonotes.in/login</loc>
-    <lastmod>2026-06-17T10:06:50+00:00</lastmod>
-    <priority>0.50</priority>
-  </url>
-
-  <url>
-    <loc>https://www.algonotes.in/register</loc>
-    <lastmod>2026-06-17T10:06:50+00:00</lastmod>
-    <priority>0.50</priority>
-  </url>
-
-  <url>
-    <loc>https://www.algonotes.in/privacy</loc>
-    <lastmod>2026-06-17T10:06:50+00:00</lastmod>
-    <priority>0.30</priority>
-  </url>
-
-  <url>
-    <loc>https://www.algonotes.in/terms</loc>
-    <lastmod>2026-06-17T10:06:50+00:00</lastmod>
-    <priority>0.30</priority>
-  </url>
-
-  <url>
-    <loc>https://www.algonotes.in/data-privacy</loc>
-    <lastmod>2026-06-17T10:06:50+00:00</lastmod>
-    <priority>0.30</priority>
-  </url>
-
+<loc>https://www.algonotes.in/</loc>
+<changefreq>daily</changefreq>
+<priority>1.00</priority>
+</url>
+<url>
+<loc>https://www.algonotes.in/about</loc>
+<changefreq>monthly</changefreq>
+<priority>0.80</priority>
+</url>
+<url>
+<loc>https://www.algonotes.in/faq</loc>
+<changefreq>weekly</changefreq>
+<priority>0.80</priority>
+</url>
+<url>
+<loc>https://www.algonotes.in/contact</loc>
+<changefreq>monthly</changefreq>
+<priority>0.70</priority>
+</url>
+<url>
+<loc>https://www.algonotes.in/developer</loc>
+<changefreq>monthly</changefreq>
+<priority>0.60</priority>
+</url>
+<url>
+<loc>https://www.algonotes.in/how-it-works/notes</loc>
+<changefreq>monthly</changefreq>
+<priority>0.80</priority>
+</url>
+<url>
+<loc>https://www.algonotes.in/how-it-works/theory</loc>
+<changefreq>monthly</changefreq>
+<priority>0.80</priority>
+</url>
+<url>
+<loc>https://www.algonotes.in/login</loc>
+<changefreq>monthly</changefreq>
+<priority>0.50</priority>
+</url>
+<url>
+<loc>https://www.algonotes.in/register</loc>
+<changefreq>monthly</changefreq>
+<priority>0.50</priority>
+</url>
+<url>
+<loc>https://www.algonotes.in/privacy</loc>
+<changefreq>monthly</changefreq>
+<priority>0.30</priority>
+</url>
+<url>
+<loc>https://www.algonotes.in/terms</loc>
+<changefreq>monthly</changefreq>
+<priority>0.30</priority>
+</url>
+<url>
+<loc>https://www.algonotes.in/data-privacy</loc>
+<changefreq>monthly</changefreq>
+<priority>0.30</priority>
+</url>
 </urlset>
