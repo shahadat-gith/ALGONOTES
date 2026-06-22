@@ -3,10 +3,9 @@ import json
 from datetime import datetime, timezone
 
 from beanie import PydanticObjectId
-from google import genai
 from google.genai import types
 
-from app.config.settings import settings 
+from app.config import ai_client
 from app.prompts import generate_note_prompt, generate_theory_prompt
 from app.models import Note, Theory
 from app.models.theory import TheoryStatus
@@ -77,9 +76,6 @@ async def execute_note_generation(message: dict):
     )
 
     try:
-        # FIX: Instantiate cleanly using your verified config path credentials
-        ai_client = genai.Client(api_key=settings.GEMINI_API_KEY)
-
         response = await ai_client.aio.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
@@ -141,9 +137,6 @@ async def execute_theory_generation(message: dict):
     )
 
     try:
-        # FIX: Instantiate cleanly using your verified config path credentials
-        ai_client = genai.Client(api_key=settings.GEMINI_API_KEY)
-
         response = await ai_client.aio.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
@@ -192,9 +185,6 @@ async def execute_prompt_optimization(message: dict):
     )
 
     try:
-        # FIX: Instantiate cleanly using your verified config path credentials
-        ai_client = genai.Client(api_key=settings.GEMINI_API_KEY)
-
         response = await ai_client.aio.models.generate_content(
             model="gemini-2.5-flash",
             contents=user_content,

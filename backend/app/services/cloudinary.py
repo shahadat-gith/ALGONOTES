@@ -2,15 +2,10 @@
 import cloudinary
 import cloudinary.uploader
 from fastapi import UploadFile
-from app.config import settings
+from app.config import configure_cloudinary
 
-# 🌟 Force initialize the SDK configurations immediately when this module loads
-cloudinary.config(
-    cloud_name=settings.CLOUDINARY_CLOUD_NAME,
-    api_key=settings.CLOUDINARY_API_KEY,
-    api_secret=settings.CLOUDINARY_API_SECRET,
-    secure=True
-)
+# Force initialize the SDK configurations immediately when this module loads
+configure_cloudinary()
 
 async def upload_to_cloudinary(file: UploadFile, folder: str = "algonotes/users") -> dict:
     try:

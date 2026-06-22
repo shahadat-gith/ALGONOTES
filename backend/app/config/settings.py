@@ -6,19 +6,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     PORT: int = 5000
     ENVIRONMENT: str = "development"
-
     DATABASE_URL: str
-    DATABASE_NAME: str | None = None
-    AWS_REGION: str = "ap-south-1"
-    AI_GENERATION_QUEUE_URL: str
-
+    SQS_QUEUE_URL: str
     JWT_SECRET: str
-    JWT_EXPIRES_IN: str = "365d"
-
     CLOUDINARY_CLOUD_NAME: str
     CLOUDINARY_API_KEY: str
     CLOUDINARY_API_SECRET: str
-
     MAIL_SERVER: str
     MAIL_PORT: int
     MAIL_USERNAME: str
@@ -27,6 +20,7 @@ class Settings(BaseSettings):
     MAIL_FROM_NAME: str
 
     GEMINI_API_KEY: str
+    AWS_REGION: str = "ap-south-1"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -38,10 +32,6 @@ class Settings(BaseSettings):
     def ALLOWED_ORIGINS(self) -> List[str]:
         origins = [
             "http://localhost:3000",
-            "http://localhost:5173",
-            "http://127.0.0.1:3000",
-            "http://127.0.0.1:5173",
-            "https://algonotes.onrender.com",
             "https://www.algonotes.in",
             "https://algonotes.in",
         ]

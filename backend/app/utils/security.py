@@ -1,7 +1,6 @@
 import secrets
 
 import jwt
-from datetime import datetime, timedelta
 from app.config.settings import settings
 
 
@@ -13,11 +12,9 @@ def generate_otp() -> str:
     return str(secrets.randbelow(900000) + 100000)
 
 
-
-
 def create_access_token(user_id: str) -> str:
     payload = {
         "userId": user_id,
     }
-    
+
     return jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")

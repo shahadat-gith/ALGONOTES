@@ -12,5 +12,5 @@ mail_config = ConnectionConfig(
     MAIL_SSL_TLS=False,
     USE_CREDENTIALS=True,
     VALIDATE_CERTS=True,
-    MAIL_FROM_NAME=getattr(settings, "MAIL_FROM_NAME", "ALGONOTES")
+    MAIL_FROM_NAME=settings.MAIL_FROM_NAME
 )

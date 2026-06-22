@@ -9,7 +9,4 @@ sqs_client = boto3.client(
 )
 
 # Centralize the deployment Queue URL parameter string references
-QUEUE_URL = settings.AI_GENERATION_QUEUE_URL
-
-if not QUEUE_URL:
-    raise ValueError("AI_GENERATION_QUEUE_URL is required for SQS dispatching.")
+QUEUE_URL = settings.SQS_QUEUE_URL

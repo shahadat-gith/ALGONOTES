@@ -1,6 +1,6 @@
-__pycache__/
-*.py[cod]
-.env
-.serverless/
-env/
+.venv/
 venv/
+__pycache__/
+*.pyc
+.env
+.git/
