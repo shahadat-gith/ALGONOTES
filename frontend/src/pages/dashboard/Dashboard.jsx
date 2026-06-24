@@ -1,13 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
+import {
   AlertCircle,
   ArrowRight,
   CheckCircle2,
   Clock,
   Code2,
-  FileText, 
-  Loader2,
+  FileText,
   PlusCircle,
   RefreshCcw,
 } from "lucide-react";
@@ -15,6 +14,7 @@ import toast from "react-hot-toast";
 
 import Alert from "../../components/common/Alert";
 import Button from "../../components/common/Button";
+import DashboardSkeleton from "../../components/skeletons/DashboardSkeleton";
 import { getUserDashboard } from "../../api/userApi";
 
 const formatRelativeTime = (value) => {
@@ -109,61 +109,16 @@ const Dashboard = () => {
     ];
   }, [dashboard]);
 
+  if (loading) {
+    return (
+      <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen text-text-main font-sans select-none animate-fade-in relative z-10">
+        <DashboardSkeleton />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen space-y-8 text-text-main font-sans select-none animate-fade-in relative z-10">
-      
-      {/* 1. Welcoming Hero Banner Component Area */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-gradient-to-r from-bg-surface to-bg-soft border border-border-default rounded-xl p-6 md:p-8 shadow-card relative overflow-hidden">
-        {/* Glow ambient background element */}
-        <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
-        
-        <div className="space-y-1.5 relative z-10">
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-text-main">
-            {loading ? "Loading your dashboard" : `Welcome back, ${dashboard?.greetingName || "there"}`}
-          </h1>
-          {loading ? (
-            <div className="flex items-center gap-2 text-sm text-text-muted">
-              <Loader2 size={14} className="animate-spin" />
-              <span>Preparing your latest notes and activity.</span>
-            </div>
-          ) : (
-            <p className="text-xs md:text-sm text-text-muted max-w-xl leading-relaxed">
-              Track your latest study notes, revisit drafts, and see how your work compares with overall activity on the platform.
-            </p>
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 shrink-0 relative z-10">
-          <button
-            type="button"
-            onClick={() => navigate("/notes/generate")}
-            className="inline-flex items-center gap-2 h-10 px-4 rounded-md text-xs font-bold uppercase tracking-wider bg-bg-soft border border-border-strong text-text-main hover:bg-border-default transition-all duration-200 cursor-pointer active:scale-[0.98]"
-          >
-            <PlusCircle size={14} className="text-text-muted" />
-            <span>Create Coding Notes</span>
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => navigate("/theory/generate")}
-            className="inline-flex items-center gap-2 h-10 px-4 rounded-md text-xs font-bold uppercase tracking-wider bg-primary text-white hover:bg-primary-hover shadow-xs transition-all duration-200 cursor-pointer active:scale-[0.98] hover:shadow-[0_0_20px_rgba(139,92,246,0.4)]"
-          >
-            <PlusCircle size={14} />
-            <span>Create Theory Notes</span>
-          </button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchDashboard}
-            disabled={loading}
-            className="h-10 px-4 text-xs font-bold uppercase tracking-wider"
-          >
-            <RefreshCcw size={13} className="stroke-[2]" />
-            <span>Refresh</span>
-          </Button>
-        </div>
-      </div>
 
       {errorMessage && (
         <Alert
@@ -177,24 +132,11 @@ const Dashboard = () => {
 
       {/* 2. Key Platform Statistics Node Grid Matrix */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {(loading ? [1, 2, 3] : stats).map((stat, index) => {
-          if (loading) {
-            return (
-              <div
-                key={stat}
-                className="bg-bg-surface border border-border-default rounded-xl p-5 shadow-card animate-pulse"
-              >
-                <div className="h-3 w-24 rounded bg-bg-soft" />
-                <div className="mt-4 h-8 w-16 rounded bg-bg-soft" />
-                <div className="mt-3 h-3 w-40 rounded bg-bg-soft" />
-              </div>
-            );
-          }
-
+        {stats.map((stat) => {
           const IconComponent = stat.icon;
           return (
             <div 
-              key={stat.id || index}
+              key={stat.id}
               className="bg-bg-surface border border-border-default rounded-xl p-5 shadow-card hover:border-border-strong/60 transition-all duration-300 flex items-center justify-between group"
             >
               <div className="space-y-2">
@@ -240,17 +182,7 @@ const Dashboard = () => {
             </button>
           </div>
 
-          {loading ? (
-            <div className="divide-y divide-border-default/60">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="p-5 animate-pulse space-y-3">
-                  <div className="h-3 w-28 rounded bg-bg-soft" />
-                  <div className="h-4 w-3/4 rounded bg-bg-soft" />
-                  <div className="h-3 w-1/2 rounded bg-bg-soft" />
-                </div>
-              ))}
-            </div>
-          ) : dashboard?.recentActivity?.length ? (
+          {dashboard?.recentActivity?.length ? (
             <div className="divide-y divide-border-default/60">
               {dashboard.recentActivity.map((note) => (
                 <div 
@@ -289,7 +221,7 @@ const Dashboard = () => {
                       {formatRelativeTime(note.updatedAt)}
                     </span>
                     
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold font-mono uppercase tracking-wider order-1 sm:order-2 ${
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] bold font-mono uppercase tracking-wider order-1 sm:order-2 ${
                       note.status === "final" 
                         ? "bg-success/10 text-success border border-success/20" 
                         : "bg-warning/10 text-warning border border-warning/20"

@@ -7,8 +7,6 @@ import {
   ChevronDown, 
   LogOut, 
   Edit3,
-  ShieldAlert,
-  ArrowRight,
   Sparkles
 } from "lucide-react";
 
@@ -19,7 +17,6 @@ const Dropdown = ({ user, onLogout }) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const isVerified = user?.verificationOptions?.status === "verified";
   const avatarUrl = user?.avatar?.url;
 
   useEffect(() => {
@@ -107,22 +104,6 @@ const Dropdown = ({ user, onLogout }) => {
 
           
         </div>
-
-        {!isVerified && (
-          <div className="px-0.5 pt-0.5">
-            <Link
-              to={`/verify?email=${encodeURIComponent(user?.email || "")}`}
-              onClick={() => setIsOpen(false)}
-              className="px-3 py-3 bg-warning-soft border border-warning/10 hover:border-warning/20 rounded-xl flex items-center justify-between gap-2 text-warning transition-all group/alert duration-200"
-            >
-              <div className="flex items-center gap-2 overflow-hidden">
-                <ShieldAlert size={14} className="text-warning shrink-0 stroke-[2]" />
-                <span className="text-[11px] font-semibold tracking-wide truncate">Complete email verification</span>
-              </div>
-              <ArrowRight size={12} className="text-warning shrink-0 transition-transform group-hover/alert:translate-x-0.5" />
-            </Link>
-          </div>
-        )}
 
         <div className="px-2 pt-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted">Jump to</p>

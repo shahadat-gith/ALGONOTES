@@ -3,7 +3,6 @@
 from .auth import (
     RegisterRequest,
     LoginRequest,
-    VerifyUserRequest,
     ForgotPasswordRequest,
 )
 
@@ -42,7 +41,6 @@ from app.models.note import (
 __all__ = [
     "RegisterRequest",
     "LoginRequest",
-    "VerifyUserRequest",
     "ForgotPasswordRequest",
 
     "UserResponse",

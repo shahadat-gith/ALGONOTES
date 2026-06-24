@@ -22,9 +22,3 @@ export const toLoginWithNext = (nextPath) => {
   const safeNext = getSafeNextPath(nextPath, "/");
   return `/login?next=${encodeURIComponent(safeNext)}`;
 };
-
-export const toVerifyWithNext = (email, nextPath) => {
-  const safeEmail = encodeURIComponent(email || "");
-  const safeNext = encodeURIComponent(getSafeNextPath(nextPath, "/"));
-  return `/verify?email=${safeEmail}&next=${safeNext}`;
-};

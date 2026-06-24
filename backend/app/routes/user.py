@@ -31,13 +31,11 @@ def serialize_user(user: User) -> UserResponse:
         name=user.name,
         email=user.email,
         username=user.username,
+        leetcode_username=user.leetcode_username,
         avatar={
             "url": user.avatar.url,
             "public_id": user.avatar.public_id,
         },
-        verificationOptions={
-            "status": user.verificationOptions.status,
-        }
     )
 
 
@@ -145,10 +143,11 @@ async def get_dashboard_data(
 async def update_profile(
     name: Optional[str] = Form(None),
     username: Optional[str] = Form(None),
+    leetcode_username: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None),
     current_user: User = Depends(get_current_user)
 ):
-    if username:
+    if username is not None:
         clean_username = username.strip().lower()
 
         existing_user = await User.find_one(
@@ -166,6 +165,11 @@ async def update_profile(
 
     if name:
         current_user.name = name.strip()
+
+    # Handle leetcode_username update (allow clearing by sending empty string)
+    if leetcode_username is not None:
+        cleaned = leetcode_username.strip()
+        current_user.leetcode_username = cleaned if cleaned else None
 
     if file:
         if current_user.avatar.public_id:

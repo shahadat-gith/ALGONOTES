@@ -19,19 +19,13 @@ class AvatarResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class VerificationResponse(BaseModel):
-    status: str = "pending"
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class UserResponse(BaseModel):
     id: str
     name: str
     email: EmailStr
     username: Optional[str] = None
+    leetcode_username: Optional[str] = None
     avatar: AvatarResponse
-    verificationOptions: VerificationResponse
 
     model_config = ConfigDict(
         from_attributes=True,

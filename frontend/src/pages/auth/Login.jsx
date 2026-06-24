@@ -7,14 +7,13 @@ import Button from "../../components/common/Button";
 import Input from "../../components/common/Input";
 import { loginUser } from "../../api/authApi";
 import { useAuth } from "../../context/AuthContext";
-import { getSafeNextPath, toVerifyWithNext } from "../../utils/authRedirect";
+import { getSafeNextPath } from "../../utils/authRedirect";
 
 const Login = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { login, isAuthenticated, user } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const nextPath = getSafeNextPath(searchParams.get("next"), "/");
-  const verifiedUser = user?.verificationOptions?.status === "verified";
 
   const [formData, setFormData] = useState({
     email: searchParams.get("email") || "",
@@ -56,13 +55,7 @@ const Login = () => {
       if (data.success) {
         login(data.token, data.user);
         toast.success(data.message || "Login successful");
-
-        const isVerified = data.user?.verificationOptions?.status === "verified";
-        if (isVerified) {
-          navigate(nextPath, { replace: true });
-        } else {
-          navigate(toVerifyWithNext(data.user?.email || formData.email, nextPath), { replace: true });
-        }
+        navigate(nextPath, { replace: true });
       }
     } catch (error) {
       const errMsg = error.response?.data?.detail || error.response?.data?.message;
@@ -73,12 +66,8 @@ const Login = () => {
     }
   };
 
-  if (isAuthenticated && verifiedUser) {
+  if (isAuthenticated) {
     return <Navigate to={nextPath} replace />;
-  }
-
-  if (isAuthenticated && !verifiedUser) {
-    return <Navigate to={toVerifyWithNext(user?.email || formData.email, nextPath)} replace />;
   }
 
   return (

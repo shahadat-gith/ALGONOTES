@@ -159,11 +159,11 @@ const TheoryGenerator = () => {
   };
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar select-none animate-fade-in relative overflow-hidden flex flex-col gap-6">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-fade-in flex flex-col gap-6 h-auto">
       <Glow preset="subtle" />
       <Glow preset="topRight" />
 
-      <div className="sticky top-0 z-30 w-full border-b border-border-default pb-4 bg-bg-base/95 backdrop-blur-md">
+      <div className="w-full border-b border-border-default rounded-2xl p-4 bg-bg-base/95 backdrop-blur-md">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1.5">
             <h1 className="text-2xl font-semibold tracking-tight text-text-main">
@@ -182,17 +182,7 @@ const TheoryGenerator = () => {
             </Link>
           </div>
 
-          <Button
-            variant="primary"
-            size="sm"
-            loading={loading}
-            disabled={isPromptLoading || !formData.topic}
-            onClick={handleStartTheoryGeneration}
-            className="h-11 shrink-0 px-5 text-sm font-semibold shadow-xs cursor-pointer"
-          >
-            <Sparkles size={15} className="stroke-[2.2]" />
-            <span>Generate</span>
-          </Button>
+         
         </div>
       </div>
 
@@ -236,8 +226,9 @@ const TheoryGenerator = () => {
       </section>
 
       <div className="w-full bg-bg-surface border border-border-default rounded-2xl p-5 sm:p-6 space-y-6 shadow-xs mb-6">
-        <div className="flex flex-col gap-1 border-b border-border-default pb-4">
-          <h2 className="text-base font-semibold tracking-tight text-text-main flex items-center gap-2">
+        <div className="flex justify-between gap-1 border-b border-border-default pb-4">
+          <div>
+            <h2 className="text-base font-semibold tracking-tight text-text-main flex items-center gap-2">
             <Lightbulb size={16} className="text-primary stroke-[2]" />
             <span>Topic setup</span>
           </h2>
@@ -245,6 +236,20 @@ const TheoryGenerator = () => {
             Define the concept and any optional rules that should shape the
             final theory notes.
           </p>
+          </div>
+
+
+           <Button
+            variant="primary"
+            size="sm"
+            loading={loading}
+            disabled={isPromptLoading || !formData.topic}
+            onClick={handleStartTheoryGeneration}
+            className="h-11 shrink-0 px-5 text-sm font-semibold shadow-xs cursor-pointer"
+          >
+            <Sparkles size={15} className="stroke-[2.2]" />
+            <span>Generate</span>
+          </Button>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">

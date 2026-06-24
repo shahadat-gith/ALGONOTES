@@ -4,7 +4,7 @@ import { updateProfile } from "../../api/userApi";
 import AnimatedModal from "../common/AnimatedModal";
 import Button from "../common/Button";
 import Input from "../common/Input";
-import { User as UserIcon, AtSign, Upload, Save, X } from "lucide-react";
+import { User as UserIcon, AtSign, Upload, Save, X, Code2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const EditProfileModal = ({ isOpen, onClose }) => {
@@ -14,6 +14,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
   // Form Field States
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
+  const [leetcodeUsername, setLeetcodeUsername] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
 
   // Local object URL pointer used to draw the binary thumbnail selection instantly
@@ -25,6 +26,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
     if (user && isOpen) {
       setName(user.name || "");
       setUsername(user.username || "");
+      setLeetcodeUsername(user.leetcode_username || "");
       setPreviewUrl(user.avatar?.url || "");
       setAvatarFile(null); // Reset file buffer on open
     }
@@ -58,6 +60,7 @@ const EditProfileModal = ({ isOpen, onClose }) => {
       const formData = new FormData();
       formData.append("name", name.trim());
       formData.append("username", username.trim());
+      formData.append("leetcode_username", leetcodeUsername.trim());
 
       if (avatarFile) {
         formData.append("file", avatarFile);
@@ -180,6 +183,22 @@ const EditProfileModal = ({ isOpen, onClose }) => {
               onChange={(e) =>
                 setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))
               }
+              className="pl-10 text-sm h-10 font-mono bg-bg-base"
+              disabled={updating}
+            />
+          </div>
+
+          {/* LeetCode Username field */}
+          <div className="space-y-1.5 relative">
+            <div className="absolute top-[34px] left-3.5 z-10 text-text-light pointer-events-none flex items-center">
+              <Code2 size={14} className="stroke-[1.75]" />
+            </div>
+            <Input
+              label="LeetCode Username"
+              type="text"
+              placeholder="Link your LeetCode handle"
+              value={leetcodeUsername}
+              onChange={(e) => setLeetcodeUsername(e.target.value)}
               className="pl-10 text-sm h-10 font-mono bg-bg-base"
               disabled={updating}
             />

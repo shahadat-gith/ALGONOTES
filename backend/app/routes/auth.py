@@ -5,14 +5,13 @@ from app.models import User
 from app.schemas import (
     RegisterRequest,
     LoginRequest,
-    VerifyUserRequest,
     ForgotPasswordRequest,
     UserResponse,
 )
 from app.services import hash_password, verify_password, send_email
 from app.utils import generate_otp, create_access_token
 
-from app.constants import welcome_email_template, otp_email_template
+from app.constants import otp_email_template
 
 
 router = APIRouter(
@@ -22,6 +21,10 @@ router = APIRouter(
 
 
 def serialize_user(user: User) -> UserResponse:
+    # Safely extract leetcode_username — existing docs may return IndexedAnnotation object
+    raw_leetcode = getattr(user, "leetcode_username", None)
+    leetcode_val = raw_leetcode if isinstance(raw_leetcode, str) else None
+
     return UserResponse(
         id=str(user.id),
         name=user.name,
@@ -31,9 +34,7 @@ def serialize_user(user: User) -> UserResponse:
             "url": user.avatar.url,
             "public_id": user.avatar.public_id,
         },
-        verificationOptions={
-            "status": user.verificationOptions.status,
-        }
+        leetcode_username=leetcode_val,
     )
 
 
@@ -43,7 +44,6 @@ def serialize_user(user: User) -> UserResponse:
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
     payload: RegisterRequest,
-    background_tasks: BackgroundTasks
 ):
     user_email = payload.email.lower().strip()
 
@@ -58,15 +58,6 @@ async def register(
         password=hash_password(payload.password),
     )
     await new_user.insert()
-
-    verification_url = f"https://www.algonotes.in/verify?email={new_user.email}"
-
-    background_tasks.add_task(
-        send_email,
-        new_user.email,
-        "Welcome to ALGONOTES",
-        welcome_email_template(verification_url)
-    )
 
     return {"success": True, "message": "Registration successful."}
 
@@ -94,65 +85,6 @@ async def login(payload: LoginRequest):
         "token": token,
         "user": serialize_user(user)
     }
-
-
-# ==========================================
-# VERIFY USER
-# ==========================================
-@router.post("/verify")
-async def verify_user(
-    payload: VerifyUserRequest,
-    background_tasks: BackgroundTasks
-):
-    user_email = payload.email.lower().strip()
-
-    user = await User.find_one(User.email == user_email)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-
-    if user.verificationOptions.status == "verified":
-        raise HTTPException(status_code=400, detail="User already verified.")
-
-    if payload.step == "send-otp":
-        otp = generate_otp()
-        user.verificationOptions.otp = otp
-        user.verificationOptions.otpExpiry = datetime.now(timezone.utc) + timedelta(minutes=10)
-        await user.save()
-
-        background_tasks.add_task(
-            send_email,
-            user.email,
-            "ALGONOTES Verification Code",
-            otp_email_template(
-                otp=otp,
-                title="Verify your email address",
-                purpose="Please use the verification code below to activate your ALGONOTES account and complete your sign-up process."
-            )
-        )
-        return {"success": True, "message": "OTP sent successfully."}
-
-    if payload.step == "otp-verification":
-        if not payload.otp:
-            raise HTTPException(status_code=400, detail="OTP required.")
-
-        expiry = user.verificationOptions.otpExpiry
-        if expiry and expiry.tzinfo is None:
-            expiry = expiry.replace(tzinfo=timezone.utc)
-
-        is_expired = datetime.now(timezone.utc) > expiry if expiry else True
-        if user.verificationOptions.otp != payload.otp or is_expired:
-            raise HTTPException(status_code=400, detail="Invalid or expired OTP.")
-
-        user.verificationOptions.status = "verified"
-        user.verificationOptions.otp = None
-        user.verificationOptions.otpExpiry = None
-        await user.save()
-
-        return {
-            "success": True,
-            "message": "Account verified successfully.",
-            "user": serialize_user(user)
-        }
 
 
 # ==========================================

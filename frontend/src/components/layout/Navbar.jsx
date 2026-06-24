@@ -19,7 +19,7 @@ const Navbar = () => {
     <header className="fixed top-0 w-full border-b border-white/10 bg-[#07090fcc] backdrop-blur-xl z-40 select-none">
       <div className="mx-auto flex h-18 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-4 lg:gap-8">
-          <Link to="/dashboard" className="flex items-center gap-3 group shrink-0">
+          <Link to="/" className="flex items-center gap-3 group shrink-0">
             <img
               src="/logo.png"
               alt="ALGONOTES logo"

@@ -112,20 +112,22 @@ const NoteGenerator = () => {
         onFailure: (errMsg) => handleGenerationFailure(initResponse.id, errMsg),
       });
     } catch (err) {
-      console.log(err)
+      console.log(err);
       stopPolling();
       setLoading(false);
-      setError(err.message || "AI agent is currently unavailable! Please try after sometime.",
+      setError(
+        err.message ||
+          "AI agent is currently unavailable! Please try after sometime.",
       );
     }
   };
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-6rem)] max-h-[calc(100vh-6rem)] overflow-y-auto custom-scrollbar select-none animate-fade-in relative overflow-hidden flex flex-col gap-6">
+    <div className="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-fade-in relative flex flex-col gap-6 h-auto">
       <Glow preset="subtle" />
       <Glow preset="topRight" />
 
-      <div className="sticky top-0 z-30 w-full border-b border-border-default pb-4 bg-bg-base/95 backdrop-blur-md">
+      <div className="w-full border-b border-border-default rounded-2xl p-4 bg-bg-base/95 backdrop-blur-md">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-1.5">
             <h1 className="text-2xl font-semibold tracking-tight text-text-main">
@@ -143,17 +145,6 @@ const NoteGenerator = () => {
               <span>How it works?</span>
             </Link>
           </div>
-
-          <Button
-            variant="primary"
-            size="sm"
-            loading={loading}
-            onClick={handleStartMakingNotes}
-            className="h-11 shrink-0 px-5 text-sm font-semibold shadow-xs cursor-pointer"
-          >
-            <Sparkles size={15} className="stroke-[2.1]" />
-            <span>Generate</span>
-          </Button>
         </div>
       </div>
 
@@ -263,14 +254,28 @@ const NoteGenerator = () => {
         </section>
 
         <section className="w-full rounded-2xl border border-border-default bg-bg-surface p-5 sm:p-6 space-y-5 shadow-card mb-6 xl:mb-0">
-          <div className="space-y-1 border-b border-border-default pb-4">
-            <h2 className="text-base font-semibold tracking-tight text-text-main">
-              Solution to explain
-            </h2>
-            <p className="text-sm leading-6 text-text-light">
-              Paste the final code you want transformed into clear study
-              material.
-            </p>
+          <div className="flex justify-between space-y-1 border-b border-border-default pb-4">
+            <div>
+              <h2 className="text-base font-semibold tracking-tight text-text-main">
+                Solution to explain
+              </h2>
+              <p className="text-sm leading-6 text-text-light">
+                Paste the final code you want transformed into clear study
+                material.
+              </p>
+            </div>
+
+            <Button
+              variant="primary"
+              size="sm"
+              loading={loading}
+              onClick={handleStartMakingNotes}
+              className="h-11 shrink-0 px-5 text-sm font-semibold shadow-xs cursor-pointer"
+              disabled={loading || !formData.userCode || !formData.problemLink}
+            >
+              <Sparkles size={15} className="stroke-[2.1]" />
+              <span>Generate</span>
+            </Button>
           </div>
 
           <div className="w-full flex flex-col gap-2">

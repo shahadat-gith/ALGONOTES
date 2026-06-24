@@ -34,24 +34,6 @@ class LoginRequest(BaseModel):
 
 
 # ==========================================
-# VERIFY USER
-# ==========================================
-class VerifyUserRequest(BaseModel):
-    email: EmailStr
-
-    step: Literal[
-        "send-otp",
-        "otp-verification"
-    ]
-
-    otp: Optional[str] = Field(
-        default=None,
-        min_length=6,
-        max_length=6
-    )
-
-
-# ==========================================
 # FORGOT PASSWORD
 # ==========================================
 class ForgotPasswordRequest(BaseModel):
@@ -84,17 +66,13 @@ class UserAvatarResponse(BaseModel):
     public_id: str = ""
 
 
-class UserVerificationResponse(BaseModel):
-    status: str
-
-
 class UserResponse(BaseModel):
     id: str
     name: str
     email: EmailStr
     username: Optional[str] = None
+    leetcode_username: Optional[str] = None
     avatar: UserAvatarResponse
-    verificationOptions: UserVerificationResponse
 
     model_config = ConfigDict(
         from_attributes=True,

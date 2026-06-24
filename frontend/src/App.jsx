@@ -8,7 +8,7 @@ import { ProtectedRoute, PublicOnlyRoute } from "./components/auth/RouteGuards";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
-import VerifyUser from "./pages/auth/VerifyUser";
+
 
 import Home from "./pages/home/Home";
 
@@ -35,6 +35,7 @@ import HowTheoryGenerationWorks from "./pages/general/HowTheoryGenerationWorks";
 import About from "./pages/general/About";
 import Faq from "./pages/general/Faq";
 import Contact from "./pages/general/Contact";
+import LeetcodeProfile from "./pages/leetcode/LeetcodeProfile";
 
 
 const App = () => {
@@ -62,10 +63,6 @@ const App = () => {
         </Route>
 
  
-        <Route element={<PublicOnlyRoute />}>
-          <Route path="/verify" element={<VerifyUser />} />
-        </Route>
-
         {/* ANONYMOUS GUEST ONLY CHANNELS */}
         <Route element={<PublicOnlyRoute />}>
           <Route path="/login" element={<Login />} />
@@ -90,6 +87,7 @@ const App = () => {
             <Route path="/theory/generate" element={<TheoryGenerator />} />
             <Route path="/theory/:id/edit" element={<TheoryEditor />} />
             <Route path="/theory/:id" element={<TheoryDetails />} />
+            <Route path="/leetcode" element={<LeetcodeProfile />} />
           </Route>
         </Route>
 
