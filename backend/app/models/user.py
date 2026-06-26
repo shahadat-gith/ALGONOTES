@@ -3,8 +3,9 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from beanie import Document, Indexed
+from beanie import Document
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from pymongo import IndexModel, ASCENDING
 
 
 class AvatarSchema(BaseModel):
@@ -20,16 +21,9 @@ class ForgotPasswordSchema(BaseModel):
 
 class User(Document):
     name: str
-    email: EmailStr = Indexed(unique=True)
-    username: Optional[str] = Indexed(
-        default=None,
-        unique=True,
-        sparse=True,
-    )
-    leetcode_username: Optional[str] = Indexed(
-        default=None,
-        sparse=True,
-    )
+    email: EmailStr
+    username: Optional[str] = Field(default=None)
+    leetcode_username: Optional[str] = Field(default=None)
     password: str = Field(exclude=True)
     avatar: AvatarSchema = Field(default_factory=AvatarSchema)
     forgotPasswordOptions: ForgotPasswordSchema = Field(default_factory=ForgotPasswordSchema)
@@ -43,6 +37,11 @@ class User(Document):
 
     class Settings:
         name = "users"
+        indexes = [
+            IndexModel([("email", ASCENDING)], unique=True),
+            IndexModel([("username", ASCENDING)], unique=True, partialFilterExpression={"username": {"$type": "string"}}),
+            IndexModel([("leetcode_username", ASCENDING)], sparse=True),
+        ]
 
     # Enforce standard model configurations to help handle conversions gracefully
     model_config = ConfigDict(
