@@ -1,0 +1,72 @@
+backend
+├── .dockerignore
+├── .env
+├── Dockerfile
+├── Dockerfile.prod
+├── app
+│   ├── config
+│   │   ├── __init__.py
+│   │   ├── cloudinary.py
+│   │   ├── gemini.py
+│   │   ├── mailer.py
+│   │   └── settings.py
+│   ├── constants
+│   │   ├── __init__.py
+│   │   └── email_templates.py
+│   ├── database
+│   │   ├── __init__.py
+│   │   └── db.py
+│   ├── middlewares
+│   │   ├── __init__.py
+│   │   ├── auth.py
+│   │   ├── error.py
+│   │   └── metrics.py
+│   ├── models
+│   │   ├── __init__.py
+│   │   ├── analytics.py
+│   │   ├── note.py
+│   │   ├── temp.py
+│   │   ├── theory.py
+│   │   └── user.py
+│   ├── prompts
+│   │   ├── __init__.py
+│   │   ├── note_prompt.py
+│   │   └── theory_prompt.py
+│   ├── routes
+│   │   ├── __init__.py
+│   │   ├── analytics.py
+│   │   ├── auth.py
+│   │   ├── leetcode.py
+│   │   ├── note.py
+│   │   ├── prompt.py
+│   │   ├── theory.py
+│   │   └── user.py
+│   ├── schemas
+│   │   ├── __init__.py
+│   │   ├── analytics.py
+│   │   ├── auth.py
+│   │   ├── note.py
+│   │   ├── theory.py
+│   │   └── user.py
+│   ├── services
+│   │   ├── __init__.py
+│   │   ├── analytics.py
+│   │   ├── cloudinary.py
+│   │   ├── email.py
+│   │   └── security.py
+│   ├── sqs
+│   │   ├── __init__.py
+│   │   ├── config.py
+│   │   ├── dispatchers.py
+│   │   ├── handle_failures.py
+│   │   ├── handler.py
+│   │   ├── router.py
+│   │   └── worker.py
+│   └── utils
+│       ├── __init__.py
+│       ├── leetcode_formatters.py
+│       ├── leetcode_queries.py
+│       └── security.py
+├── deploy.bat
+├── main.py
+└── requirements.txt

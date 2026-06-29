@@ -1,0 +1,70 @@
+interview
+├── .env
+├── .gitignore
+├── README.md
+├── app.py
+├── configs
+│   ├── __init__.py
+│   ├── config.py
+│   ├── constants.py
+│   ├── database.py
+│   ├── gemini.py
+│   ├── github.py
+│   └── huggingface.py
+├── data
+│   ├── companies.json
+│   ├── ignore_patterns.json
+│   └── roles.json
+├── models
+│   ├── __init__.py
+│   ├── interview.py
+│   ├── report.py
+│   └── resume.py
+├── prompts
+│   ├── company_prompt.txt
+│   ├── evaluation_prompt.txt
+│   ├── project_prompt.txt
+│   ├── report_prompt.txt
+│   └── resume_prompt.txt
+├── requirements.txt
+├── routes
+│   ├── __init__.py
+│   ├── company.py
+│   ├── health.py
+│   ├── project.py
+│   └── resume.py
+├── schemas
+│   ├── __init__.py
+│   ├── interview.py
+│   ├── report.py
+│   └── resume.py
+├── services
+│   ├── __init__.py
+│   ├── embeddings
+│   │   ├── __init__.py
+│   │   └── embed.py
+│   ├── interview
+│   │   ├── __init__.py
+│   │   ├── evaluator.py
+│   │   ├── generator.py
+│   │   ├── prompts.py
+│   │   └── report.py
+│   ├── rag
+│   │   ├── __init__.py
+│   │   └── vector_search.py
+│   ├── repository
+│   │   ├── __init__.py
+│   │   ├── analyzer.py
+│   │   ├── github.py
+│   │   └── zip.py
+│   └── resume
+│       ├── __init__.py
+│       ├── extractor.py
+│       └── parser.py
+├── temp
+└── utils
+    ├── __init__.py
+    ├── chunking.py
+    ├── file_parser.py
+    ├── file_utils.py
+    └── helpers.py
