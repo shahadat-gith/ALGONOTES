@@ -127,10 +127,10 @@ const Footer = () => {
               </p>
 
               <Link
-                to="/dashboard"
+                to="/admin"
                 className="inline-flex items-center gap-2 rounded-full border border-border-default bg-bg-base/70 px-4 py-2 text-sm font-semibold text-text-main transition-all hover:border-primary/30 hover:text-primary hover:bg-bg-base"
               >
-                <span>Go to dashboard</span>
+                <span>Admin Portal</span>
                 <ArrowRight size={14} className="stroke-[2]" />
               </Link>
             </div>

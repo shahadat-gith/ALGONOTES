@@ -18,6 +18,7 @@ from app.routes import (
     theory_router,
     prompt_router,
     leetcode_router,
+    admin_router,
 )
 
 # Import your standalone async queue logic
@@ -59,6 +60,7 @@ app.include_router(note_router, prefix="/api/v1")
 app.include_router(theory_router, prefix="/api/v1")
 app.include_router(prompt_router, prefix="/api/v1")
 app.include_router(leetcode_router, prefix="/api/v1")
+app.include_router(admin_router, prefix="/api/v1")
 
 
 @app.get("/", tags=["System"])

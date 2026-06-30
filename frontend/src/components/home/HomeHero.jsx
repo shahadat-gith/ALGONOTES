@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, BookOpenText, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpenText, Sparkles, Search } from "lucide-react";
 
 import Button from "../common/Button";
 
@@ -53,6 +53,15 @@ const HomeHero = () => {
           >
             <span>Create Theory Notes</span>
             <ArrowRight size={14} className="stroke-[2]" />
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => navigate("/preparation/new")}
+            className="h-11 px-5 text-sm font-semibold border-primary/25 hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
+          >
+            <Search size={14} className="stroke-[2]" />
+            <span>Analyse Your Resume</span>
           </Button>
         </div>
 

@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str
     AWS_REGION: str = "ap-south-1"
 
+    ADMIN_EMAIL: str
+    ADMIN_PASS: str
+
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -1,10 +1,10 @@
-import { Routes, Route } from "react-router-dom";
+import { Navigate, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 
 import Layout from "./components/layout/Layout";
 
 // Auth guards
-import { ProtectedRoute, PublicOnlyRoute } from "./components/auth/RouteGuards";
+import { ProtectedRoute, PublicOnlyRoute, AdminRoute } from "./components/auth/RouteGuards";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -36,6 +36,22 @@ import About from "./pages/general/About";
 import Faq from "./pages/general/Faq";
 import Contact from "./pages/general/Contact";
 import LeetcodeProfile from "./pages/leetcode/LeetcodeProfile";
+
+// Preparation (Interview Prep) pages
+import Preparation from "./pages/preparation/Preparation";
+import NewPreparation from "./pages/preparation/NewPreparation";
+import PreparationDetail from "./pages/preparation/PreparationDetail";
+import TopicDiscussion from "./pages/preparation/TopicDiscussion";
+import TopicChat from "./pages/preparation/TopicChat";
+
+// Admin pages
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminLogs from "./pages/admin/AdminLogs";
+import AdminNotes from "./pages/admin/AdminNotes";
+import AdminTheories from "./pages/admin/AdminTheories";
 
 
 const App = () => {
@@ -88,6 +104,26 @@ const App = () => {
             <Route path="/theory/:id/edit" element={<TheoryEditor />} />
             <Route path="/theory/:id" element={<TheoryDetails />} />
             <Route path="/leetcode" element={<LeetcodeProfile />} />
+
+            {/* Interview Preparation */}
+            {/* <Route path="/preparation" element={<Preparation />} />
+            <Route path="/preparation/new" element={<NewPreparation />} />
+            <Route path="/preparation/:id" element={<PreparationDetail />} />
+            <Route path="/preparation/:applicationId/topics/:topicId" element={<TopicDiscussion />} />
+            <Route path="/preparation/:applicationId/topics/:topicId/chat" element={<TopicChat />} /> */}
+          </Route>
+        </Route>
+
+        {/* ADMIN PORTAL ROUTES */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<AdminRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="logs" element={<AdminLogs />} />
+            <Route path="notes" element={<AdminNotes />} />
+            <Route path="theories" element={<AdminTheories />} />
           </Route>
         </Route>
 

@@ -6,6 +6,7 @@ from app.config import settings
 from app.models import User, Note, Theory
 from app.models import TempPromptJob
 from app.models import Analytics
+from app.models import ApiLog
 
 
 client = None
@@ -27,6 +28,7 @@ async def init_db():
                 Theory,
                 TempPromptJob,
                 Analytics,
+                ApiLog,
             ]
         )
 

@@ -1,13 +1,15 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getCurrentUser } from "../api/userApi";
 
+const USER_TOKEN_KEY = "user-token";
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("auth-token"));
+  const [token, setToken] = useState(localStorage.getItem(USER_TOKEN_KEY));
   const [loading, setLoading] = useState(() => {
-    return !!localStorage.getItem("auth-token");
+    return !!localStorage.getItem(USER_TOKEN_KEY);
   });
 
   const loadUser = async () => {
@@ -34,13 +36,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const handleSessionClear = () => {
-    localStorage.removeItem("auth-token");
+    localStorage.removeItem(USER_TOKEN_KEY);
     setUser(null);
     setToken(null);
   };
 
   const login = (newToken, loggedInUser) => {
-    localStorage.setItem("auth-token", newToken);
+    localStorage.setItem(USER_TOKEN_KEY, newToken);
     setToken(newToken);
     setUser(loggedInUser);
     setLoading(false);

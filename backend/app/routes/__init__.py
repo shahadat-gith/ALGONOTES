@@ -7,6 +7,7 @@ from .note import router as note_router
 from .theory import router as theory_router 
 from .prompt import router as prompt_router
 from .leetcode import router as leetcode_router
+from .admin import router as admin_router
 
 
 __all__ = [
@@ -17,4 +18,5 @@ __all__ = [
     "theory_router",
     "prompt_router",
     "leetcode_router",
+    "admin_router",
 ]

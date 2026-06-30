@@ -5,6 +5,7 @@ from .note import Note
 from .theory import Theory 
 from .temp import TempPromptJob
 from .analytics import Analytics
+from .api_log import ApiLog
 
 __all__ = [
     "User",
@@ -12,4 +13,5 @@ __all__ = [
     "Theory", 
     "TempPromptJob",
     "Analytics",
+    "ApiLog",
 ]

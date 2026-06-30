@@ -1,10 +1,11 @@
 import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useAdmin } from "../../context/AdminContext";
 import { Loader2 } from "lucide-react";
 import { getSafeNextPath, toLoginWithNext } from "../../utils/authRedirect";
 
-// For Protected Platform Workspaces
+// For Protected Platform Workspaces (user auth only)
 export const ProtectedRoute = () => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
@@ -26,6 +27,17 @@ export const ProtectedRoute = () => {
   return <Outlet />;
 };
 
+// For Admin Portal Routes (admin auth only, fully independent)
+export const AdminRoute = () => {
+  const { isAdmin } = useAdmin();
+
+  if (!isAdmin) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return <Outlet />;
+};
+
 // For Guest-Only Channels (Login, Register, Forgot Password)
 export const PublicOnlyRoute = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -39,7 +51,7 @@ export const PublicOnlyRoute = () => {
     );
   }
 
-  // If they are logged in, block guest pages and route to home
+  // If they are logged in as a user, block guest pages and route to home
   if (isAuthenticated) {
     return <Navigate to={nextPath} replace />;
   }
