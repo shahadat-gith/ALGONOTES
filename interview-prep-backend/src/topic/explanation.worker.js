@@ -8,9 +8,14 @@ import { Explanation } from "./explanation.model.js";
 import { generateContent } from "../llm/response.js";
 import { parseJson } from "../utils/helpers.js";
 
-import { EXPLANATION_SYSTEM_PROMPT, buildExplanationPrompt } from "../prompts/explanation.js";
+import {
+  EXPLANATION_SYSTEM_PROMPT,
+  buildExplanationPrompt,
+} from "../prompts/explanation.js";
 
-export const explanationWorker = new Worker("explanation", async (job) => {
+export const explanationWorker = new Worker(
+  "explanation",
+  async (job) => {
     const { topicId } = job.data;
 
     try {
@@ -94,18 +99,16 @@ export const explanationWorker = new Worker("explanation", async (job) => {
       );
     } catch (error) {
       // 6. Persist failure state
-      await Explanation.findOneAndUpdate(
+      explanation = await Explanation.findOneAndUpdate(
         { topic: topicId },
         {
-          $set: {
-            status: "failed",
-            failureReason:
-              error.message ||
-              "An unexpected error occurred while generating the explanation.",
-          },
+          topic: topicId,
+          status: "processing",
+          failureReason: "",
         },
         {
           upsert: true,
+          returnDocument: "after",
         },
       );
 
