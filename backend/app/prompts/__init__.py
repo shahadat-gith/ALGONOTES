@@ -1,9 +1,16 @@
-# app/prompts/__init__.py
+from .note_prompt import (
+    NOTE_SYSTEM_PROMPT,
+    generate_note_prompt,
+)
 
-from .note_prompt import generate_note_prompt
-from .theory_prompt import generate_theory_prompt
+from .theory_prompt import (
+    THEORY_SYSTEM_PROMPT,
+    generate_theory_prompt,
+)
 
 __all__ = [
+    "NOTE_SYSTEM_PROMPT",
     "generate_note_prompt",
+    "THEORY_SYSTEM_PROMPT",
     "generate_theory_prompt",
 ]

@@ -15,7 +15,6 @@ export const useBackoffPolling = () => {
     checkStatusFn,
     onSuccess,
     onFailure,
-    onStepTick,
   }) => {
     let callCount = 0;
     stopPolling();
@@ -49,12 +48,7 @@ export const useBackoffPolling = () => {
           return;
         }
 
-        // 3. Trigger visual step index incrementer cycles
-        if (callCount % 2 === 0 && onStepTick) {
-          onStepTick();
-        }
-
-        // 4. Calculate Backoff intervals dynamically
+        // 3. Calculate Backoff intervals dynamically
         let nextInterval = 2000; 
 
         if (callCount > 15) {
@@ -65,13 +59,11 @@ export const useBackoffPolling = () => {
           nextInterval = 5000;   
         }
 
-        console.log(`[Polling Log] Request #${callCount} completed. Next lookup frame scheduled in ${nextInterval / 1000}s`);
         pollTimeoutRef.current = setTimeout(executePoll, nextInterval);
 
       } catch (error) {
         console.error("Polled transaction channel error:", error);
         
-        // Check if the error is a 404 (indicating the backend purged a failed note)
         const is404 = error?.response?.status === 404 || error?.status === 404;
         
         if (is404) {
@@ -79,8 +71,6 @@ export const useBackoffPolling = () => {
           onFailure("The processing workspace could not be found or was removed.");
           return;
         }
-
-        // For structural network timeouts/intermittent drops, retry after 5s up to a maximum threshold
         if (callCount > 25) {
           stopPolling();
           onFailure("Connection lost. Please refresh your browser or try again.");

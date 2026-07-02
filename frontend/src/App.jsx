@@ -38,11 +38,11 @@ import Contact from "./pages/general/Contact";
 import LeetcodeProfile from "./pages/leetcode/LeetcodeProfile";
 
 // Preparation (Interview Prep) pages
-import Preparation from "./pages/preparation/Preparation";
-import NewPreparation from "./pages/preparation/NewPreparation";
-import PreparationDetail from "./pages/preparation/PreparationDetail";
-import TopicDiscussion from "./pages/preparation/TopicDiscussion";
-import TopicChat from "./pages/preparation/TopicChat";
+import InterviewPrepDashboard from "./pages/interview-prep/Dashboard";
+import AnalyseResume from "./pages/interview-prep/AnalyseResume";
+import AnalysisDetails from "./pages/interview-prep/AnalysisDetails";
+import TopicExplanation from "./pages/interview-prep/TopicExplanation";
+
 
 // Admin pages
 import AdminLayout from "./pages/admin/AdminLayout";
@@ -106,11 +106,11 @@ const App = () => {
             <Route path="/leetcode" element={<LeetcodeProfile />} />
 
             {/* Interview Preparation */}
-            {/* <Route path="/preparation" element={<Preparation />} />
-            <Route path="/preparation/new" element={<NewPreparation />} />
-            <Route path="/preparation/:id" element={<PreparationDetail />} />
-            <Route path="/preparation/:applicationId/topics/:topicId" element={<TopicDiscussion />} />
-            <Route path="/preparation/:applicationId/topics/:topicId/chat" element={<TopicChat />} /> */}
+            <Route path="/interview-prep/dashboard" element={<InterviewPrepDashboard />} />
+            <Route path="/interview-prep/analyse" element={<AnalyseResume />} />
+            <Route path="/interview-prep/application/:id" element={<AnalysisDetails />} />
+
+            <Route path="/interview-prep/:applicationId/topics/:topicId" element={<TopicExplanation />} />
           </Route>
         </Route>
 

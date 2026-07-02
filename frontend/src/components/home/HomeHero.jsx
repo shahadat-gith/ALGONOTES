@@ -4,7 +4,6 @@ import { ArrowRight, BookOpenText, Sparkles, Search } from "lucide-react";
 
 import Button from "../common/Button";
 
-
 const HomeHero = () => {
   const navigate = useNavigate();
 
@@ -34,7 +33,8 @@ const HomeHero = () => {
         </h1>
 
         <p className="mx-auto max-w-2xl text-sm sm:text-base leading-7 text-text-muted">
-          Turn coding problems and theory topics into polished revision notes with a clean workflow, readable formatting, and fast revisit support.
+          Turn coding problems and theory topics into polished revision notes
+          with a clean workflow, readable formatting, and fast revisit support.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
@@ -43,33 +43,21 @@ const HomeHero = () => {
             className="h-11 px-5 text-sm font-semibold shadow-[0_0_25px_rgba(139,92,246,0.38)]"
           >
             <BookOpenText size={15} className="stroke-[2]" />
-            <span>Create Coding Notes</span>
+            <span>Create DSA Notes</span>
           </Button>
 
           <Button
             variant="outline"
-            onClick={() => navigate("/theory/generate")}
-            className="h-11 px-5 text-sm font-semibold"
-          >
-            <span>Create Theory Notes</span>
-            <ArrowRight size={14} className="stroke-[2]" />
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={() => navigate("/preparation/new")}
+            onClick={() => navigate("/interview-prep/analyse")}
             className="h-11 px-5 text-sm font-semibold border-primary/25 hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
           >
             <Search size={14} className="stroke-[2]" />
             <span>Analyse Your Resume</span>
           </Button>
         </div>
-
-       
       </div>
     </section>
   );
 };
-
 
 export default HomeHero;

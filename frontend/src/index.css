@@ -1,26 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  /* CodeHelp Specific Deep Dark Palette */
-  --color-bg-base: #07080d;      /* Infinite obsidian black background */
-  --color-bg-surface: #10121a;   /* Slightly elevated container jet black */
-  --color-bg-soft: #171b27;      /* Clear tag/button backgrounds */
+  /* Color Palette */
+  --color-bg-base: #07080d;
+  --color-bg-surface: #10121a;
+  --color-bg-soft: #171b27;
 
-  /* CodeHelp High Contrast Typography Scale */
-  --color-text-main: #ffffff;    /* Pure blinding white for main headlines */
-  --color-text-muted: #a7b1c5;   /* Cool slate-gray for descriptions */
-  --color-text-light: #727a90;   /* Muted gray for boundaries / search hotkeys */
+  /* Typography Scale */
+  --color-text-main: #ffffff;
+  --color-text-muted: #a7b1c5;
+  --color-text-light: #727a90;
 
-  /* CodeHelp Ultra-Thin Premium Borders */
-  --color-border-default: rgba(255, 255, 255, 0.09); /* Invisible grid layout rules */
-  --color-border-strong: rgba(255, 255, 255, 0.2);  /* Interactive border highlights */
+  /* Borders */
+  --color-border-default: rgba(255, 255, 255, 0.09);
+  --color-border-strong: rgba(255, 255, 255, 0.2);
 
-  /* The Signature Brand Accent (Vibrant Blur Purple & Indigo) */
-  --color-primary: #8a79ff;        /* Bright purple key accent */
-  --color-primary-hover: #7867f2;  /* Saturated interactive violet */
-  --color-primary-soft: rgba(138, 121, 255, 0.15); /* Ambient glow background text */
+  /* Brand Accents */
+  --color-primary: #8a79ff;
+  --color-primary-hover: #7867f2;
+  --color-primary-soft: rgba(138, 121, 255, 0.15);
 
-  /* Status Tokens modified for deep contrast profiles */
+  /* Status Tokens */
   --color-success: #10b981;
   --color-success-soft: rgba(16, 185, 129, 0.08);
   --color-warning: #f59e0b;
@@ -28,17 +28,16 @@
   --color-danger: #f43f5e;
   --color-danger-soft: rgba(244, 63, 94, 0.08);
 
-  /* Border Radii (CodeHelp uses heavily rounded, smooth capsules) */
+  /* Radii Customization */
   --radius-lg: 16px;
   --radius-md: 12px;
   --radius-sm: 8px;
 
-  /* Ambient Blur Gradients */
+  /* Shadows & Ambient Glows */
   --shadow-card: 0 14px 42px rgba(0, 0, 0, 0.46);
   --shadow-hover: 0 0 35px rgba(138, 121, 255, 0.24);
 }
 
-/* Base resets & global background canvas setup */
 @layer base {
   * {
     box-sizing: border-box;
@@ -53,18 +52,11 @@
       radial-gradient(circle at 10% 45%, rgba(138, 121, 255, 0.08) 0%, transparent 35%),
       radial-gradient(circle at 90% 40%, rgba(108, 119, 255, 0.08) 0%, transparent 35%);
     background-attachment: fixed;
-    font-family:
-      "Manrope",
-      Inter,
-      system-ui,
-      sans-serif;
+    font-family: "Manrope", Inter, system-ui, sans-serif;
     letter-spacing: -0.01em;
   }
 
-
-  
-
-  /* Thin premium scrollbars matching the page */
+  /* Global Custom Scrollbars */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -81,7 +73,6 @@
   }
 }
 
-
-button{
+button {
   cursor: pointer;
 }

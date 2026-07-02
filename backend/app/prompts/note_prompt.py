@@ -1,112 +1,131 @@
-# app/prompts/note_prompt.py
+NOTE_SYSTEM_PROMPT = """
+You are an expert DSA mentor.
 
-def generate_note_prompt(problem_link: str, userCode: str, language: str, userNotes: str) -> str:
-    cleaned_notes = userNotes.strip() if userNotes else ""
-    
-    userNotesSection = ""
+Generate concise, interview-ready and revision-friendly coding notes.
+
+Rules:
+- Return ONLY one valid JSON object.
+- Do NOT return markdown or extra text.
+- Follow the schema exactly.
+- Do NOT add or remove fields.
+- If an approach (bruteForce, better or optimalApproach) does not meaningfully exist, return null.
+- Keep explanations concise and practical.
+- Base everything on the official problem and best-known solution.
+- Generate code in the requested programming language.
+- Never hallucinate constraints, examples or complexities.
+"""
+
+
+def generate_note_prompt(
+    problem_link: str,
+    language: str,
+    user_notes: str,
+) -> str:
+
+    cleaned_notes = user_notes.strip() if user_notes else ""
+
     if cleaned_notes:
-        userNotesSection = f"""
-USER RAW OBSERVATIONS & SHORTER NOTES
-------------------------------------------
+        notes_section = f"""
+USER NOTES
 {cleaned_notes}
 
-CRITICAL PROCESSING INSTRUCTIONS FOR USER NOTES:
-1. Treat the text block above as rough, shorthand notes written by the user.
-2. Translate, improve, and expand these rough points into clear, easy-to-understand layman terms (simple English that makes sense at a glance). Avoid heavy academic jargon.
-3. You MUST return this polished version as a string mapped to the top-level "userNotes" key in the final JSON response (completely separate from the "note" and "problem" objects).
-4. Also, weave these insights naturally into the "intuition" and "mistakesToAvoid" sections inside the "note" object where appropriate.
+Instructions:
+- Treat these as rough notes.
+- Rewrite them into clear, simple English.
+- Return the rewritten version in "userNotes".
+- Naturally incorporate relevant insights into "intuition" and "mistakesToAvoid".
+"""
+    else:
+        notes_section = """
+No user notes were provided.
+
+Return an empty string for "userNotes".
 """
 
     return f"""
-You are a helpful programming mentor and a strict JSON generation engine.
-
-Create a high-quality, friendly, revision-ready coding note based on the target JSON layout definitions below.
-
-INPUTS & OBSERVATIONS
-------------------------------------------
-{userNotesSection}
-
 Problem Link:
 {problem_link}
 
-User Code Language:
+Programming Language:
 {language}
 
-userCode:
-{userCode}
+{notes_section}
 
-OUTPUT RULES
-------------------------------------------
-- Return ONLY valid JSON.
-- Do NOT use markdown code fences (e.g., do not wrap response in ```json ... ```).
-- Do NOT write conversational explanations before or after the JSON payload.
-- Never omit the top-level keys: "problem", "note", and "userNotes".
-
-TARGET JSON SCHEMA DEFINITION
-------------------------------------------
-Your JSON response must match this schema structure exactly. Note that "bruteForce", "better", and "optimalApproach" are completely conditional. If an approach does not realistically exist for this problem, output its value as null:
+Generate the coding note using the following JSON schema exactly.
 
 {{
   "problem": {{
-    "title": "Problem Title",
+    "title": "",
     "problemLink": "{problem_link}",
-    "platform": "LeetCode / Codeforces / HackerRank / etc.",
-    "difficulty": "Easy / Medium / Hard",
-    "description": "Clear standalone problem statement overview text",
-    "constraints": ["Constraint line 1", "Constraint line 2"],
+    "platform": "",
+    "difficulty": "",
+    "description": "",
+    "constraints": [],
     "testCases": [
       {{
-        "input": "Input state parameter trace details",
-        "output": "Expected return output context",
-        "explanation": "Optional logic trail narrative statement"
+        "input": "",
+        "output": "",
+        "explanation": ""
       }}
     ],
-    "expectedTimeComplexity": "O(N)",
-    "expectedSpaceComplexity": "O(1)",
-    "topics": ["Array", "Two Pointers"]
+    "expectedTimeComplexity": "",
+    "expectedSpaceComplexity": "",
+    "topics": []
   }},
 
   "note": {{
-    "intuition": "The high-level intuitive 'aha!' moment behind breaking down the solution logic canvas. Break sentences with periods cleanly.",
-    "edgeCases": ["Tricky boundary constraint situations to verify like empty arrays, overflows, single nodes, etc."],
-    "mistakesToAvoid": ["Common pitfalls, off-by-one errors, or tracking oversights to watch out for."],
+    "intuition": "",
+    "edgeCases": [],
+    "mistakesToAvoid": [],
     "dryRun": [
       {{
-        "step": "1",
-        "state": "i = 0, pointers initialized",
-        "action": "Evaluate index condition match",
-        "result": "Increment execution pointers"
+        "step": "",
+        "state": "",
+        "action": "",
+        "result": ""
       }}
     ],
+
     "bruteForce": {{
       "complexity": {{
-        "time": "O(N^2)",
-        "space": "O(1)"
+        "time": "",
+        "space": ""
       }},
-      "description": "Narrative plain text paragraph mapping out the naive baseline implementation pattern step by step.",
-      "codeBlock": {{"language": "{language}", "code": "Standard code snippet block string representation"}},
-      "algorithmSteps": ["Step 1 narrative block description", "Step 2 execution marker statement"]
+      "description": "",
+      "codeBlock": {{
+        "language": "{language}",
+        "code": ""
+      }},
+      "algorithmSteps": []
     }},
+
     "better": {{
       "complexity": {{
-        "time": "O(N log N)",
-        "space": "O(N)"
+        "time": "",
+        "space": ""
       }},
-      "description": "The intermediate optimized algorithmic transition strategy written as clean prose text if applicable. Use null if no distinct better step exists.",
-      "codeBlock": {{"language": "{language}", "code": "Code implementation snippet line text format"}},
-      "algorithmSteps": ["Detailed action statement sequence details"]
+      "description": "",
+      "codeBlock": {{
+        "language": "{language}",
+        "code": ""
+      }},
+      "algorithmSteps": []
     }},
+
     "optimalApproach": {{
       "complexity": {{
-        "time": "O(N)",
-        "space": "O(1)"
+        "time": "",
+        "space": ""
       }},
-      "description": "The ultimate fully streamlined gold-standard implementation methodology structure string description.",
-      "codeBlock": {{"language": "{language}", "code": "Highly optimized solution production script block code"}},
-      "algorithmSteps": ["Logical processing pipeline markers text list"]
+      "description": "",
+      "codeBlock": {{
+        "language": "{language}",
+        "code": ""
+      }},
+      "algorithmSteps": []
     }}
   }},
 
-  "userNotes": "Your polished, expanded, layman-friendly translation of the user's rough observations goes here as a separate top-level string."
+  "userNotes": ""
 }}
 """.strip()

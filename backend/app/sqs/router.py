@@ -1,5 +1,3 @@
-# app/sqs/router.py
-
 from pydantic import ValidationError
 
 from .worker import (
@@ -11,42 +9,49 @@ from .worker import (
 from .handle_failures import (
     handle_note_generation_failure, 
     handle_theory_generation_failure,
-    handle_prompt_optimization_failure  # Clean error handling matching your helpers
+    handle_prompt_optimization_failure
 )
 
-async def route_incoming_ai_job(message: dict):
-    job_type = message.get("type", "dsa")
-    valid_job_types = {"dsa", "theory", "optimize_prompt"}
 
-    if job_type not in valid_job_types:
+JOB_REGISTRY = {
+    "theory": {
+        "executor": execute_theory_generation,
+        "id_field": "theory_id",
+        "failure_handler": handle_theory_generation_failure,
+    },
+    "optimize_prompt": {
+        "executor": execute_prompt_optimization,
+        "id_field": "job_id",
+        "failure_handler": handle_prompt_optimization_failure,
+    },
+    "dsa": {
+        "executor": execute_note_generation,
+        "id_field": "note_id",
+        "failure_handler": handle_note_generation_failure,
+    }
+}
+
+
+async def route_incoming_ai_job(message: dict) -> None:
+    job_type = message.get("type", "dsa")
+
+    if job_type not in JOB_REGISTRY:
         raise ValueError(f"Unsupported job type: {job_type}")
     
+    job_config = JOB_REGISTRY[job_type]
+    executor = job_config["executor"]
+    failure_handler = job_config["failure_handler"]
+    target_id = message.get(job_config["id_field"])
+
     try:
-        if job_type == "theory":
-            await execute_theory_generation(message)
-        elif job_type == "optimize_prompt":
-            await execute_prompt_optimization(message)
-        else:
-            await execute_note_generation(message)
+        await executor(message)
             
     except (ValidationError, KeyError, NonRetryableJobError) as e:
-        # 1. Granular catch for invalid payload structural formats
-        reason = f"Payload Validation Fault: {str(e)}"
-        if job_type == "optimize_prompt":
-            await handle_prompt_optimization_failure(message.get("job_id"), reason)
-        elif job_type == "theory":
-            await handle_theory_generation_failure(message.get("theory_id"), reason)
-        else:
-            await handle_note_generation_failure(message.get("note_id"), reason)
+        reason = f"Payload Validation Fault: {e}"
+        await failure_handler(target_id, reason)
         return
 
     except Exception as e:
-        # 2. Global catch for upstream operational infrastructure failures
-        reason = f"Background Processing Error: {str(e)}"
-        if job_type == "optimize_prompt":
-            await handle_prompt_optimization_failure(message.get("job_id"), reason)
-        elif job_type == "theory":
-            await handle_theory_generation_failure(message.get("theory_id"), reason)
-        else:
-            await handle_note_generation_failure(message.get("note_id"), reason)
-        raise
+        reason = f"Background Processing Error: {e}"
+        await failure_handler(target_id, reason)
+        raise e

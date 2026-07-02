@@ -6,12 +6,18 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     PORT: int = 5000
     ENVIRONMENT: str = "development"
+
     DATABASE_URL: str
+    
     SQS_QUEUE_URL: str
+    AWS_REGION: str = "ap-south-1"
+
     JWT_SECRET: str
+
     CLOUDINARY_CLOUD_NAME: str
     CLOUDINARY_API_KEY: str
     CLOUDINARY_API_SECRET: str
+
     MAIL_SERVER: str
     MAIL_PORT: int
     MAIL_USERNAME: str
@@ -19,8 +25,9 @@ class Settings(BaseSettings):
     MAIL_FROM: str
     MAIL_FROM_NAME: str
 
-    GEMINI_API_KEY: str
-    AWS_REGION: str = "ap-south-1"
+    OPENROUTER_API_KEY: str
+    OPENROUTER_MODEL: str
+
 
     ADMIN_EMAIL: str
     ADMIN_PASS: str

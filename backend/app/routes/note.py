@@ -51,7 +51,6 @@ async def generate_ai_note(
             note_id=note_id,
             user_id=current_user.id,
             problem_link=payload.problemLink,
-            user_code=payload.userCode,
             language=payload.language,
             user_notes=payload.userNotes,
         )

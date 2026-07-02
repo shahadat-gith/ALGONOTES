@@ -1,0 +1,223 @@
+/* ===========================================================
+   Custom Scrollbar
+=========================================================== */
+
+.custom-sidebar-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-default) transparent;
+}
+
+.custom-sidebar-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: 999px;
+}
+
+.custom-sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
+}
+
+/* ===========================================================
+   Explanation Sections
+=========================================================== */
+
+section[id] {
+  scroll-margin-top: 2rem;
+}
+
+/* ===========================================================
+   Base Wrapper
+=========================================================== */
+
+.algonotes-prep-div {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+/* ===========================================================
+   Headings
+=========================================================== */
+
+.algonotes-prep-h3 {
+  margin: 1.75rem 0 0.75rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  line-height: 1.35;
+}
+
+.algonotes-prep-h4 {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  line-height: 1.4;
+}
+
+/* ===========================================================
+   Paragraphs
+=========================================================== */
+
+.algonotes-prep-p {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  line-height: 1.9;
+  margin: 0;
+}
+
+/* ===========================================================
+   Lists
+=========================================================== */
+
+.algonotes-prep-ul,
+.algonotes-prep-ol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.algonotes-prep-ul {
+  list-style: disc;
+}
+
+.algonotes-prep-ol {
+  list-style: decimal;
+}
+
+.algonotes-prep-li {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+/* ===========================================================
+   Inline Code
+=========================================================== */
+
+.algonotes-prep-code {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-soft);
+  color: var(--color-danger);
+  font-size: 0.93rem;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+}
+
+/* ===========================================================
+   Code Blocks
+=========================================================== */
+
+.algonotes-prep-pre {
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-base);
+  padding: 1.25rem;
+  margin: 1.25rem 0;
+  color: var(--color-text-main);
+  line-height: 1.7;
+  font-size: 0.95rem;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+}
+
+/* ===========================================================
+   Blockquotes
+=========================================================== */
+
+.algonotes-prep-blockquote {
+  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--color-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--color-primary-soft);
+  color: var(--color-text-main);
+  line-height: 1.8;
+}
+
+/* ===========================================================
+   Tables
+=========================================================== */
+
+.algonotes-prep-table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  margin: 1.5rem 0;
+}
+
+.algonotes-prep-th,
+.algonotes-prep-td {
+  border: 1px solid var(--color-border-default);
+  padding: 0.85rem 1rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.algonotes-prep-th {
+  background: var(--color-bg-soft);
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.algonotes-prep-td {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.algonotes-prep-tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.algonotes-prep-tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+
+
+
+.algonotes-prep-div strong {
+  color: var(--color-text-main);
+  font-weight: 700;
+}
+
+.algonotes-prep-div em {
+  font-style: italic;
+}
+
+.algonotes-prep-div hr {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid var(--color-border-default);
+}

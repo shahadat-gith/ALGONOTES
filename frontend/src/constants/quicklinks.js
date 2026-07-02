@@ -5,6 +5,7 @@ import {
   FileText,
   BookmarkCheck,
   Code2,
+  Award,
 } from "lucide-react";
 
 export const quicklinks = [
@@ -16,12 +17,11 @@ export const quicklinks = [
     icon: LayoutDashboard,
     activeColor: "group-hover:text-primary",
   },
-
   {
-    to: "/leetcode",
-    label: "LeetCode Profile",
+    to: "/interview-prep/dashboard",
+    label: "Preparation Workspace",
     description:
-      "View your linked LeetCode stats — problems solved, contest ranking, badges and more.",
+      "Browse all your resume and job preparations.",
     icon: Code2,
     activeColor: "group-hover:text-primary",
   },
@@ -56,5 +56,13 @@ export const quicklinks = [
       "Open your saved concept notes and continue revising important subjects with ease.",
     icon: BookmarkCheck,
     activeColor: "group-hover:text-warning",
+  },
+  {
+    to: "/leetcode",
+    label: "LeetCode Profile",
+    description:
+      "View your linked LeetCode stats — problems solved, contest ranking, badges and more.",
+    icon: Award,
+    activeColor: "group-hover:text-primary",
   },
 ];
