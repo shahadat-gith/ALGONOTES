@@ -55,37 +55,65 @@ def base_email_template(title: str, body: str) -> str:
     </html>
     """
 
-
-def welcome_email_template(verification_url: str) -> str:
+def welcome_email_template(user_name: str) -> str:
     body = f"""
+    <p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin: 0 0 16px 0;">
+      Hi {user_name},
+    </p>
+
+    <p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin: 0 0 16px 0;">
+      Welcome to <strong style="color: #14b8a6;">ALGONOTES</strong> — your AI-powered workspace for mastering Data Structures, Algorithms, and Computer Science theory.
+    </p>
+
+    <p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin: 0 0 16px 0;">
+      Here’s what you can do right away:
+    </p>
+
+    <table cellpadding="0" cellspacing="0" style="margin: 0 0 16px 0;">
+      <tr>
+        <td style="padding: 0 0 8px 0; color: #94a3b8; font-size: 13px; line-height: 1.5;">
+          ✅ <strong style="color: #e2e8f0;">Generate DSA Notes</strong> — Paste any LeetCode problem link and get clean, structured study notes with intuition, edge cases, and multiple approaches.
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 0 0 8px 0; color: #94a3b8; font-size: 13px; line-height: 1.5;">
+          ✅ <strong style="color: #e2e8f0;">Theory Study Guides</strong> — Type any CS topic and receive a comprehensive, beautifully formatted HTML study guide.
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 0 0 8px 0; color: #94a3b8; font-size: 13px; line-height: 1.5;">
+          ✅ <strong style="color: #e2e8f0;">LeetCode Profile Sync</strong> — Connect your LeetCode account and track your solved problems, contest rankings, and skill tags.
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 0 0 8px 0; color: #94a3b8; font-size: 13px; line-height: 1.5;">
+          ✅ <strong style="color: #e2e8f0;">Prompt Optimizer</strong> — Turn your rough notes into polished AI prompts for even better study content.
+        </td>
+      </tr>
+    </table>
+
     <p style="color: #94a3b8; font-size: 13px; line-height: 1.6; margin: 0 0 24px 0;">
-      Welcome to ALGONOTES!. Please click the button below to verify your email address and get started.
+      Start exploring at <a href="https://algonotes.in" style="color: #14b8a6; text-decoration: none;">algonotes.in</a> and take your interview prep to the next level.
     </p>
 
     <table cellpadding="0" cellspacing="0" style="margin: 20px 0;">
       <tr>
         <td style="border-radius: 4px; background-color: #14b8a6; text-align: center;">
-          <a href="{verification_url}" target="_blank"
+          <a href="https://algonotes.in" target="_blank"
              style="display: inline-block; background-color: #14b8a6; color: #0d1527; text-decoration: none; padding: 11px 20px; border-radius: 4px; font-weight: 700; font-size: 13px; letter-spacing: 0.5px;">
-            Verify Account
+            Go to Dashboard
           </a>
         </td>
       </tr>
     </table>
 
-    <p style="color: #475569; font-size: 11px; line-height: 1.5; margin: 28px 0 0 0; border-top: 1px dashed #1e293b; padding-top: 16px;">
-      If the button doesn't work, copy and paste this link into your browser:
-    </p>
-
-    <p style="margin: 6px 0 0 0;">
-      <a href="{verification_url}" style="color: #14b8a6; font-size: 11px; word-break: break-all; font-family: monospace; text-decoration: none;">
-        {verification_url}
-      </a>
+    <p style="color: #475569; font-size: 11px; line-height: 1.5; margin: 24px 0 0 0; padding-top: 16px; border-top: 1px dashed #1e293b;">
+      Need help? Reply to this email or check out the docs at algonotes.in.
     </p>
     """
 
     return base_email_template(
-        title="Confirm Your Registration",
+        title="Welcome to ALGONOTES — Let’s Get Started!",
         body=body
     )
 

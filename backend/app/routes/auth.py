@@ -11,7 +11,7 @@ from app.schemas import (
 from app.services import hash_password, verify_password, send_email
 from app.utils import generate_otp, create_access_token
 
-from app.constants import otp_email_template
+from app.constants import otp_email_template, welcome_email_template
 
 
 router = APIRouter(
@@ -44,6 +44,7 @@ def serialize_user(user: User) -> UserResponse:
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(
     payload: RegisterRequest,
+    background_tasks: BackgroundTasks,
 ):
     user_email = payload.email.lower().strip()
 
@@ -58,6 +59,14 @@ async def register(
         password=hash_password(payload.password),
     )
     await new_user.insert()
+
+    # Send welcome email asynchronously in the background
+    background_tasks.add_task(
+        send_email,
+        new_user.email,
+        "Welcome to ALGONOTES!",
+        welcome_email_template(user_name=new_user.name),
+    )
 
     return {"success": True, "message": "Registration successful."}
 

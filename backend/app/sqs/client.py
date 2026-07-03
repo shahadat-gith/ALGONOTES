@@ -1,22 +1,23 @@
 import json
+import logging
 from typing import Optional, Any, Dict
 from beanie import PydanticObjectId
-from fastapi.concurrency import run_in_threadpool 
-
+from fastapi.concurrency import run_in_threadpool
 from .config import sqs_client, QUEUE_URL
 
+logger = logging.getLogger(__name__)
 
 async def _send_to_sqs(payload: Dict[str, Any], task_label: str, identifier: str) -> None:
+    """Core private helper to push serialized payloads to SQS synchronously via thread pool."""
     try:
         await run_in_threadpool(
-            sqs_client.send_message, 
-            QueueUrl=QUEUE_URL, 
+            sqs_client.send_message,
+            QueueUrl=QUEUE_URL,
             MessageBody=json.dumps(payload)
         )
     except Exception as e:
-        print(f"[SQS ERROR] Failed to enqueue {task_label} task for ID {identifier}. Error: {e}")
+        logger.error(f"[SQS Client Error] Failed to enqueue {task_label} task for ID {identifier}. Error: {e}")
         raise e
-
 
 async def enqueue_note_generation(
     note_id: str, 
@@ -36,7 +37,6 @@ async def enqueue_note_generation(
     }
     await _send_to_sqs(payload, task_label="DSA note generation", identifier=str(note_id))
 
-
 async def enqueue_theory_generation(
     theory_id: str, 
     user_id: PydanticObjectId, 
@@ -44,9 +44,8 @@ async def enqueue_theory_generation(
     code_language: Optional[str] = None, 
     instructions: Optional[str] = None 
 ) -> None:
-
+    """Dispatches an academic theory generation task to the queue."""
     clean_language = code_language.strip() if code_language and code_language.strip() else None
-    
     payload = {
         "type": "theory",
         "theory_id": str(theory_id),
@@ -57,7 +56,6 @@ async def enqueue_theory_generation(
     }
     await _send_to_sqs(payload, task_label="Theory generation", identifier=str(theory_id))
 
-
 async def enqueue_prompt_optimization(
     job_id: str,
     user_id: str,
@@ -65,9 +63,8 @@ async def enqueue_prompt_optimization(
     code_language: str,
     instructions: Optional[str] = ""
 ) -> None:
-
+    """Dispatches a prompt optimization job to the queue."""
     clean_language = code_language.strip() if code_language and code_language.strip() else None
-
     payload = {
         "type": "optimize_prompt",
         "job_id": job_id,

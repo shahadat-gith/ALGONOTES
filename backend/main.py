@@ -22,7 +22,7 @@ from app.routes import (
 )
 
 # Import your standalone async queue logic
-from app.sqs.handler import start_async_queue_handler
+from app.sqs import start_async_queue_handler
 
 
 @asynccontextmanager

@@ -8,7 +8,6 @@ import {
   deleteApplication,
 } from "../../api/interviewPrepApi.js";
 import Button from "../../components/common/Button";
-import Badge from "../../components/common/Badge";
 import EmptyState from "../../components/common/EmptyState";
 import DeleteConfirm from "../../components/common/DeleteConfirm";
 import Glow from "../../components/common/Glow";
@@ -16,6 +15,7 @@ import Glow from "../../components/common/Glow";
 import InterviewDashboardSkeleton from "../../components/skeletons/InterviewDashboardSkeleton.jsx";
 
 import ApplicationCard from "../../components/interview-prep/ApplicationCard.jsx";
+import ErrorModal from "../../components/interview-prep/ErrorModal.jsx";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -27,6 +27,8 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [failedApplication, setFailedApplication] = useState(null);
+
   const fetchApplications = useCallback(async () => {
     setLoading(true);
     try {
@@ -35,7 +37,7 @@ const Dashboard = () => {
         setApplications(res.data || []);
       }
     } catch (err) {
-      console.log("Error in interview prep dashboard :", err)
+      console.log("Error in interview prep dashboard :", err);
     } finally {
       setLoading(false);
     }
@@ -67,6 +69,28 @@ const Dashboard = () => {
       setIsModalOpen(false);
       setDeleteTargetId(null);
     }
+  };
+
+  const handleFailedClick = (application) => {
+    setFailedApplication(application);
+  };
+
+  // Deletes the failed application (called by ErrorModal before onClose)
+  const handleFailedCleanup = async () => {
+    if (!failedApplication) return;
+
+    const res = await deleteApplication(failedApplication._id);
+
+    if (res?.success) {
+      setApplications((prev) =>
+        prev.filter((app) => app._id !== failedApplication._id),
+      );
+    }
+  };
+
+  // Closes the ErrorModal (called by ErrorModal after cleanup completes)
+  const handleCloseErrorModal = () => {
+    setFailedApplication(null);
   };
 
   if (loading) {
@@ -112,6 +136,7 @@ const Dashboard = () => {
               key={application._id}
               application={application}
               onDelete={handleOpenDeleteModal}
+              onFailedClick={handleFailedClick}
             />
           ))}
         </div>
@@ -129,6 +154,18 @@ const Dashboard = () => {
           setDeleteTargetId(null);
         }}
       />
+
+      {failedApplication && (
+        <ErrorModal
+          title="Analysis Failed"
+          error={
+            failedApplication.failureReason ||
+            "The analysis could not be completed. Please try again with a new application."
+          }
+          onDelete={handleFailedCleanup}
+          onClose={handleCloseErrorModal}
+        />
+      )}
     </div>
   );
 };

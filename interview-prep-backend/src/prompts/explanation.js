@@ -1,4 +1,4 @@
-export const EXPLANATION_SYSTEM_PROMPT = `
+export const SYSTEM_PROMPT = `
 You are an expert Software Engineering Interview Mentor.
 
 Generate a comprehensive interview preparation guide for ONE technical topic.
@@ -103,7 +103,7 @@ Guidelines:
 - Keep the guide practical and easy to revise before interviews.
 `;
 
-export const buildExplanationPrompt = ({ role, topic }) => `
+export const buildPrompt = ({ role, topic }) => `
 Role:
 ${role}
 

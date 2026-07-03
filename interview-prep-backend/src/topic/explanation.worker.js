@@ -8,14 +8,9 @@ import { Explanation } from "./explanation.model.js";
 import { generateContent } from "../llm/response.js";
 import { parseJson } from "../utils/helpers.js";
 
-import {
-  EXPLANATION_SYSTEM_PROMPT,
-  buildExplanationPrompt,
-} from "../prompts/explanation.js";
+import { SYSTEM_PROMPT, buildPrompt } from "../prompts/explanation.js";
 
-export const explanationWorker = new Worker(
-  "explanation",
-  async (job) => {
+export const explanationWorker = new Worker("explanation", async (job) => {
     const { topicId } = job.data;
 
     try {
@@ -59,8 +54,8 @@ export const explanationWorker = new Worker(
 
       // 4. Generate explanation
       const explanationResponse = await generateContent({
-        system: EXPLANATION_SYSTEM_PROMPT,
-        prompt: buildExplanationPrompt({
+        system: SYSTEM_PROMPT,
+        prompt: buildPrompt({
           role: application.role,
           topic: {
             title: topic.title,
@@ -103,8 +98,8 @@ export const explanationWorker = new Worker(
         { topic: topicId },
         {
           topic: topicId,
-          status: "processing",
-          failureReason: "",
+          status: "failed",
+          failureReason: error.message,
         },
         {
           upsert: true,

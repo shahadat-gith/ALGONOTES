@@ -5,7 +5,6 @@ from pydantic import (
     BaseModel,
     EmailStr,
     Field,
-    ConfigDict,
 )
 
 
@@ -57,24 +56,3 @@ class ForgotPasswordRequest(BaseModel):
     )
 
 
-# ==========================================
-# RESPONSE DTO SCHEMAS
-# ==========================================
-# Added to satisfy serialize_user() requirements inside routes/auth.py
-class UserAvatarResponse(BaseModel):
-    url: str = ""
-    public_id: str = ""
-
-
-class UserResponse(BaseModel):
-    id: str
-    name: str
-    email: EmailStr
-    username: Optional[str] = None
-    leetcode_username: Optional[str] = None
-    avatar: UserAvatarResponse
-
-    model_config = ConfigDict(
-        from_attributes=True,
-        populate_by_name=True
-    )

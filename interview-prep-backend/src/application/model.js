@@ -2,70 +2,67 @@ import mongoose from "mongoose";
 
 const { Schema } = mongoose;
 
-/* ---------- Resume ---------- */
-
-const ExperienceSchema = new Schema(
-  {
-    company: String,
-    role: String,
-    duration: String,
-    technologies: [String],
-    highlights: [String],
-  },
-  { _id: false },
-);
-
-const ProjectSchema = new Schema(
-  {
-    name: String,
-    description: String,
-    technologies: [String],
-    highlights: [String],
-  },
-  { _id: false },
-);
-
-const ResumeSchema = new Schema(
-  {
-    skills: [String],
-
-    experience: [ExperienceSchema],
-
-    projects: [ProjectSchema],
-
-    achievements: [String],
-  },
-  { _id: false },
-);
-
-/* ---------- Job Description ---------- */
-
-const JDSchema = new Schema(
-  {
-    responsibilities: [String],
-
-    requiredSkills: [String],
-
-    preferredSkills: [String],
-  },
-  { _id: false },
-);
-
 /* ---------- Analysis ---------- */
 
 const AnalysisSchema = new Schema(
   {
-    summary: String,
+    atsScore: {
+      type: Number,
+      min: 0,
+      max: 100,
+    },
 
-    strengths: [String],
+    summary: {
+      type: String,
+      default: "",
+    },
 
-    weaknesses: [String],
+    strengths: {
+      type: [String],
+      default: [],
+    },
 
-    matchedSkills: [String],
+    weaknesses: {
+      type: [String],
+      default: [],
+    },
 
-    missingSkills: [String],
+    matchedSkills: {
+      type: [String],
+      default: [],
+    },
 
-    recommendations: [String],
+    missingSkills: {
+      technical: {
+        type: [String],
+        default: [],
+      },
+
+      tools: {
+        type: [String],
+        default: [],
+      },
+
+      concepts: {
+        type: [String],
+        default: [],
+      },
+
+      softSkills: {
+        type: [String],
+        default: [],
+      },
+    },
+
+    recommendations: {
+      type: [String],
+      default: [],
+    },
+
+    interviewFocus: {
+      type: [String],
+      default: [],
+    },
   },
   { _id: false },
 );
@@ -95,6 +92,7 @@ const ApplicationSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
 
     company: {
@@ -111,16 +109,13 @@ const ApplicationSchema = new Schema(
 
     processingData: ProcessingDataSchema,
 
-    resume: ResumeSchema,
-
-    jd: JDSchema,
-
     analysis: AnalysisSchema,
 
     status: {
       type: String,
       enum: ["processing", "completed", "failed"],
       default: "processing",
+      index: true,
     },
 
     failureReason: {
@@ -135,7 +130,6 @@ const ApplicationSchema = new Schema(
 );
 
 ApplicationSchema.index({ user: 1, createdAt: -1 });
-ApplicationSchema.index({ status: 1 });
 
 export const Application =
   mongoose.models.Application ||

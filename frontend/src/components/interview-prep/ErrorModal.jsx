@@ -1,25 +1,21 @@
 import React, { useState } from "react";
-import { Loader2, RefreshCcw, XCircle } from "lucide-react";
+import { Loader2, RefreshCcw, Trash2, XCircle } from "lucide-react";
 
 import {
   deleteApplication,
   deleteExplanation,
 } from "../../api/interviewPrepApi.js";
 
-const ErrorModal = ({
-  title,
-  error,
-  type,
-  resourceId,
-  onClose,
-}) => {
+const ErrorModal = ({ title, error, type, resourceId, onClose, onDelete }) => {
   const [loading, setLoading] = useState(false);
 
-  const handleCleanup = async () => {
+  const handleAction = async () => {
     setLoading(true);
 
     try {
-      if (resourceId) {
+      if (onDelete) {
+        await onDelete();
+      } else if (resourceId) {
         if (type === "application") {
           await deleteApplication(resourceId);
         } else if (type === "explanation") {
@@ -42,17 +38,13 @@ const ErrorModal = ({
             <XCircle size={28} className="stroke-[2]" />
           </div>
 
-          <h2 className="text-lg font-semibold text-text-main">
-            {title}
-          </h2>
+          <h2 className="text-lg font-semibold text-text-main">{title}</h2>
 
-          <p className="mt-3 text-sm leading-6 text-text-light">
-            {error}
-          </p>
+          <p className="mt-3 text-sm leading-6 text-text-light">{error}</p>
         </div>
 
         <button
-          onClick={handleCleanup}
+          onClick={handleAction}
           disabled={loading}
           className="mt-8 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-danger text-sm font-semibold text-white transition hover:bg-danger/90 disabled:opacity-60 cursor-pointer"
         >
@@ -64,7 +56,7 @@ const ErrorModal = ({
           ) : (
             <>
               <RefreshCcw size={16} />
-              Okay
+              try again!
             </>
           )}
         </button>

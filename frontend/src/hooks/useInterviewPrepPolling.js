@@ -18,6 +18,19 @@ export default function useInterviewPrepPolling({
   const attemptRef = useRef(0);
   const stoppedRef = useRef(false);
 
+  // Store callbacks in refs to avoid re-creating poll/startPolling
+  // on every parent re-render, which would accidentally trigger the
+  // useEffect cleanup and stop polling.
+  const checkStatusRef = useRef(checkStatus);
+  const onCompletedRef = useRef(onCompleted);
+  const onFailedRef = useRef(onFailed);
+
+  useEffect(() => {
+    checkStatusRef.current = checkStatus;
+    onCompletedRef.current = onCompleted;
+    onFailedRef.current = onFailed;
+  });
+
   const stopPolling = useCallback(() => {
     stoppedRef.current = true;
 
@@ -35,13 +48,11 @@ export default function useInterviewPrepPolling({
     setIsPolling(false);
   }, []);
 
-  
-
   const poll = useCallback(async () => {
     if (stoppedRef.current) return;
 
     try {
-      const res = await checkStatus();
+      const res = await checkStatusRef.current();
 
       if (!res?.success) {
         throw new Error(res?.message || "Polling failed.");
@@ -54,13 +65,13 @@ export default function useInterviewPrepPolling({
 
       if (pollData.status === "completed") {
         stopPolling();
-        onCompleted?.(pollData);
+        onCompletedRef.current?.(pollData);
         return;
       }
 
       if (pollData.status === "failed") {
         stopPolling();
-        onFailed?.(pollData);
+        onFailedRef.current?.(pollData);
         return;
       }
 
@@ -72,12 +83,12 @@ export default function useInterviewPrepPolling({
     } catch (error) {
       stopPolling();
 
-      onFailed?.({
+      onFailedRef.current?.({
         status: "failed",
         failureReason: error.message,
       });
     }
-  }, [checkStatus, onCompleted, onFailed, stopPolling]);
+  }, [stopPolling]);
 
   const startPolling = useCallback(() => {
     stopPolling();
@@ -94,12 +105,12 @@ export default function useInterviewPrepPolling({
     timeoutRef.current = setTimeout(() => {
       stopPolling();
 
-      onFailed?.({
+      onFailedRef.current?.({
         status: "failed",
         failureReason: "The request timed out. Please try again.",
       });
     }, MAX_TIMEOUT);
-  }, [poll, stopPolling, onFailed]);
+  }, [poll, stopPolling]);
 
   useEffect(() => {
     if (enabled) {
@@ -107,7 +118,7 @@ export default function useInterviewPrepPolling({
     }
 
     return stopPolling;
-  }, [enabled, startPolling, stopPolling]);
+  }, [enabled]);
 
   return {
     status,

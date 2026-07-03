@@ -6,20 +6,26 @@ import { Chat } from "../chat/model.js";
 import { enqueueApplicationJob } from "./application.queue.js";
 import { parseResume } from "../utils/helpers.js";
 
-
 export const createApplication = async (req, res, next) => {
   try {
     const { company, role, jobDescription } = req.body;
+
+    if (!company || !role || !jobDescription || !req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Company, role, job description and resume are required.",
+      });
+    }
 
     const resumeText = await parseResume(req.file.buffer);
 
     const application = await Application.create({
       user: req.user._id,
-      company,
-      role,
+      company: company.trim(),
+      role: role.trim(),
       processingData: {
         resumeText,
-        jobDescriptionText: jobDescription,
+        jobDescriptionText: jobDescription.trim(),
       },
     });
 
@@ -35,15 +41,14 @@ export const createApplication = async (req, res, next) => {
   }
 };
 
-
-
 export const getApplications = async (req, res, next) => {
   try {
     const applications = await Application.find({
       user: req.user._id,
     })
       .select("-processingData")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.status(200).json({
       success: true,
@@ -59,7 +64,9 @@ export const getApplicationStatus = async (req, res, next) => {
     const application = await Application.findOne({
       _id: req.params.id,
       user: req.user._id,
-    }).select("status failureReason");
+    })
+      .select("status failureReason")
+      .lean();
 
     if (!application) {
       return res.status(404).json({
@@ -70,10 +77,7 @@ export const getApplicationStatus = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      data: {
-        status: application.status,
-        failureReason: application.failureReason,
-      },
+      data: application,
     });
   } catch (error) {
     next(error);
@@ -86,8 +90,15 @@ export const getApplication = async (req, res, next) => {
       Application.findOne({
         _id: req.params.id,
         user: req.user._id,
-      }).select("-processingData"),
-      Topic.find({ application: req.params.id })
+      })
+        .select("-processingData")
+        .lean(),
+
+      Topic.find({
+        application: req.params.id,
+      })
+        .sort({ order: 1 })
+        .lean(),
     ]);
 
     if (!application) {
@@ -101,14 +112,13 @@ export const getApplication = async (req, res, next) => {
       success: true,
       data: {
         application,
-        topics 
+        topics,
       },
     });
   } catch (error) {
     next(error);
   }
 };
-
 
 export const deleteApplication = async (req, res, next) => {
   try {
@@ -130,19 +140,21 @@ export const deleteApplication = async (req, res, next) => {
 
     const topicIds = topics.map((topic) => topic._id);
 
-    await Explanation.deleteMany({
-      topic: { $in: topicIds },
-    });
+    await Promise.all([
+      Explanation.deleteMany({
+        topic: { $in: topicIds },
+      }),
 
-    await Chat.deleteMany({
-      topic: { $in: topicIds },
-    });
+      Chat.deleteMany({
+        topic: { $in: topicIds },
+      }),
 
-    await Topic.deleteMany({
-      application: application._id,
-    });
+      Topic.deleteMany({
+        application: application._id,
+      }),
 
-    await application.deleteOne();
+      application.deleteOne(),
+    ]);
 
     return res.status(200).json({
       success: true,

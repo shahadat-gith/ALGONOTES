@@ -1,9 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Briefcase, Building2, Clock3, Trash2 } from "lucide-react";
+import { Briefcase, Building2, Clock3, Trash2, XCircle } from "lucide-react";
 
-const ApplicationCard = ({ application, onDelete }) => {
+const ApplicationCard = ({ application, onDelete, onFailedClick }) => {
   const navigate = useNavigate();
+
+  const isFailed = application.status === "failed";
 
   const formatDate = (date) =>
     new Date(date).toLocaleDateString("en-IN", {
@@ -12,15 +14,27 @@ const ApplicationCard = ({ application, onDelete }) => {
       year: "numeric",
     });
 
+  const handleClick = () => {
+    if (isFailed) {
+      onFailedClick?.(application);
+    } else {
+      navigate(`/interview-prep/application/${application._id}`);
+    }
+  };
+
   return (
     <div
-      onClick={() => navigate(`/interview-prep/application/${application._id}`)}
-      className="group cursor-pointer rounded-2xl border border-border-default bg-bg-surface p-5 shadow-card transition-all hover:border-primary/20 hover:shadow-hover"
+      onClick={handleClick}
+      className={`group cursor-pointer rounded-2xl border p-5 shadow-card transition-all ${
+        isFailed
+          ? "border-danger/30 bg-danger/[0.03] hover:border-danger/50 hover:shadow-hover"
+          : "border-border-default bg-bg-surface hover:border-primary/20 hover:shadow-hover"
+      }`}
     >
       <div className="flex justify-between gap-4">
         <div className="flex-1 space-y-3">
           <div className="flex justify-between items-center gap-3">
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center flex-wrap">
               <div className="flex items-center gap-2">
                 <Building2 size={16} className="text-primary" />
                 <h3 className="text-base font-semibold text-text-main">
@@ -32,6 +46,13 @@ const ApplicationCard = ({ application, onDelete }) => {
                 <Briefcase size={14} />
                 <span>{application.role}</span>
               </div>
+
+              {isFailed && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-danger/30 bg-danger/10 px-2.5 py-0.5 text-[11px] font-semibold text-danger">
+                  <XCircle size={11} />
+                  Failed
+                </span>
+              )}
             </div>
 
             <div>
@@ -56,7 +77,6 @@ const ApplicationCard = ({ application, onDelete }) => {
             <span>{formatDate(application.createdAt)}</span>
           </div>
         </div>
-
       </div>
     </div>
   );
