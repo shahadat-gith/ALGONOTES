@@ -224,6 +224,7 @@ const TopicExplanation = () => {
           error={error}
           onClose={() => {
             setError("");
+            fetchTopic(false);
           }}
         />
       )}

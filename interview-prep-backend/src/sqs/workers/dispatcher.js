@@ -5,7 +5,8 @@ const workers = {
   "process-application": ({ applicationId }) =>
     processApplicationJob(applicationId),
 
-  "generate-explanation": ({ topicId }) => processExplanationJob(topicId),
+  "generate-explanation": ({ topicId, codeLanguage }) =>
+    processExplanationJob({ topicId, codeLanguage }),
 };
 
 export const processSQSRecord = async (record) => {

@@ -30,14 +30,23 @@ export const generateExplanation = async (req, res, next) => {
           message: "Explanation is already being generated.",
         });
       }
+      // Status is "failed" — reset and retry using the existing document
+      await Explanation.findByIdAndUpdate(existingExplanation._id, {
+        $set: {
+          status: "processing",
+          failureReason: "",
+          tableOfContents: [],
+          sections: [],
+        },
+      });
+    } else {
+      // No existing explanation — create a new one
+      await Explanation.create({
+        topic: topicId,
+        status: "processing",
+        failureReason: "",
+      });
     }
-
-    // Safe Initialization
-    await Explanation.create({
-      topic: topicId,
-      status: "processing",
-      failureReason: "",
-    });
 
     await publishMessage({
       jobType: "generate-explanation",
