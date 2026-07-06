@@ -1,18 +1,23 @@
-
-
 services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
-    volumes:
-      - ./backend:/app
-      - /app/__pycache__
-      - /app/.serverless
+      - "5000:5000"
     env_file:
       - ./backend/.env
+
+  interview-prep-backend:
+    build:
+      context: ./interview-prep-backend
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    env_file:
+      - ./interview-prep-backend/.env
+    depends_on:
+      - backend
 
   frontend:
     build:
@@ -20,13 +25,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     environment:
-      - VITE_DEV_BACKEND_URL=http://localhost:8000/api/v1
-      - VITE_PROD_BACKEND_URL=https://27pxopzac7.execute-api.ap-south-1.amazonaws.com/api/v1
+      - VITE_BACKEND_URL=http://localhost:5000/api/v1
+      - VITE_INTERVIEW_PREP_URL=http://localhost:5001
     stdin_open: true
     tty: true
     depends_on:
       - backend
+      - interview-prep-backend

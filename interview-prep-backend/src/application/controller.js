@@ -2,9 +2,9 @@ import { Application } from "./model.js";
 import { Topic } from "../topic/topic.model.js";
 import { Explanation } from "../topic/explanation.model.js";
 import { Chat } from "../chat/model.js";
-
-import { enqueueApplicationJob } from "./application.queue.js";
 import { parseResume } from "../utils/helpers.js";
+
+import { publishMessage } from "../sqs/publishers.js";
 
 export const createApplication = async (req, res, next) => {
   try {
@@ -29,7 +29,10 @@ export const createApplication = async (req, res, next) => {
       },
     });
 
-    await enqueueApplicationJob(application._id);
+    await publishMessage({
+      jobType: "process-application",
+      applicationId: application._id,
+    });
 
     return res.status(202).json({
       success: true,
@@ -40,6 +43,7 @@ export const createApplication = async (req, res, next) => {
     next(error);
   }
 };
+
 
 export const getApplications = async (req, res, next) => {
   try {

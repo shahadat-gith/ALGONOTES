@@ -76,13 +76,7 @@ mangum_handler = Mangum(app, lifespan="on")
 
 
 def handler(event, context):
-    """
-    Unified Master Handler: Checks if incoming payload is from SQS.
-    If yes, runs your standalone queue pipeline safely. If no, routes to FastAPI.
-    """
-    # Intercept SQS Queue messages
     if "Records" in event and event["Records"][0].get("eventSource") == "aws:sqs":
-        print(f"[Master Interceptor] SQS Event detected. Routing to queue loop.")
         
         # Get or create a safe event loop that won't destroy Mangum's context
         try:

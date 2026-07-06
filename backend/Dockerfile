@@ -19,7 +19,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 COPY . .
 
 # Expose the port that FastAPI running on Uvicorn will listen on
-EXPOSE 8000
+EXPOSE 5000
 
 # Command to run the FastAPI app with live reloading enabled for development
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000", "--reload"]

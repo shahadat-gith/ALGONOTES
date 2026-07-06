@@ -148,46 +148,6 @@ const NoteGenerator = () => {
         </div>
       </div>
 
-      <section className="grid gap-4 lg:grid-cols-[1.35fr_0.9fr]">
-        <div className="rounded-2xl border border-border-default bg-gradient-to-br from-bg-surface via-bg-surface to-primary/5 p-6 shadow-card">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-            <Sparkles size={12} className="stroke-[2.2]" />
-            <span>Smart note generation</span>
-          </div>
-          <div className="mt-4 space-y-3">
-            <h2 className="text-xl font-semibold tracking-tight text-text-main">
-              Share the problem, your language, and your solution.
-            </h2>
-            <p className="max-w-2xl text-sm leading-6 text-text-light">
-              The stronger the context you provide, the better the final note
-              reads. Add your accepted code and any personal observations you
-              want included.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-          <div className="rounded-2xl border border-border-default bg-bg-surface p-5 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
-              What to include
-            </p>
-            <p className="mt-2 text-sm leading-6 text-text-light">
-              Add the original problem link, choose the language used in your
-              solution, and paste the final code version you want explained.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-border-default bg-bg-surface p-5 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
-              Best results
-            </p>
-            <p className="mt-2 text-sm leading-6 text-text-light">
-              Use custom notes to mention tricky cases, alternative ideas, or
-              why you chose this approach.
-            </p>
-          </div>
-        </div>
-      </section>
-
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.4fr]">
         <section className="w-full rounded-2xl border border-border-default bg-bg-surface p-5 sm:p-6 space-y-5 shadow-card">
           <div className="space-y-1 border-b border-border-default pb-4">

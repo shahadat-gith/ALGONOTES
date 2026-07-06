@@ -3,7 +3,7 @@ import { llm } from "./llm.js"
 
 const TEMPERATURE = 0.2;
 
-const MODEL = "google/gemma-4-31b-it:free"
+const MODEL = env.OPENROUTER_MODEL;
 
 export const generateContent = async ({ system, prompt, json = false }) => {
   const response = await llm.chat.send({

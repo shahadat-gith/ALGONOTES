@@ -186,45 +186,6 @@ const TheoryGenerator = () => {
         </div>
       </div>
 
-      <section className="grid gap-4 lg:grid-cols-[1.35fr_0.9fr]">
-        <div className="rounded-2xl border border-border-default bg-gradient-to-br from-bg-surface via-bg-surface to-primary/5 p-6 shadow-card">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-            <BookOpenText size={12} className="stroke-[2.2]" />
-            <span>Concept-first workflow</span>
-          </div>
-          <div className="mt-4 space-y-3">
-            <h2 className="text-xl font-semibold tracking-tight text-text-main">
-              Start with a topic, then shape the result with your own instructions.
-            </h2>
-            <p className="max-w-2xl text-sm leading-6 text-text-light">
-              Use this page to create clean theory notes, revision blueprints,
-              or topic explainers that follow your preferred structure.
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-          <div className="rounded-2xl border border-border-default bg-bg-surface p-5 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
-              Suggested use
-            </p>
-            <p className="mt-2 text-sm leading-6 text-text-light">
-              Add the concept name, choose a language if code examples matter,
-              and describe the exact depth or sections you want covered.
-            </p>
-          </div>
-          <div className="rounded-2xl border border-border-default bg-bg-surface p-5 shadow-card">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
-              Prompt polish
-            </p>
-            <p className="mt-2 text-sm leading-6 text-text-light">
-              If your requirements are rough, use the AI polish action to
-              rewrite them into a clearer instruction set before generating.
-            </p>
-          </div>
-        </div>
-      </section>
-
       <div className="w-full bg-bg-surface border border-border-default rounded-2xl p-5 sm:p-6 space-y-6 shadow-xs mb-6">
         <div className="flex justify-between gap-1 border-b border-border-default pb-4">
           <div>
