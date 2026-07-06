@@ -56,7 +56,7 @@ const footerQuicklinks = [
 
 const Footer = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [currentVersion] = useState("v1.0.1");
+  const [currentVersion] = useState("v1.0.2");
 
   useEffect(() => {
     const fetchLastUpdate = async () => {

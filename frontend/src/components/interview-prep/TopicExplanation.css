@@ -23,14 +23,67 @@
 
 .custom-sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--color-border-strong);
+}/* ===========================================================
+   Main content target for scroll-to-top
+=========================================================== */
+
+.topic-explanation-main {
+  scroll-behavior: smooth;
 }
 
 /* ===========================================================
-   Explanation Sections
+   GFG-Style Explanation Article
 =========================================================== */
 
-section[id] {
-  scroll-margin-top: 2rem;
+.explanation-article {
+  width: 100%;
+}
+
+.explanation-article-header {
+  margin-bottom: 3rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.explanation-section-content {
+  margin-bottom: 2.5rem;
+}
+
+/* ===========================================================
+   Section Navigation (Previous / Next)
+=========================================================== */
+
+.explanation-nav {
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border-default);
+}
+
+.explanation-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  color: var(--color-text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.explanation-nav-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+
+.explanation-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 /* ===========================================================
@@ -49,15 +102,15 @@ section[id] {
 =========================================================== */
 
 .algonotes-prep-h3 {
-  margin: 1.75rem 0 0.75rem;
-  font-size: 1.4rem;
+  margin: 2rem 0 0.75rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: var(--color-text-main);
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .algonotes-prep-h4 {
-  margin: 1.25rem 0 0.5rem;
+  margin: 1.5rem 0 0.5rem;
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--color-primary);
@@ -69,9 +122,9 @@ section[id] {
 =========================================================== */
 
 .algonotes-prep-p {
-  color: var(--color-text-muted);
+  color: var(--color-text-light);
   font-size: 1rem;
-  line-height: 1.9;
+  line-height: 1.85;
   margin: 0;
 }
 
@@ -83,9 +136,9 @@ section[id] {
 .algonotes-prep-ol {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.5rem;
   padding-left: 1.5rem;
-  margin: 0.5rem 0;
+  margin: 0.75rem 0;
 }
 
 .algonotes-prep-ul {
@@ -97,7 +150,7 @@ section[id] {
 }
 
 .algonotes-prep-li {
-  color: var(--color-text-muted);
+  color: var(--color-text-light);
   font-size: 1rem;
   line-height: 1.8;
 }

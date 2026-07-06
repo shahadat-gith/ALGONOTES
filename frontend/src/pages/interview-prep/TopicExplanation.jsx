@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import {
   getTopic,
@@ -9,7 +10,6 @@ import {
 
 import useInterviewPrepPolling from "../../hooks/useInterviewPrepPolling";
 
-import Button from "../../components/common/Button";
 import EmptyState from "../../components/common/EmptyState";
 
 import ProcessingModal from "../../components/interview-prep/ProcessingModal";
@@ -17,12 +17,13 @@ import ErrorModal from "../../components/interview-prep/ErrorModal";
 import LanguageSelectModal from "../../components/interview-prep/LanguageSelectModal";
 
 import TopicExplanationLayout from "../../components/interview-prep/TopicExplanationLayout";
-import BlockRenderer from "../../components/interview-prep/BlockRenderer";
 
 import TopicExplanationSkeleton from "../../components/skeletons/TopicExplanationSkeleton";
+import ExplanationSection from "../../components/interview-prep/ExplanationSection";
 
 const TopicExplanation = () => {
   const { applicationId, topicId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const [topic, setTopic] = useState(null);
@@ -34,6 +35,49 @@ const TopicExplanation = () => {
   const [error, setError] = useState("");
 
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+
+  // Derive sections from explanation
+  const sections = useMemo(
+    () => explanation?.sections ?? [],
+    [explanation],
+  );
+
+  // Current section index derived from URL search param
+  const currentSectionIndex = useMemo(() => {
+    const sectionId = searchParams.get("section");
+    if (!sectionId || !sections.length) return 0;
+    const idx = sections.findIndex((s) => s.id === sectionId);
+    return idx >= 0 ? idx : 0;
+  }, [searchParams, sections]);
+
+  const currentSection = sections[currentSectionIndex];
+
+  // Navigate to a specific section by ID
+  const goToSection = useCallback(
+    (sectionId) => {
+      setSearchParams({ section: sectionId }, { replace: true });
+      // Scroll the main content area to top
+      const mainEl = document.querySelector(
+        ".topic-explanation-main",
+      );
+      if (mainEl) {
+        mainEl.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    },
+    [setSearchParams],
+  );
+
+  const goToPrevious = useCallback(() => {
+    if (currentSectionIndex > 0) {
+      goToSection(sections[currentSectionIndex - 1].id);
+    }
+  }, [currentSectionIndex, sections, goToSection]);
+
+  const goToNext = useCallback(() => {
+    if (currentSectionIndex < sections.length - 1) {
+      goToSection(sections[currentSectionIndex + 1].id);
+    }
+  }, [currentSectionIndex, sections, goToSection]);
 
   const fetchTopic = useCallback(
     async (showLoader = true) => {
@@ -52,7 +96,7 @@ const TopicExplanation = () => {
 
         setTopic(topic);
         setExplanation(explanation ?? null);
-        
+
         // Always derive the actual view status from the backend's active entry
         setStatus(explanation?.status ?? "unrequested");
       } catch (err) {
@@ -79,7 +123,7 @@ const TopicExplanation = () => {
     onFailed: async (data) => {
       setGenerating(false);
       setError(data.failureReason || "Explanation generation failed.");
-      // Ensure local component status mirrors the new failure state 
+      // Ensure local component status mirrors the new failure state
       setStatus("failed");
       await fetchTopic(false);
     },
@@ -110,7 +154,7 @@ const TopicExplanation = () => {
 
     try {
       setGenerating(true);
-      setError(""); // Clear historical failed run outputs 
+      setError(""); // Clear historical failed run outputs
 
       const res = await requestExplanation(topicId, codeLanguage);
 
@@ -133,8 +177,8 @@ const TopicExplanation = () => {
 
   const hasExplanation =
     status === "completed" &&
-    explanation?.sections?.length > 0 &&
-    explanation.sections.some((s) => s.blocks?.length > 0);
+    sections.length > 0 &&
+    sections.some((s) => s.blocks?.length > 0);
 
   if (loading) {
     return <TopicExplanationSkeleton />;
@@ -152,22 +196,16 @@ const TopicExplanation = () => {
 
   return (
     <>
-      <TopicExplanationLayout toc={explanation?.tableOfContents || []}>
+      <TopicExplanationLayout
+        toc={explanation?.tableOfContents || []}
+        activeSection={currentSection?.id ?? ""}
+        onNavigate={goToSection}
+      >
         {hasExplanation ? (
-          <div className="w-full rounded-2xl border border-border-default bg-bg-surface p-6 shadow-card space-y-10 sm:p-8">
-            <div className="border-b border-border-default/40 pb-5">
+          <article className="explanation-article">
+            <header className="explanation-article-header">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <span className="text-sm font-bold">
-                    {String(topic.order ?? 1).padStart(2, "0")}
-                  </span>
-                </div>
-
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-text-muted">
-                    Interview Topic
-                  </p>
-
                   <h1 className="text-2xl font-bold tracking-tight text-text-main">
                     {topic.title}
                   </h1>
@@ -179,31 +217,73 @@ const TopicExplanation = () => {
                   {topic.reason}
                 </p>
               )}
-            </div>
 
-            {explanation.sections.map((section) => (
-              <section key={section.id} id={section.id} className="scroll-mt-8">
-                <h2 className="mb-5 border-l-2 border-primary/40 pl-3 text-lg font-semibold tracking-tight text-text-main">
-                  {section.title}
-                </h2>
+              {/* Section progress indicator */}
+              <p className="mt-4 text-xs text-text-muted">
+                Section {currentSectionIndex + 1} of {sections.length}
+              </p>
+            </header>
 
-                <div className="animate-fade-in space-y-2">
-                  {section.blocks.map((block) => (
-                    <BlockRenderer key={block.id} block={block} />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
+            {currentSection && (
+              <ExplanationSection key={currentSection.id} section={currentSection} />
+            )}
+
+            {/* Previous / Next Navigation */}
+            <nav className="explanation-nav">
+              <button
+                type="button"
+                onClick={goToPrevious}
+                disabled={currentSectionIndex === 0}
+                className="explanation-nav-btn"
+              >
+                <ChevronLeft size={16} className="stroke-[2]" />
+                <span className="flex flex-col items-start">
+                  <span className="text-[10px] uppercase tracking-wider text-text-muted">
+                    Previous
+                  </span>
+                  <span className="text-sm font-medium">
+                    {currentSectionIndex > 0
+                      ? sections[currentSectionIndex - 1].title
+                      : ""}
+                  </span>
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={goToNext}
+                disabled={currentSectionIndex === sections.length - 1}
+                className="explanation-nav-btn ml-auto text-right"
+              >
+                <span className="flex flex-col items-end">
+                  <span className="text-[10px] uppercase tracking-wider text-text-muted">
+                    Next
+                  </span>
+                  <span className="text-sm font-medium">
+                    {currentSectionIndex < sections.length - 1
+                      ? sections[currentSectionIndex + 1].title
+                      : ""}
+                  </span>
+                </span>
+                <ChevronRight size={16} className="stroke-[2]" />
+              </button>
+            </nav>
+          </article>
         ) : (
           <EmptyState
-            title={status === "failed" ? "Generation Failed" : "No explanation generated yet"}
+            title={
+              status === "failed"
+                ? "Generation Failed"
+                : "No explanation generated yet"
+            }
             description={
-              status === "failed" 
-                ? "There was an error generating this guide. Click below to retry." 
+              status === "failed"
+                ? "There was an error generating this guide. Click below to retry."
                 : "Generate a comprehensive interview guide tailored to this topic."
             }
-            actionText={status === "failed" ? "Retry Generation" : "Generate Explanation"}
+            actionText={
+              status === "failed" ? "Retry Generation" : "Generate Explanation"
+            }
             onAction={handleGenerateClick}
           />
         )}

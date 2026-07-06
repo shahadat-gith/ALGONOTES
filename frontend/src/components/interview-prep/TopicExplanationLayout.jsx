@@ -1,51 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Menu } from "lucide-react";
 
 import Glow from "../common/Glow";
 
 import "./TopicExplanation.css";
 
-const TopicExplanationLayout = ({ toc = [], children }) => {
-  const [activeSection, setActiveSection] = useState("");
-
-  useEffect(() => {
-    if (!toc.length) return;
-
-    const observer = new IntersectionObserver((entries) => {
-        const visible = entries.find((entry) => entry.isIntersecting);
-
-        if (visible) {
-          setActiveSection(visible.target.id);
-        }
-      },
-      {
-        rootMargin: "-20% 0px -70% 0px",
-        threshold: 0.1,
-      },
-    );
-
-    toc.forEach((item) => {
-      const element = document.getElementById(item.id);
-
-      if (element) {
-        observer.observe(element);
-      }
-    });
-
-    return () => observer.disconnect();
-  }, [toc]);
-
-  const handleScroll = (id) => {
-    const section = document.getElementById(id);
-
-    if (!section) return;
-
-    section.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  };
-
+const TopicExplanationLayout = ({
+  toc = [],
+  activeSection = "",
+  onNavigate,
+  children,
+}) => {
   return (
     <div className="relative flex h-screen overflow-hidden bg-bg-base text-text-main">
       <Glow preset="subtle" />
@@ -65,10 +30,10 @@ const TopicExplanationLayout = ({ toc = [], children }) => {
             <button
               key={item.id}
               type="button"
-              onClick={() => handleScroll(item.id)}
+              onClick={() => onNavigate?.(item.id)}
               className={`cursor-pointer rounded-lg px-3 py-2 text-left text-sm transition-all ${
                 activeSection === item.id
-                  ? "border-l-2 border-primary bg-primary-soft pl-[10px] font-semibold text-primary"
+                  ? " bg-primary-soft pl-[10px] font-semibold text-primary"
                   : "text-text-muted hover:bg-bg-soft/40 hover:text-text-main"
               }`}
             >
@@ -78,7 +43,7 @@ const TopicExplanationLayout = ({ toc = [], children }) => {
         </nav>
       </aside>
 
-      <main className="custom-sidebar-scrollbar flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="topic-explanation-main custom-sidebar-scrollbar flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-[1000px] pb-16">{children}</div>
       </main>
     </div>

@@ -137,7 +137,7 @@ const TableBlock = ({ headers, rows }) => {
   if (!headers?.length || !rows?.length) return null;
 
   return (
-    <div className="my-6 overflow-x-auto rounded-xl border border-border-default">
+    <div className="my-6 overflow-x-auto">
       <table className="algonotes-prep-table">
         <thead>
           <tr className="algonotes-prep-tr">
