@@ -1,7 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const DELAYS = [5000, 8000, 12000, 18000, 25000];
-const MAX_TIMEOUT = 5 * 60 * 1000;
+/**
+ * useInterviewPrepPolling
+ *
+ * Polls a status endpoint with exponential backoff until the resource
+ * reaches a terminal state ("completed" or "failed") or times out.
+ *
+ * Usage:
+ *   const { startPolling, stopPolling, isPolling } = useInterviewPrepPolling({
+ *     checkStatus: async () => api.getStatus(id),
+ *     onCompleted: (data) => { ... },
+ *     onFailed:    (data) => { ... },
+ *     enabled: false,           // set true to auto-start on mount
+ *   });
+ */
+
+const BACKOFF = [3000, 5000, 8000, 12000, 18000, 25000];
+const MAX_WAIT = 5 * 60 * 1000; // 5 minutes
 
 export default function useInterviewPrepPolling({
   enabled = false,
@@ -9,122 +24,88 @@ export default function useInterviewPrepPolling({
   onCompleted,
   onFailed,
 }) {
-  const [status, setStatus] = useState(null);
-  const [failureReason, setFailureReason] = useState("");
   const [isPolling, setIsPolling] = useState(false);
 
-  const timerRef = useRef(null);
-  const timeoutRef = useRef(null);
-  const attemptRef = useRef(0);
-  const stoppedRef = useRef(false);
+  // Refs keep timers and latest callbacks without re-render churn
+  const pollTimer    = useRef(null);
+  const timeoutTimer = useRef(null);
+  const attempt      = useRef(0);
+  const dead         = useRef(true);      // true = "do nothing"
 
-  // Store callbacks in refs to avoid re-creating poll/startPolling
-  // on every parent re-render, which would accidentally trigger the
-  // useEffect cleanup and stop polling.
-  const checkStatusRef = useRef(checkStatus);
-  const onCompletedRef = useRef(onCompleted);
-  const onFailedRef = useRef(onFailed);
+  const checkRef  = useRef(checkStatus);
+  const doneRef   = useRef(onCompleted);
+  const failRef   = useRef(onFailed);
+  useEffect(() => { checkRef.current = checkStatus; });
+  useEffect(() => { doneRef.current  = onCompleted; });
+  useEffect(() => { failRef.current  = onFailed; });
 
-  useEffect(() => {
-    checkStatusRef.current = checkStatus;
-    onCompletedRef.current = onCompleted;
-    onFailedRef.current = onFailed;
-  });
-
-  const stopPolling = useCallback(() => {
-    stoppedRef.current = true;
-
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-
-    attemptRef.current = 0;
+  /** Cancel any scheduled polls and reset. Stable – only uses refs. */
+  const stop = useCallback(() => {
+    dead.current = true;
+    clearTimeout(pollTimer.current);
+    clearTimeout(timeoutTimer.current);
+    pollTimer.current = null;
+    timeoutTimer.current = null;
+    attempt.current = 0;
     setIsPolling(false);
   }, []);
 
-  const poll = useCallback(async () => {
-    if (stoppedRef.current) return;
-
-    try {
-      const res = await checkStatusRef.current();
-
-      if (!res?.success) {
-        throw new Error(res?.message || "Polling failed.");
-      }
-
-      const pollData = res.data || res;
-
-      setStatus(pollData.status);
-      setFailureReason(pollData.failureReason || "");
-
-      if (pollData.status === "completed") {
-        stopPolling();
-        onCompletedRef.current?.(pollData);
-        return;
-      }
-
-      if (pollData.status === "failed") {
-        stopPolling();
-        onFailedRef.current?.(pollData);
-        return;
-      }
-
-      const delay = DELAYS[Math.min(attemptRef.current, DELAYS.length - 1)];
-
-      attemptRef.current++;
-
-      timerRef.current = setTimeout(poll, delay);
-    } catch (error) {
-      stopPolling();
-
-      onFailedRef.current?.({
-        status: "failed",
-        failureReason: error.message,
-      });
-    }
-  }, [stopPolling]);
-
-  const startPolling = useCallback(() => {
-    stopPolling();
-
-    stoppedRef.current = false;
-    attemptRef.current = 0;
-
-    setStatus("processing");
-    setFailureReason("");
+  /** Start polling (or restart if already running). Stable – depends only on `stop`. */
+  const start = useCallback(() => {
+    stop();            // ditch any previous run
+    dead.current = false;
+    attempt.current = 0;
     setIsPolling(true);
+
+    // Recursive check loop with backoff
+    const poll = async () => {
+      if (dead.current) return;
+
+      try {
+        const res = await checkRef.current();
+        if (!res?.success) throw new Error(res?.message || "Polling failed.");
+
+        const d = res.data || res;
+
+        if (d.status === "completed") {
+          stop();
+          doneRef.current?.(d);
+          return;
+        }
+
+        if (d.status === "failed") {
+          stop();
+          failRef.current?.(d);
+          return;
+        }
+
+        // Schedule next attempt with backoff
+        const idx = Math.min(attempt.current, BACKOFF.length - 1);
+        attempt.current += 1;
+        pollTimer.current = setTimeout(poll, BACKOFF[idx]);
+      } catch (err) {
+        stop();
+        failRef.current?.({ status: "failed", failureReason: err.message });
+      }
+    };
 
     poll();
 
-    timeoutRef.current = setTimeout(() => {
-      stopPolling();
-
-      onFailedRef.current?.({
+    // Hard timeout – give up if we've been polling too long
+    timeoutTimer.current = setTimeout(() => {
+      stop();
+      failRef.current?.({
         status: "failed",
         failureReason: "The request timed out. Please try again.",
       });
-    }, MAX_TIMEOUT);
-  }, [poll, stopPolling]);
+    }, MAX_WAIT);
+  }, [stop]);
 
+  // Auto-start when `enabled` toggles
   useEffect(() => {
-    if (enabled) {
-      startPolling();
-    }
+    if (enabled) start();
+    return stop;
+  }, [enabled, start, stop]);
 
-    return stopPolling;
-  }, [enabled]);
-
-  return {
-    status,
-    failureReason,
-    isPolling,
-    startPolling,
-    stopPolling,
-  };
+  return { isPolling, startPolling: start, stopPolling: stop };
 }

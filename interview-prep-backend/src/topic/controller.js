@@ -151,8 +151,11 @@ export const checkExplanationStatus = async (req, res, next) => {
 
     if (!explanation) {
       return res.status(200).json({
-        success: false,
-        message: "Explanation data not found",
+        success: true,
+        data: {
+          status: "unrequested",
+          failureReason: "",
+        },
       });
     }
 

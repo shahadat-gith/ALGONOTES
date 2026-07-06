@@ -126,7 +126,7 @@ const Dashboard = () => {
 
       {applications.length === 0 ? (
         <EmptyState
-          title="No apllication yet"
+          title="No applications yet"
           description="Create your first interview preparation by uploading your resume and a job description."
         />
       ) : (
