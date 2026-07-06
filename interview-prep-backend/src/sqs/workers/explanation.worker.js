@@ -4,7 +4,7 @@ import { SYSTEM_PROMPT, buildPrompt } from "../../prompts/explanation.js";
 import { Topic } from "../../topic/topic.model.js";
 import { Explanation } from "../../topic/explanation.model.js";
 
-export const processExplanationJob = async (topicId) => {
+export const processExplanationJob = async ({ topicId, codeLanguage }) => {
   try {
     const topic = await Topic.findById(topicId).populate("application").lean();
 
@@ -40,12 +40,14 @@ export const processExplanationJob = async (topicId) => {
     const response = await generateContent({
       system: SYSTEM_PROMPT,
       prompt: buildPrompt({
+        company: application.company,
         role: application.role,
         topic: {
           title: topic.title,
           priority: topic.priority,
           reason: topic.reason,
         },
+        codeLanguage,
       }),
       json: true,
     });

@@ -11,15 +11,15 @@ import Badge from "../common/Badge";
 import Button from "../common/Button";
 
 const priorityConfig = {
-  High: {
+  high: {
     variant: "danger",
     icon: Target,
   },
-  Medium: {
+  medium: {
     variant: "warning",
     icon: FlaskConical,
   },
-  Low: {
+  low: {
     variant: "secondary",
     icon: Lightbulb,
   },
@@ -29,7 +29,8 @@ const TopicCard = ({ topic }) => {
   const navigate = useNavigate();
   const { id: applicationId } = useParams();
 
-  const config = priorityConfig[topic.priority] || priorityConfig.Medium;
+  const priorityKey = (topic.priority || "medium").toLowerCase();
+  const config = priorityConfig[priorityKey] || priorityConfig.medium;
   const PriorityIcon = config.icon;
 
   return (

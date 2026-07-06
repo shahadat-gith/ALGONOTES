@@ -14,8 +14,10 @@ import EmptyState from "../../components/common/EmptyState";
 
 import ProcessingModal from "../../components/interview-prep/ProcessingModal";
 import ErrorModal from "../../components/interview-prep/ErrorModal";
+import LanguageSelectModal from "../../components/interview-prep/LanguageSelectModal";
 
 import TopicExplanationLayout from "../../components/interview-prep/TopicExplanationLayout";
+import BlockRenderer from "../../components/interview-prep/BlockRenderer";
 
 import TopicExplanationSkeleton from "../../components/skeletons/TopicExplanationSkeleton";
 
@@ -31,6 +33,8 @@ const TopicExplanation = () => {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState("");
+
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const fetchTopic = useCallback(
     async (showLoader = true) => {
@@ -92,16 +96,20 @@ const TopicExplanation = () => {
     }
   }, [status, startPolling]);
 
-  
+  const handleGenerateClick = () => {
+    setShowLanguageModal(true);
+  };
 
-  const handleGenerate = async () => {
+  const handleLanguageSelect = async (codeLanguage) => {
+    setShowLanguageModal(false);
+
     if (generating) return;
 
     try {
       setGenerating(true);
       setError("");
 
-      const res = await requestExplanation(topicId);
+      const res = await requestExplanation(topicId, codeLanguage);
 
       if (!res?.success) {
         throw new Error(
@@ -119,7 +127,9 @@ const TopicExplanation = () => {
 
   const isProcessing = generating || status === "processing";
 
-  const hasExplanation = explanation?.sections?.length > 0;
+  const hasExplanation =
+    explanation?.sections?.length > 0 &&
+    explanation.sections.some((s) => s.blocks?.length > 0);
 
   if (loading) {
     return <TopicExplanationSkeleton />;
@@ -167,21 +177,16 @@ const TopicExplanation = () => {
             </div>
 
             {explanation.sections.map((section) => (
-              <section
-                key={section.id}
-                id={section.id}
-                className="scroll-mt-8 border-b border-border-default/40 pb-8 last:border-0 last:pb-0"
-              >
+              <section key={section.id} id={section.id} className="scroll-mt-8">
                 <h2 className="mb-5 border-l-2 border-primary/40 pl-3 text-lg font-semibold tracking-tight text-text-main">
                   {section.title}
                 </h2>
 
-                <div
-                  className="animate-fade-in"
-                  dangerouslySetInnerHTML={{
-                    __html: section.content,
-                  }}
-                />
+                <div className="animate-fade-in space-y-2">
+                  {section.blocks.map((block) => (
+                    <BlockRenderer key={block.id} block={block} />
+                  ))}
+                </div>
               </section>
             ))}
           </div>
@@ -190,10 +195,17 @@ const TopicExplanation = () => {
             title="No explanation generated yet"
             description="Generate a comprehensive interview guide tailored to this topic."
             actionText="Generate Explanation"
-            onAction={handleGenerate}
+            onAction={handleGenerateClick}
           />
         )}
       </TopicExplanationLayout>
+
+      {showLanguageModal && (
+        <LanguageSelectModal
+          onSelect={handleLanguageSelect}
+          onClose={() => setShowLanguageModal(false)}
+        />
+      )}
 
       {error && (
         <ErrorModal

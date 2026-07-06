@@ -61,9 +61,10 @@ export const getTopic = async (topicId) => {
 // Explanations
 // ============================
 
-export const requestExplanation = async (topicId) => {
+export const requestExplanation = async (topicId, codeLanguage) => {
   const { data } = await api.post(
-    `/api/topics/explanation/${topicId}`
+    `/api/topics/explanation/${topicId}`,
+    { codeLanguage }
   );
 
   return data;

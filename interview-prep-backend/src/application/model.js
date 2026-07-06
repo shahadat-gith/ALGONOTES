@@ -33,25 +33,8 @@ const AnalysisSchema = new Schema(
     },
 
     missingSkills: {
-      technical: {
-        type: [String],
-        default: [],
-      },
-
-      tools: {
-        type: [String],
-        default: [],
-      },
-
-      concepts: {
-        type: [String],
-        default: [],
-      },
-
-      softSkills: {
-        type: [String],
-        default: [],
-      },
+      type: [String],
+      default: [],
     },
 
     recommendations: {

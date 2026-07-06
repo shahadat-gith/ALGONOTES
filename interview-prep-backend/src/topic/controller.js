@@ -5,6 +5,7 @@ import { publishMessage } from "../sqs/publishers.js";
 export const generateExplanation = async (req, res, next) => {
   try {
     const { topicId } = req.params;
+    const { codeLanguage } = req.body || {};
 
     const topic = await Topic.findById(topicId);
 
@@ -54,6 +55,7 @@ export const generateExplanation = async (req, res, next) => {
     await publishMessage({
       jobType: "generate-explanation",
       topicId,
+      codeLanguage,
     });
 
     return res.status(202).json({
