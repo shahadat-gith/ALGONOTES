@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 
@@ -10,7 +10,6 @@ import { useAuth } from "../../context/AuthContext";
 import { getSafeNextPath } from "../../utils/authRedirect";
 
 const Login = () => {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login, isAuthenticated } = useAuth();
   const nextPath = getSafeNextPath(searchParams.get("next"), "/");
@@ -55,7 +54,6 @@ const Login = () => {
       if (data.success) {
         login(data.token, data.user);
         toast.success(data.message || "Login successful");
-        navigate(nextPath, { replace: true });
       }
     } catch (error) {
       const errMsg = error.response?.data?.detail || error.response?.data?.message;
