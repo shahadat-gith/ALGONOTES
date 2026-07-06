@@ -92,6 +92,8 @@ const TopicExplanation = () => {
     }
   }, [status, startPolling]);
 
+  
+
   const handleGenerate = async () => {
     if (generating) return;
 
@@ -108,8 +110,6 @@ const TopicExplanation = () => {
       }
 
       setStatus("processing");
-
-      startPolling();
     } catch (err) {
       setGenerating(false);
 
@@ -125,19 +125,15 @@ const TopicExplanation = () => {
     return <TopicExplanationSkeleton />;
   }
 
-
   if (!topic && !loading) {
-  return (
-    <div className="w-full max-w-[1400px] mx-auto px-4 py-10 min-h-screen">
-      <div className="flex flex-col items-center justify-center min-h-[40vh] space-y-4">
-        <p className="text-sm text-text-muted">
-          Topic not found.
-        </p>
+    return (
+      <div className="w-full max-w-[1400px] mx-auto px-4 py-10 min-h-screen">
+        <div className="flex flex-col items-center justify-center min-h-[40vh] space-y-4">
+          <p className="text-sm text-text-muted">Topic not found.</p>
+        </div>
       </div>
-    </div>
-  );
-}
-
+    );
+  }
 
   return (
     <>

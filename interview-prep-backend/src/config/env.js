@@ -1,5 +1,6 @@
-import dotenv from 'dotenv';
-dotenv.config();
+import { config } from "dotenv"
+
+config()
 
 export const env = {
   PORT: process.env.PORT || 5001,
@@ -10,7 +11,6 @@ export const env = {
   DATABASE_URL: process.env.DATABASE_URL,
 
   SQS_QUEUE_URL: process.env.SQS_QUEUE_URL,
-
 
   HF_TOKEN: process.env.HF_TOKEN,
   HF_MODEL: process.env.HF_MODEL,

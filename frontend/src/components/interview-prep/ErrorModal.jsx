@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Loader2, RefreshCcw, Trash2, XCircle } from "lucide-react";
+import { Loader2, Clock, XCircle } from "lucide-react";
 
 import {
   deleteApplication,
@@ -55,8 +55,8 @@ const ErrorModal = ({ title, error, type, resourceId, onClose, onDelete }) => {
             </>
           ) : (
             <>
-              <RefreshCcw size={16} />
-              try again!
+              <Clock size={16} />
+              Try Later
             </>
           )}
         </button>

@@ -25,7 +25,6 @@ const AnalyseResume = () => {
   const [jobDescription, setJobDescription] = useState("");
   const [resumeFile, setResumeFile] = useState(null);
 
-  const loadingRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [applicationId, setApplicationId] = useState(null);
