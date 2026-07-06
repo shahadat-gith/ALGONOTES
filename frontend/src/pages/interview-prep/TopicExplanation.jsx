@@ -27,7 +27,6 @@ const TopicExplanation = () => {
 
   const [topic, setTopic] = useState(null);
   const [explanation, setExplanation] = useState(null);
-
   const [status, setStatus] = useState("unrequested");
 
   const [loading, setLoading] = useState(true);
@@ -53,6 +52,8 @@ const TopicExplanation = () => {
 
         setTopic(topic);
         setExplanation(explanation ?? null);
+        
+        // Always derive the actual view status from the backend's active entry
         setStatus(explanation?.status ?? "unrequested");
       } catch (err) {
         setError(err.message || "Failed to load topic.");
@@ -67,19 +68,19 @@ const TopicExplanation = () => {
 
   const { startPolling, stopPolling } = useInterviewPrepPolling({
     enabled: false,
-
     checkStatus: () => getExplanationStatus(topicId),
 
     onCompleted: async () => {
       setGenerating(false);
+      // Fetch the latest updated entry from the database
       await fetchTopic(false);
     },
 
     onFailed: async (data) => {
       setGenerating(false);
-
       setError(data.failureReason || "Explanation generation failed.");
-
+      // Ensure local component status mirrors the new failure state 
+      setStatus("failed");
       await fetchTopic(false);
     },
   });
@@ -93,8 +94,10 @@ const TopicExplanation = () => {
   useEffect(() => {
     if (status === "processing") {
       startPolling();
+    } else {
+      stopPolling();
     }
-  }, [status, startPolling]);
+  }, [status, startPolling, stopPolling]);
 
   const handleGenerateClick = () => {
     setShowLanguageModal(true);
@@ -103,11 +106,11 @@ const TopicExplanation = () => {
   const handleLanguageSelect = async (codeLanguage) => {
     setShowLanguageModal(false);
 
-    if (generating) return;
+    if (generating || status === "processing") return;
 
     try {
       setGenerating(true);
-      setError("");
+      setError(""); // Clear historical failed run outputs 
 
       const res = await requestExplanation(topicId, codeLanguage);
 
@@ -117,10 +120,11 @@ const TopicExplanation = () => {
         );
       }
 
+      // Explicitly shift status to processing to kick off useInterviewPrepPolling
       setStatus("processing");
     } catch (err) {
       setGenerating(false);
-
+      setStatus("failed");
       setError(err.message || "Could not generate explanation.");
     }
   };
@@ -128,6 +132,7 @@ const TopicExplanation = () => {
   const isProcessing = generating || status === "processing";
 
   const hasExplanation =
+    status === "completed" &&
     explanation?.sections?.length > 0 &&
     explanation.sections.some((s) => s.blocks?.length > 0);
 
@@ -154,7 +159,7 @@ const TopicExplanation = () => {
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <span className="text-sm font-bold">
-                    {String(topic.order).padStart(2, "0")}
+                    {String(topic.order ?? 1).padStart(2, "0")}
                   </span>
                 </div>
 
@@ -192,9 +197,13 @@ const TopicExplanation = () => {
           </div>
         ) : (
           <EmptyState
-            title="No explanation generated yet"
-            description="Generate a comprehensive interview guide tailored to this topic."
-            actionText="Generate Explanation"
+            title={status === "failed" ? "Generation Failed" : "No explanation generated yet"}
+            description={
+              status === "failed" 
+                ? "There was an error generating this guide. Click below to retry." 
+                : "Generate a comprehensive interview guide tailored to this topic."
+            }
+            actionText={status === "failed" ? "Retry Generation" : "Generate Explanation"}
             onAction={handleGenerateClick}
           />
         )}

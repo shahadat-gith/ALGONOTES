@@ -8,7 +8,6 @@ export const generateExplanation = async (req, res, next) => {
     const { codeLanguage } = req.body || {};
 
     const topic = await Topic.findById(topicId);
-
     if (!topic) {
       return res.status(404).json({
         success: false,
@@ -16,41 +15,29 @@ export const generateExplanation = async (req, res, next) => {
       });
     }
 
-    const explanation = await Explanation.findOne({ topic: topicId });
-
-    if (explanation?.status === "completed") {
-      return res.status(200).json({
-        success: true,
-        message: "Explanation already generated.",
-      });
+    // Guard against duplicate processing or rewriting completed data
+    const existingExplanation = await Explanation.findOne({ topic: topicId });
+    if (existingExplanation) {
+      if (existingExplanation.status === "completed") {
+        return res.status(200).json({
+          success: true,
+          message: "Explanation already generated.",
+        });
+      }
+      if (existingExplanation.status === "processing") {
+        return res.status(202).json({
+          success: true,
+          message: "Explanation is already being generated.",
+        });
+      }
     }
 
-    const updatedExplanation = await Explanation.findOneAndUpdate(
-      {
-        topic: topicId,
-        status: { $ne: "processing" },
-      },
-      {
-        $set: {
-          status: "processing",
-          failureReason: "",
-        },
-        $setOnInsert: {
-          topic: topicId,
-        },
-      },
-      {
-        upsert: true,
-        new: true,
-      },
-    );
-
-    if (updatedExplanation.status !== "processing") {
-      return res.status(202).json({
-        success: true,
-        message: "Explanation is already being generated.",
-      });
-    }
+    // Safe Initialization
+    await Explanation.create({
+      topic: topicId,
+      status: "processing",
+      failureReason: "",
+    });
 
     await publishMessage({
       jobType: "generate-explanation",
@@ -63,9 +50,56 @@ export const generateExplanation = async (req, res, next) => {
       message: "Explanation generation started.",
     });
   } catch (error) {
+    // Handle concurrent race conditions safely
+    if (error.code === 11000) {
+      return res.status(202).json({
+        success: true,
+        message: "Explanation is already being generated.",
+      });
+    }
     next(error);
   }
 };
+
+
+export const checkExplanationStatus = async (req, res, next) => {
+  try {
+    const { topicId } = req.params;
+
+    const topicExists = await Topic.exists({ _id: topicId });
+    if (!topicExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Topic not found.",
+      });
+    }
+
+    const explanation = await Explanation.findOne({ topic: topicId }).select(
+      "status failureReason",
+    );
+
+    if (!explanation) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          status: "unrequested",
+          failureReason: "",
+        },
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        status: explanation.status,
+        failureReason: explanation.failureReason || "",
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 export const getTopic = async (req, res, next) => {
   try {
@@ -135,43 +169,7 @@ export const getExplanation = async (req, res, next) => {
   }
 };
 
-export const checkExplanationStatus = async (req, res, next) => {
-  try {
-    const { topicId } = req.params;
 
-    const topicExists = await Topic.exists({ _id: topicId });
-    if (!topicExists) {
-      return res.status(404).json({
-        success: false,
-        message: "Topic not found.",
-      });
-    }
-
-    const explanation = await Explanation.findOne({ topic: topicId }).select(
-      "status failureReason",
-    );
-
-    if (!explanation) {
-      return res.status(200).json({
-        success: true,
-        data: {
-          status: "unrequested",
-          failureReason: "",
-        },
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      data: {
-        status: explanation.status,
-        failureReason: explanation.failureReason,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 export const deleteExplanation = async (req, res, next) => {
   try {
