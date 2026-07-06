@@ -4,6 +4,8 @@ import mermaid from "mermaid";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
+import { Lightbulb, AlertTriangle, Notebook } from "lucide-react";
+
 // Initialize mermaid once
 mermaid.initialize({
   startOnLoad: false,
@@ -48,13 +50,14 @@ let mermaidIdCounter = 0;
 
 const MermaidDiagram = ({ content, caption }) => {
   const containerRef = useRef(null);
-  const id = `mermaid-${++mermaidIdCounter}`;
+  // Ensure strict uniqueness across execution cycles
+  const idRef = useRef(`mermaid-${++mermaidIdCounter}`);
 
   useEffect(() => {
     if (!containerRef.current || !content) return;
 
     mermaid
-      .render(id, content)
+      .render(idRef.current, content)
       .then(({ svg }) => {
         if (containerRef.current) {
           containerRef.current.innerHTML = svg;
@@ -65,7 +68,7 @@ const MermaidDiagram = ({ content, caption }) => {
           containerRef.current.innerHTML = `<p class="text-sm text-danger">Failed to render diagram.</p>`;
         }
       });
-  }, [content, id]);
+  }, [content]);
 
   return (
     <div className="my-6 mermaid-diagram-container">
@@ -177,9 +180,9 @@ const SanitizedHtml = ({ html }) => {
 
 const blockTypeConfig = {
   text: { wrapperClass: "", icon: null },
-  tip: { wrapperClass: "algonotes-prep-tip", icon: "💡" },
-  warning: { wrapperClass: "algonotes-prep-warning", icon: "⚠️" },
-  note: { wrapperClass: "algonotes-prep-note", icon: "📝" },
+  tip: { wrapperClass: "algonotes-prep-tip", icon: Lightbulb },
+  warning: { wrapperClass: "algonotes-prep-warning", icon: AlertTriangle },
+  note: { wrapperClass: "algonotes-prep-note", icon: Notebook },
 };
 
 const BlockRenderer = ({ block }) => {
@@ -187,7 +190,6 @@ const BlockRenderer = ({ block }) => {
 
   const { type, title, content, metadata = {} } = block;
 
-  // Render based on block type
   switch (type) {
     case "diagram":
       return (
@@ -234,11 +236,17 @@ const BlockRenderer = ({ block }) => {
     case "warning":
     case "note": {
       const config = blockTypeConfig[type] || blockTypeConfig.text;
+      const IconComponent = config.icon;
+
       return (
         <div className={`my-5 ${config.wrapperClass}`}>
           {title && (
             <div className="mb-2 flex items-center gap-2">
-              {config.icon && <span className="text-base">{config.icon}</span>}
+              {IconComponent && (
+                <span className="shrink-0 mt-0.5">
+                  <IconComponent size={18} className="stroke-[2]" />
+                </span>
+              )}
               <h4 className="text-sm font-semibold text-text-main">{title}</h4>
             </div>
           )}

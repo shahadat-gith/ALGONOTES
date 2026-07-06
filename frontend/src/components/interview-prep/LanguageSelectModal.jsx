@@ -1,15 +1,21 @@
 import React from "react";
 import { Code2, X } from "lucide-react";
+// Import the brand icons you provided
+import { FaPython, FaJava } from "react-icons/fa";
+import { FaGolang } from "react-icons/fa6";
+import { BsJavascript, BsTypescript } from "react-icons/bs";
+import { TbBrandCpp, TbBrandCSharp } from "react-icons/tb";
+import { SiRust } from "react-icons/si";
 
 const LANGUAGES = [
-  { id: "javascript", label: "JavaScript", icon: "🟨" },
-  { id: "python", label: "Python", icon: "🐍" },
-  { id: "java", label: "Java", icon: "☕" },
-  { id: "cpp", label: "C++", icon: "⚡" },
-  { id: "typescript", label: "TypeScript", icon: "🔷" },
-  { id: "go", label: "Go", icon: "🔵" },
-  { id: "rust", label: "Rust", icon: "🦀" },
-  { id: "csharp", label: "C#", icon: "#⃣" },
+  { id: "javascript", label: "JavaScript", icon: BsJavascript, color: "hover:text-[#F7DF1E]" },
+  { id: "python", label: "Python", icon: FaPython, color: "hover:text-[#3776AB]" },
+  { id: "java", label: "Java", icon: FaJava, color: "hover:text-[#007396]" },
+  { id: "cpp", label: "C++", icon: TbBrandCpp, color: "hover:text-[#00599C]" },
+  { id: "typescript", label: "TypeScript", icon: BsTypescript, color: "hover:text-[#3178C6]" },
+  { id: "go", label: "Go", icon: FaGolang, color: "hover:text-[#00ADD8]" },
+  { id: "rust", label: "Rust", icon: SiRust, color: "hover:text-[#CE412B]" },
+  { id: "csharp", label: "C#", icon: TbBrandCSharp, color: "hover:text-[#239120]" },
 ];
 
 const LanguageSelectModal = ({ onSelect, onClose }) => {
@@ -39,19 +45,26 @@ const LanguageSelectModal = ({ onSelect, onClose }) => {
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          {LANGUAGES.map((lang) => (
-            <button
-              key={lang.id}
-              type="button"
-              onClick={() => onSelect(lang.id)}
-              className="flex items-center gap-3 rounded-xl border border-border-default bg-bg-base p-3.5 text-left transition hover:border-primary/30 hover:bg-primary-soft/30 cursor-pointer group"
-            >
-              <span className="text-lg">{lang.icon}</span>
-              <span className="text-sm font-medium text-text-main group-hover:text-primary transition-colors">
-                {lang.label}
-              </span>
-            </button>
-          ))}
+          {LANGUAGES.map((lang) => {
+            const IconComponent = lang.icon;
+            
+            return (
+              <button
+                key={lang.id}
+                type="button"
+                onClick={() => onSelect(lang.id)}
+                className="flex items-center gap-3 rounded-xl border border-border-default bg-bg-base p-3.5 text-left transition hover:border-primary/30 hover:bg-primary-soft/30 cursor-pointer group"
+              >
+                {/* Dynamically applying standard transition and custom brand hover color */}
+                <span className={`text-xl text-text-muted transition-colors duration-200 ${lang.color}`}>
+                  <IconComponent />
+                </span>
+                <span className="text-sm font-medium text-text-main group-hover:text-primary transition-colors duration-200">
+                  {lang.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         <button
