@@ -1,3 +1,7 @@
+Make these code changes?
+DOCUMENTATION.md
+
+md
 # 📚 ALGONOTES - Complete Documentation
 
 ## Table of Contents
@@ -34,53 +38,18 @@
 
 ### System Overview
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Frontend (React)                          │
-│              http://localhost:3000                           │
-└────────────┬────────────────────────────────┬────────────────┘
-             │                                │
-    ┌────────▼────────┐            ┌──────────▼──────────┐
-    │  Backend API    │            │ Interview Prep API  │
-    │  (Python/FastAPI)           │  (Node.js/Express)  │
-    │  :8000          │            │  :5000              │
-    └────────┬────────┘            └──────────┬──────────┘
-             │                                │
-    ┌────────▼────────────────────────────────▼────────┐
-    │          MongoDB Database                        │
-    │     (Shared Data Repository)                     │
-    └─────────────────────────────────────────────────┘
-             │
-    ┌────────▼──────────────┐
-    │   AWS SQS             │
-    │  (Job Queue)          │
-    └──────────────────────┘
-             │
-    ┌────────▼──────────────────────────┐
-    │  Background Workers                │
-    │  - Application Processing          │
-    │  - Topic Explanation Generation    │
-    └────────────────────────────────────┘
-```
+┌─────────────────────────────────────────────────────────────┐ │ Frontend (React) │ │ http://localhost:3000 │ └────────────┬────────────────────────────────┬────────────────┘ │ │ ┌────────▼────────┐ ┌──────────▼──────────┐ │ Backend API │ │ Interview Prep API │ │ (Python/FastAPI) │ (Node.js/Express) │ │ :8000 │ │ :5000 │ └────────┬────────┘ └──────────┬──────────┘ │ │ ┌────────▼────────────────────────────────▼────────┐ │ MongoDB Database │ │ (Shared Data Repository) │ └─────────────────────────────────────────────────┘ │ ┌────────▼──────────────┐ │ AWS SQS │ │ (Job Queue) │ └──────────────────────┘ │ ┌────────▼──────────────────────────┐ │ Background Workers │ │ - Application Processing │ │ - Topic Explanation Generation │ └────────────────────────────────────┘
+
+Code
 
 ### 1. Frontend Architecture (React)
 
 **Location**: `frontend/`
 
 #### Components Structure
-```
-src/
-├── pages/              # Page components
-├── components/         # Reusable UI components
-├── context/            # React context for global state
-├── constants/          # App-wide constants
-├── utils/              # Utility functions
-├── hooks/              # Custom React hooks
-├── services/           # API client services
-├── styles/             # CSS/Tailwind styles
-├── App.jsx             # Root component
-└── main.jsx            # React entry point
-```
+src/ ├── pages/ # Page components ├── components/ # Reusable UI components ├── context/ # React context for global state ├── constants/ # App-wide constants ├── utils/ # Utility functions ├── hooks/ # Custom React hooks ├── services/ # API client services ├── styles/ # CSS/Tailwind styles ├── App.jsx # Root component └── main.jsx # React entry point
+
+Code
 
 #### State Management
 - **React Context API** - Global app state
@@ -95,23 +64,9 @@ src/
 
 #### Architecture Pattern: Layered Architecture
 
-```
-HTTP Request
-    ↓
-Route Handler
-    ↓
-Validation (Schema)
-    ↓
-Authentication (Middleware)
-    ↓
-Service Logic
-    ↓
-Database Query (Model)
-    ↓
-Response (Schema)
-    ↓
-HTTP Response
-```
+HTTP Request ↓ Route Handler ↓ Validation (Schema) ↓ Authentication (Middleware) ↓ Service Logic ↓ Database Query (Model) ↓ Response (Schema) ↓ HTTP Response
+
+Code
 
 #### Key Components
 
@@ -123,15 +78,9 @@ HTTP Response
 - **Temp** - Temporary processing jobs
 
 **Routes** (`backend/app/routes/`)
-```
-auth.py           - Authentication endpoints
-notes.py          - Note CRUD operations
-theory.py         - Theory management
-analytics.py      - Analytics data
-prompt.py         - Prompt optimization
-leetcode.py       - LeetCode integration
-user.py           - User profile management
-```
+auth.py - Authentication endpoints notes.py - Note CRUD operations theory.py - Theory management analytics.py - Analytics data prompt.py - Prompt optimization leetcode.py - LeetCode integration user.py - User profile management
+
+Code
 
 **Services** (`backend/app/services/`)
 - **email.py** - Email sending
@@ -164,17 +113,11 @@ user.py           - User profile management
     "message": "Operation successful",
     "timestamp": "2024-01-01T12:00:00Z"
 }
-```
+3. Interview Prep Backend (Node.js/Express)
+Location: interview-prep-backend/
 
----
-
-### 3. Interview Prep Backend (Node.js/Express)
-
-**Location**: `interview-prep-backend/`
-
-#### Architecture: MVC with Job Queue & AWS SQS
-
-```
+Architecture: MVC with Job Queue & AWS SQS
+Code
 Routes (HTTP Endpoints)
     ↓
 Controllers (Request handling)
@@ -193,12 +136,9 @@ Background Workers
     ├── Application Worker
     ├── Topic Worker
     └── Explanation Worker
-```
-
-#### Core Modules
-
-##### Application Flow
-```
+Core Modules
+Application Flow
+Code
 1. User uploads Resume + Job Description
    ↓
 2. Create Application record (status: processing)
@@ -214,10 +154,8 @@ Background Workers
    └── Update application status to completed
    ↓
 5. Frontend polls or listens for completion
-```
-
-##### Topic Flow
-```
+Topic Flow
+Code
 1. User opens a topic for discussion
    ↓
 2. Check if explanation exists
@@ -231,10 +169,8 @@ Background Workers
    └── Save to database
    ↓
 4. User views prepared interview guide
-```
-
-##### Chat Flow
-```
+Chat Flow
+Code
 1. User sends message in topic discussion
    ↓
 2. Retrieve topic context & application details
@@ -246,11 +182,8 @@ Background Workers
 5. Save user message & assistant response
    ↓
 6. Return response to frontend
-```
-
-#### Key Directories
-
-```
+Key Directories
+Code
 interview-prep-backend/src/
 ├── ai/                      # AI integration & LLM calls
 ├── application/             # Application management
@@ -292,41 +225,35 @@ interview-prep-backend/src/
 │   └── response.js        # LLM response generation
 ├── app.js                  # Express app setup
 └── server.js               # Server entry point
-```
+File Descriptions
+app.js - Express application setup
 
-#### File Descriptions
-
-**app.js** - Express application setup
-```javascript
+JavaScript
 - CORS configuration for frontend domains
 - Body parser middleware
 - Route mounting
 - Error handler middleware
-```
+server.js - Server entry point
 
-**server.js** - Server entry point
-```javascript
+JavaScript
 - Database connection
 - Port configuration
 - Server start
-```
+lambda.js - AWS Lambda handler
 
-**lambda.js** - AWS Lambda handler
-```javascript
+JavaScript
 - Dual mode: HTTP requests & SQS messages
 - Serverless Express setup
 - SQS message dispatching
-```
+Database Connection (config/db.js)
 
-**Database Connection** (config/db.js)
-```javascript
+JavaScript
 - Mongoose connection management
 - Connection state checking
 - Error handling
-```
+Environment Configuration (config/env.js)
 
-**Environment Configuration** (config/env.js)
-```
+Code
 PORT                 - Server port
 DATABASE_URL         - MongoDB connection string
 SQS_QUEUE_URL        - AWS SQS queue URL
@@ -335,16 +262,11 @@ OPENROUTER_MODEL     - LLM model name
 CLOUDINARY_*         - Image hosting credentials
 QDRANT_*             - Vector database credentials
 JWT_SECRET           - Authentication secret
-```
+4. Database Layer (MongoDB)
+Collections Schema
+Applications Collection
 
----
-
-### 4. Database Layer (MongoDB)
-
-#### Collections Schema
-
-**Applications Collection**
-```javascript
+JavaScript
 {
   _id: ObjectId,
   user: ObjectId (ref: User),
@@ -373,10 +295,9 @@ JWT_SECRET           - Authentication secret
   createdAt: Date,
   updatedAt: Date
 }
-```
+Topics Collection
 
-**Topics Collection**
-```javascript
+JavaScript
 {
   _id: ObjectId,
   application: ObjectId (ref: Application),
@@ -388,10 +309,9 @@ JWT_SECRET           - Authentication secret
   createdAt: Date,
   updatedAt: Date
 }
-```
+Explanations Collection
 
-**Explanations Collection**
-```javascript
+JavaScript
 {
   _id: ObjectId,
   topic: ObjectId (ref: Topic, unique),
@@ -428,10 +348,9 @@ JWT_SECRET           - Authentication secret
   createdAt: Date,
   updatedAt: Date
 }
-```
+Chat Collection
 
-**Chat Collection**
-```javascript
+JavaScript
 {
   _id: ObjectId,
   topic: ObjectId (ref: Topic, unique),
@@ -448,58 +367,44 @@ JWT_SECRET           - Authentication secret
   createdAt: Date,
   updatedAt: Date
 }
-```
-
----
-
-## 💻 Technology Stack
-
-### Frontend
-- **React** 18+ - UI framework
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **Axios** - HTTP client
-- **React Router** - Navigation
-- **Context API** - State management
-
-### Backend (Python)
-- **FastAPI** - Web framework
-- **Pydantic** - Data validation
-- **MongoDB** - Database driver
-- **JWT** - Authentication
-- **Google Gemini** - AI integration
-- **Cloudinary** - Image hosting
-- **AWS SQS** - Message queue
-
-### Backend (Node.js)
-- **Express.js** - Web framework
-- **Mongoose** - MongoDB ODM
-- **OpenRouter SDK** - LLM API client
-- **Multer** - File upload handling
-- **JWT** - Authentication
-- **pdfjs-dist** - PDF parsing
-- **Serverless Express** - AWS Lambda support
-
-### Database
-- **MongoDB** - Document database
-- **Mongoose** - Object modeling
-
-### Infrastructure
-- **AWS SQS** - Message queue
-- **AWS Lambda** - Serverless compute
-- **Docker & Docker Compose** - Containerization
-- **MongoDB Atlas** - Cloud database (optional)
-
-### AI/ML
-- **OpenRouter API** - LLM provider (supports multiple models)
-- **Google Gemini** - AI model (Python backend)
-- **Qdrant** - Vector database (optional for embeddings)
-
----
-
-## 📁 Repository Structure
-
-```
+💻 Technology Stack
+Frontend
+React 18+ - UI framework
+Vite - Build tool
+Tailwind CSS - Styling
+Axios - HTTP client
+React Router - Navigation
+Context API - State management
+Backend (Python)
+FastAPI - Web framework
+Pydantic - Data validation
+MongoDB - Database driver
+JWT - Authentication
+Google Gemini - AI integration
+Cloudinary - Image hosting
+AWS SQS - Message queue
+Backend (Node.js)
+Express.js - Web framework
+Mongoose - MongoDB ODM
+OpenRouter SDK - LLM API client
+Multer - File upload handling
+JWT - Authentication
+pdfjs-dist - PDF parsing
+Serverless Express - AWS Lambda support
+Database
+MongoDB - Document database
+Mongoose - Object modeling
+Infrastructure
+AWS SQS - Message queue
+AWS Lambda - Serverless compute
+Docker & Docker Compose - Containerization
+MongoDB Atlas - Cloud database (optional)
+AI/ML
+OpenRouter API - LLM provider (supports multiple models)
+Google Gemini - AI model (Python backend)
+Qdrant - Vector database (optional for embeddings)
+📁 Repository Structure
+Code
 ALGONOTES/
 ├── frontend/                        # React frontend application
 │   ├── src/
@@ -550,22 +455,15 @@ ALGONOTES/
 ├── .gitignore
 ├── DOCUMENTATION.md                # This file
 └── README.md                       # Project overview
-```
-
----
-
-## 🚀 Setup Guide
-
-### Prerequisites
-- **Node.js** 20+ with npm
-- **Python** 3.8+
-- **Docker** & **Docker Compose** (optional)
-- **MongoDB** (local or Atlas)
-- **Git**
-
-### Option 1: Docker Compose (Recommended)
-
-```bash
+🚀 Setup Guide
+Prerequisites
+Node.js 20+ with npm
+Python 3.8+
+Docker & Docker Compose (optional)
+MongoDB (local or Atlas)
+Git
+Option 1: Docker Compose (Recommended)
+bash
 # Clone repository
 git clone https://github.com/shahadat-gith/ALGONOTES.git
 cd ALGONOTES
@@ -587,12 +485,9 @@ docker-compose up -d
 # Frontend: http://localhost:3000
 # Backend API: http://localhost:8000
 # Interview Prep API: http://localhost:5000
-```
-
-### Option 2: Local Development Setup
-
-#### Python Backend Setup
-```bash
+Option 2: Local Development Setup
+Python Backend Setup
+bash
 cd backend
 
 # Create virtual environment
@@ -614,10 +509,8 @@ cp .env.example .env
 # Run server
 python main.py
 # Backend available at http://localhost:8000
-```
-
-#### Node.js Interview Prep Backend Setup
-```bash
+Node.js Interview Prep Backend Setup
+bash
 cd interview-prep-backend
 
 # Install dependencies
@@ -636,10 +529,8 @@ npm run dev
 # Production mode
 npm start
 # Server available at http://localhost:5000
-```
-
-#### Frontend Setup
-```bash
+Frontend Setup
+bash
 cd frontend
 
 # Install dependencies
@@ -657,28 +548,19 @@ npm run dev
 
 # Production build
 npm run build
-```
-
----
-
-## 📡 API Documentation
-
-### Interview Prep Backend API
-
-#### Base URL
-- **Development**: `http://localhost:5000`
-- **Production**: Configure via environment
-
-#### Authentication
+📡 API Documentation
+Interview Prep Backend API
+Base URL
+Development: http://localhost:5000
+Production: Configure via environment
+Authentication
 All endpoints (except auth) require JWT token in header:
-```
+
+Code
 Authorization: Bearer <token>
-```
-
-### Application Endpoints
-
-#### Create Application
-```
+Application Endpoints
+Create Application
+Code
 POST /api/applications
 Content-Type: multipart/form-data
 
@@ -694,10 +576,8 @@ Response (202 Accepted):
   "message": "Application submitted successfully.",
   "applicationId": "507f1f77bcf86cd799439011"
 }
-```
-
-#### Get Applications
-```
+Get Applications
+Code
 GET /api/applications
 
 Response (200 OK):
@@ -715,10 +595,8 @@ Response (200 OK):
     }
   ]
 }
-```
-
-#### Get Application Status
-```
+Get Application Status
+Code
 GET /api/applications/:id/status
 
 Response (200 OK):
@@ -729,10 +607,8 @@ Response (200 OK):
     "failureReason": ""
   }
 }
-```
-
-#### Get Application Details
-```
+Get Application Details
+Code
 GET /api/applications/:id
 
 Response (200 OK):
@@ -751,10 +627,8 @@ Response (200 OK):
     ]
   }
 }
-```
-
-#### Delete Application
-```
+Delete Application
+Code
 DELETE /api/applications/:id
 
 Response (200 OK):
@@ -762,12 +636,9 @@ Response (200 OK):
   "success": true,
   "message": "Application deleted successfully."
 }
-```
-
-### Topic Endpoints
-
-#### Get Topic
-```
+Topic Endpoints
+Get Topic
+Code
 GET /api/topics/:topicId
 
 Response (200 OK):
@@ -778,10 +649,8 @@ Response (200 OK):
     "explanation": {...}
   }
 }
-```
-
-#### Generate Explanation
-```
+Generate Explanation
+Code
 POST /api/topics/:topicId/generate-explanation
 
 Body:
@@ -794,10 +663,8 @@ Response (202 Accepted):
   "success": true,
   "message": "Explanation generation started."
 }
-```
-
-#### Check Explanation Status
-```
+Check Explanation Status
+Code
 GET /api/topics/:topicId/explanation-status
 
 Response (200 OK):
@@ -808,10 +675,8 @@ Response (200 OK):
     "failureReason": ""
   }
 }
-```
-
-#### Get Explanation
-```
+Get Explanation
+Code
 GET /api/topics/:topicId/explanation
 
 Response (200 OK):
@@ -839,12 +704,9 @@ Response (200 OK):
     ]
   }
 }
-```
-
-### Chat Endpoints
-
-#### Get Chat History
-```
+Chat Endpoints
+Get Chat History
+Code
 GET /api/chat/:topicId
 
 Response (200 OK):
@@ -861,10 +723,8 @@ Response (200 OK):
     }
   ]
 }
-```
-
-#### Send Chat Message
-```
+Send Chat Message
+Code
 POST /api/chat/:topicId
 
 Body:
@@ -877,44 +737,30 @@ Response (200 OK):
   "success": true,
   "answer": "AI-generated response..."
 }
-```
+🗄️ Database Schema
+Indexes
+Applications Collection
 
----
-
-## 🗄️ Database Schema
-
-### Indexes
-
-**Applications Collection**
-```javascript
+JavaScript
 - user: 1, createdAt: -1    // For user's applications list
 - status: 1                  // For status-based queries
 - user: 1, status: 1        // Combined index
-```
+Topics Collection
 
-**Topics Collection**
-```javascript
+JavaScript
 - application: 1, order: 1  // For topic ordering within application
-```
+Chat Collection
 
-**Chat Collection**
-```javascript
+JavaScript
 - topic: 1 (unique)         // One chat per topic
-```
+Explanations Collection
 
-**Explanations Collection**
-```javascript
+JavaScript
 - topic: 1 (unique)         // One explanation per topic
-```
-
----
-
-## 🔧 Development Guide
-
-### Code Structure Best Practices
-
-#### Controllers (Request Handlers)
-```javascript
+🔧 Development Guide
+Code Structure Best Practices
+Controllers (Request Handlers)
+JavaScript
 // interview-prep-backend/src/application/controller.js
 export const createApplication = async (req, res, next) => {
   try {
@@ -928,10 +774,8 @@ export const createApplication = async (req, res, next) => {
     next(error); // Pass to error middleware
   }
 };
-```
-
-#### Background Workers
-```javascript
+Background Workers
+JavaScript
 // interview-prep-backend/src/sqs/workers/application.worker.js
 export const processApplicationJob = async (applicationId) => {
   try {
@@ -950,54 +794,38 @@ export const processApplicationJob = async (applicationId) => {
     throw error;
   }
 };
-```
-
-#### Service Pattern (Business Logic)
-```javascript
+Service Pattern (Business Logic)
+JavaScript
 // Services encapsulate business logic
 // Controllers call services
 // Services call models
 // Models interact with database
-```
-
-#### Error Handling
-```javascript
+Error Handling
+JavaScript
 // All async endpoints use try-catch
 // Errors passed to next() middleware
 // Middleware formats and returns standardized error response
-```
-
-### Adding New Features
-
-#### Step 1: Create Model
-```javascript
+Adding New Features
+Step 1: Create Model
+JavaScript
 // Define MongoDB schema
 const NewFeatureSchema = new Schema({...});
 export const NewFeature = mongoose.model("NewFeature", NewFeatureSchema);
-```
-
-#### Step 2: Create Controller
-```javascript
+Step 2: Create Controller
+JavaScript
 // Handle HTTP requests
 export const createNewFeature = async (req, res, next) => {...};
-```
-
-#### Step 3: Create Routes
-```javascript
+Step 3: Create Routes
+JavaScript
 // Map URLs to controllers
 router.post("/features", authenticate, createNewFeature);
-```
-
-#### Step 4: Add to App
-```javascript
+Step 4: Add to App
+JavaScript
 // Mount routes in app.js
 app.use("/api/features", featureRoutes);
-```
-
-### Testing
-
-#### Running Tests
-```bash
+Testing
+Running Tests
+bash
 # Backend
 cd interview-prep-backend
 npm test
@@ -1005,36 +833,27 @@ npm test
 # Frontend
 cd frontend
 npm test
-```
-
-#### Writing Tests
-```javascript
+Writing Tests
+JavaScript
 // Test async operations
 // Mock external services (LLM, SQS)
 // Test error handling
 // Test database operations
-```
-
----
-
-## 🚀 Deployment
-
-### Docker Deployment
-
-#### Build Images
-```bash
+🚀 Deployment
+Docker Deployment
+Build Images
+bash
 # Build all services
 docker-compose build
 
 # Build specific service
 docker-compose build interview-prep-backend
-```
+Environment Configuration
+Create .env files for each service:
 
-#### Environment Configuration
-Create `.env` files for each service:
+backend/.env
 
-**backend/.env**
-```env
+env
 ENVIRONMENT=production
 NODE_ENV=production
 PORT=5000
@@ -1043,12 +862,10 @@ JWT_SECRET=your_secret_key
 SQS_QUEUE_URL=https://sqs.region.amazonaws.com/account/queue
 OPENROUTER_API_KEY=your_api_key
 OPENROUTER_MODEL=openrouter/auto
-```
+AWS Deployment
+Lambda Setup
 
-#### AWS Deployment
-
-**Lambda Setup**
-```bash
+bash
 # The interview-prep-backend supports AWS Lambda via lambda.js
 # Package the application with dependencies
 npm install --production
@@ -1060,99 +877,72 @@ zip -r lambda-package.zip .
 # Set handler: src/lambda.handler
 # Configure environment variables
 # Set timeout: 300 seconds (for long-running jobs)
-```
+SQS Setup
 
-**SQS Setup**
-1. Create SQS queue
-2. Configure Dead Letter Queue (DLQ) for failed messages
-3. Set queue attributes:
-   - Message Retention: 14 days
-   - Visibility Timeout: 300 seconds
+Create SQS queue
+Configure Dead Letter Queue (DLQ) for failed messages
+Set queue attributes:
+Message Retention: 14 days
+Visibility Timeout: 300 seconds
+RDS/MongoDB Setup
 
-**RDS/MongoDB Setup**
-1. Deploy MongoDB instance
-2. Create database and collections
-3. Configure indexes
-4. Set connection string in environment
-
-### Scaling Considerations
-
-#### Horizontal Scaling
-- **Frontend**: Serve via CDN, multiple instances
-- **Backend APIs**: Load balance across instances
-- **SQS Workers**: Multiple Lambda concurrent executions
-
-#### Vertical Scaling
-- **Database**: Increase instance size, enable replication
-- **APIs**: Increase container/Lambda memory
-- **Workers**: Increase Lambda timeout if needed
-
-#### Performance Optimization
-- Add Redis for caching
-- Implement API rate limiting
-- Optimize database queries with indexes
-- Compress large responses
-- Implement pagination
-
----
-
-## 🤝 Contributing
-
-### Before Contributing
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Follow code style guidelines
-4. Write tests for new features
-5. Update documentation
-
-### Code Style
-- **JavaScript**: ESLint + Prettier
-- **Python**: Black + isort
-- **CSS**: Tailwind conventions
-
-### Commit Messages
-```
+Deploy MongoDB instance
+Create database and collections
+Configure indexes
+Set connection string in environment
+Scaling Considerations
+Horizontal Scaling
+Frontend: Serve via CDN, multiple instances
+Backend APIs: Load balance across instances
+SQS Workers: Multiple Lambda concurrent executions
+Vertical Scaling
+Database: Increase instance size, enable replication
+APIs: Increase container/Lambda memory
+Workers: Increase Lambda timeout if needed
+Performance Optimization
+Add Redis for caching
+Implement API rate limiting
+Optimize database queries with indexes
+Compress large responses
+Implement pagination
+🤝 Contributing
+Before Contributing
+Fork the repository
+Create a feature branch: git checkout -b feature/your-feature
+Follow code style guidelines
+Write tests for new features
+Update documentation
+Code Style
+JavaScript: ESLint + Prettier
+Python: Black + isort
+CSS: Tailwind conventions
+Commit Messages
+Code
 type(scope): description
 
 fix(auth): resolve JWT token expiration issue
 feat(chat): add message persistence
 docs(api): update endpoint documentation
-```
-
-### Pull Request Process
-1. Update README.md with any new information
-2. Add tests for new features
-3. Ensure all tests pass
-4. Request review from maintainers
-5. Address feedback and iterate
-
----
-
-## 📚 Additional Resources
-
-### Documentation Files
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Detailed technical architecture
-- [README.md](README.md) - Project overview and quick start
-
-### External Resources
-- [Express.js Docs](https://expressjs.com/)
-- [Mongoose Docs](https://mongoosejs.com/)
-- [MongoDB Docs](https://docs.mongodb.com/)
-- [OpenRouter API](https://openrouter.ai/)
-- [AWS SQS Docs](https://docs.aws.amazon.com/sqs/)
-- [React Docs](https://react.dev/)
-
----
-
-## 📞 Support
-
+Pull Request Process
+Update README.md with any new information
+Add tests for new features
+Ensure all tests pass
+Request review from maintainers
+Address feedback and iterate
+📚 Additional Resources
+Documentation Files
+ARCHITECTURE.md - Detailed technical architecture
+README.md - Project overview and quick start
+External Resources
+Express.js Docs
+Mongoose Docs
+MongoDB Docs
+OpenRouter API
+AWS SQS Docs
+React Docs
+📞 Support
 For issues, questions, or suggestions:
-1. Check existing issues
-2. Create a new issue with detailed description
-3. Contact the maintainers
 
----
-
-**Last Updated**: 2024
-**Version**: 1.0.0
-**Repository**: [ALGONOTES](https://github.com/shahadat-gith/ALGONOTES)
+Check existing issues
+Create a new issue with detailed description
+Contact the maintainers
