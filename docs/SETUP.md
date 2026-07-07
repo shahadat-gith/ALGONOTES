@@ -332,274 +332,9 @@ npm start
 
 ---
 
-## Environment Configuration
-
-### Backend Configuration Details
-
-#### Database
-```env
-# MongoDB connection string
-# Local: mongodb://localhost:27017/algonotes
-# Atlas: mongodb+srv://user:password@cluster.mongodb.net/algonotes?retryWrites=true
-DATABASE_URL=mongodb://localhost:27017/algonotes
-```
-
-#### Authentication
-```env
-# Strong secret key for JWT signing (generate: python -c "import secrets; print(secrets.token_urlsafe(32))")
-SECRET_KEY=your_super_secret_key_change_this
-
-# JWT algorithm
-ALGORITHM=HS256
-
-# Token expiration time
-JWT_EXPIRATION=7d
-```
-
-#### Google Gemini API
-```env
-# Get from https://ai.google.dev/
-GEMINI_API_KEY=AIzaSyD...
-
-# Optional: Model name
-GEMINI_MODEL=gemini-pro
-```
-
-#### Cloudinary
-```env
-# Get from https://cloudinary.com/
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=1234567890
-CLOUDINARY_API_SECRET=abcdefg123456
-
-# Optional: Upload preset
-CLOUDINARY_UPLOAD_PRESET=your_preset
-```
-
-#### AWS SQS (Production)
-```env
-# AWS region where SQS queue is created
-AWS_REGION=us-east-1
-
-# AWS credentials (create in IAM console)
-AWS_ACCESS_KEY_ID=AKIA...
-AWS_SECRET_ACCESS_KEY=...
-
-# SQS queue URL
-AWS_SQS_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/123456789/algonotes
-```
-
-#### Email Configuration (Optional)
-```env
-# For Gmail: generate app-specific password
-# See: https://support.google.com/accounts/answer/185833
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your_app_specific_password
-
-# Sender email address
-MAIL_FROM=noreply@algonotes.in
-
-# SMTP settings (Gmail example)
-MAIL_SERVER=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USE_TLS=true
-```
-
-#### CORS Configuration
-```env
-# Comma-separated list of allowed origins
-ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5000,https://algonotes.in
-```
-
-### Frontend Configuration Details
-
-```env
-# Backend API URL
-REACT_APP_BACKEND_URL=http://localhost:8000
-
-# Interview Prep Backend URL
-REACT_APP_INTERVIEW_PREP_URL=http://localhost:5000
-
-# Environment
-REACT_APP_ENVIRONMENT=development
-
-# Optional: Analytics/Monitoring
-REACT_APP_SENTRY_DSN=your_sentry_dsn
-```
-
-### Interview Prep Backend Configuration Details
-
-```env
-# Server port
-PORT=5000
-NODE_ENV=development
-
-# MongoDB connection
-DATABASE_URL=mongodb://localhost:27017/interview-prep
-
-# Redis connection for job queue
-REDIS_URL=redis://localhost:6379
-
-# JWT secret
-JWT_SECRET=your_jwt_secret
-
-# Gemini API
-GEMINI_API_KEY=your_gemini_key
-
-# Email configuration
-MAIL_USERNAME=your_email@gmail.com
-MAIL_PASSWORD=your_password
-```
-
----
-
-## Database Setup
-
-### MongoDB Local Setup
-
-#### macOS
-```bash
-# Using Homebrew
-brew tap mongodb/brew
-brew install mongodb-community
-brew services start mongodb-community
-
-# Verify
-mongo --version
-```
-
-#### Windows
-1. Download from: https://www.mongodb.com/try/download/community
-2. Run installer
-3. Select "Install MongoDB as a Service"
-4. Start service: `net start MongoDB`
-
-#### Linux (Ubuntu)
-```bash
-wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
-echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
-sudo apt-get update
-sudo apt-get install -y mongodb-org
-sudo systemctl start mongod
-```
-
-### Create Databases
-```bash
-# Connect to MongoDB
-mongo
-
-# Or using mongosh
-mongosh
-
-# Create databases
-use algonotes
-use interview-prep
-
-# Create initial collections
-db.users.insertOne({ initialized: true })
-db.notes.insertOne({ initialized: true })
-db.theories.insertOne({ initialized: true })
-```
-
-### MongoDB Atlas (Cloud Setup)
-
-1. Visit: https://www.mongodb.com/cloud/atlas
-2. Sign up for free account
-3. Create cluster
-4. Get connection string
-5. Add IP address to whitelist
-6. Use connection string in `DATABASE_URL`
-
----
-
-## Redis Setup
-
-### macOS
-```bash
-brew install redis
-brew services start redis
-redis-cli ping  # Should return PONG
-```
-
-### Windows
-1. Download from: https://github.com/microsoftarchive/redis/releases
-2. Extract and run `redis-server.exe`
-
-### Linux (Ubuntu)
-```bash
-sudo apt-get install redis-server
-sudo systemctl start redis-server
-redis-cli ping  # Should return PONG
-```
-
----
-
-## Running Services
-
-### All Services Running Checklist
-
-#### Terminal 1: Backend
-```bash
-cd backend
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
-python main.py
-# Should show: "Uvicorn running on http://0.0.0.0:8000"
-```
-
-#### Terminal 2: Frontend
-```bash
-cd frontend
-npm start
-# Should show: "Compiled successfully!" and open browser
-```
-
-#### Terminal 3: Interview Prep Backend
-```bash
-cd interview-prep-backend
-npm run dev
-# Should show: "Server running on port 5000"
-```
-
-### Service Status Verification
-
-```bash
-# Backend health check
-curl http://localhost:8000/health
-
-# Backend API docs
-open http://localhost:8000/docs
-
-# Frontend
-open http://localhost:3000
-
-# Interview prep
-curl http://localhost:5000/health
-```
-
----
-
-## Verification Checklist
-
-- [ ] Clone repository successfully
-- [ ] Created all .env files with valid keys
-- [ ] MongoDB is running locally or Atlas connected
-- [ ] Redis is running locally
-- [ ] Backend service started (port 8000)
-- [ ] Frontend service started (port 3000)
-- [ ] Interview Prep Backend started (port 5000)
-- [ ] Can access http://localhost:3000
-- [ ] Can access http://localhost:8000/docs
-- [ ] No errors in browser console
-- [ ] Can register a new account
-- [ ] Can generate a note (if AI keys configured)
-
----
-
 ## Troubleshooting
 
-### Common Issues
-
-#### MongoDB Connection Error
+### MongoDB Connection Error
 ```
 Error: MongoServerError: connect ECONNREFUSED 127.0.0.1:27017
 
@@ -610,7 +345,7 @@ Solution:
 # Start MongoDB: brew services start mongodb-community
 ```
 
-#### Port Already in Use
+### Port Already in Use
 ```
 Error: Address already in use :::8000
 
@@ -627,7 +362,7 @@ taskkill /PID <PID> /F  # On Windows
 python main.py --port 8001
 ```
 
-#### Python Virtual Environment Not Activating
+### Virtual Environment Issues
 ```
 Solution:
 # Make sure you're in the backend directory
@@ -645,22 +380,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-#### API Keys Not Working
-```
-Solution:
-1. Verify keys are correct (no extra spaces)
-2. Check keys haven't been revoked
-3. Ensure .env file is in correct directory
-4. Try restarting the service
-5. Check API quota/usage limits
-
-For Gmail App Password:
-- Enable 2-factor authentication on Gmail
-- Generate app-specific password
-- Use 16-character password without spaces
-```
-
-#### CORS Errors in Browser
+### CORS Errors
 ```
 Error: Access to XMLHttpRequest has been blocked by CORS policy
 
@@ -669,41 +389,6 @@ Solution:
 2. Check ALLOWED_ORIGINS in backend/.env includes http://localhost:3000
 3. Restart backend service
 4. Clear browser cache and cookies
-```
-
-#### Gemini API Errors
-```
-Error: 429 Resource has been exhausted
-
-Solution:
-1. Free tier has rate limits
-2. Upgrade to paid plan for higher limits
-3. Implement request queuing
-4. Add caching for responses
-
-Error: Invalid API key
-
-Solution:
-1. Verify key from https://ai.google.dev/
-2. Ensure key is correct in .env
-3. Check key hasn't expired
-4. Try generating new key
-```
-
-#### Docker Compose Issues
-```
-# See service logs
-docker-compose logs service_name
-
-# Rebuild containers
-docker-compose build --no-cache
-
-# Remove and recreate volumes
-docker-compose down -v
-docker-compose up -d
-
-# Check service status
-docker-compose ps
 ```
 
 ---
